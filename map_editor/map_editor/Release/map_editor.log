@@ -1,0 +1,17 @@
+﻿  main.cpp
+main.cpp(381): warning C4018: '<': signed/unsigned mismatch
+main.cpp(388): warning C4018: '<': signed/unsigned mismatch
+main.cpp(400): warning C4018: '<': signed/unsigned mismatch
+c:\users\sivert\desktop\big_project\current\map_editor\map_editor\Math.hpp(518): warning C4018: '<': signed/unsigned mismatch
+  main.cpp(289): note: see reference to function template instantiation 'Math::Graph::EdgeGraph<wykobi::point2d<float>> Math::Graph::makeEdgeGraphFromNodes<wykobi::point2d<float>>(std::vector<wykobi::point2d<float>,std::allocator<_Ty>> &,std::vector<std::pair<int,int>,std::allocator<std::pair<int,int>>> &)' being compiled
+          with
+          [
+              _Ty=wykobi::point2d<float>
+          ]
+c:\users\sivert\desktop\big_project\current\map_editor\map_editor\Math.hpp(521): warning C4018: '<': signed/unsigned mismatch
+  Generating code
+  0 of 1670 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  map_editor.vcxproj -> C:\Users\Sivert\Desktop\Big_Project\current\map_editor\Release\map_editor.exe
