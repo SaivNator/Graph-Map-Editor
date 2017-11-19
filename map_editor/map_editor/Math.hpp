@@ -13,6 +13,7 @@
 #include <sstream>
 #include <memory>
 #include <vector>
+#include <list>
 #include <iterator>
 
 //SFML
@@ -408,6 +409,22 @@ namespace Math {
 		}
 		return obj;
 	}
+	/*
+	Get relative angle
+	Input:
+		origin:	origin angle
+		target:	target angle
+	return:
+		how many degrees point relative
+	*/
+	template <typename T>
+	T getRelativeAngle(T origin, T target) {
+		T out = origin - target;
+		if (out < 0) {
+			out += 360;
+		}
+		return out;
+	}
 
 	namespace Graph {
 		/*
@@ -422,6 +439,7 @@ namespace Math {
 			public:
 				std::vector<Edge*> edges;
 				T obj;
+				int visited = 0;
 				void eraseEdge(Edge* e) {
 					edges.erase(std::find(edges.begin(), edges.end(), e));
 				}
@@ -430,6 +448,7 @@ namespace Math {
 			public:
 				Node* a;
 				Node* b;
+				int visited = 0;
 			};
 
 			std::vector<std::unique_ptr<Node>> nodes;
@@ -507,10 +526,10 @@ namespace Math {
 		/*
 		Make EdgeGraph from nodes
 		Input:
-		nodes:	vector of nodes
-		edges:	vector of edges (corresponds with index of nodes)
+			nodes:	vector of nodes
+			edges:	vector of edges (corresponds with index of nodes)
 		Return:
-		EdgeGraph<T>
+			EdgeGraph<T>
 		*/
 		template <typename T>
 		EdgeGraph<T> makeEdgeGraphFromNodes(std::vector<T> & nodes, std::vector<std::pair<int, int>> & edges) {
@@ -525,13 +544,14 @@ namespace Math {
 		}
 		/*
 		EdgeGraph<wykobi::point2d<T>> to vector of wykobi::segment<T, 2>
+		On a 2d plane
 		Input:
-		graph:	EdgeGraph<wykobi::point2d<T>>
+			graph:	EdgeGraph<wykobi::point2d<T>>
 		Return:
-		std::vector<wykobi::segment<T, 2>>
+			std::vector<wykobi::segment<T, 2>>
 		*/
-		template<typename T>
-		std::vector<wykobi::segment<T, 2>> getSegmentsFromEdgeGraph(EdgeGraph<wykobi::point2d<T>> & graph) {
+		template <typename T>
+		std::vector<wykobi::segment<T, 2>> getWykobiSegmentsFromEdgeGraph(EdgeGraph<wykobi::point2d<T>> & graph) {
 			std::vector<wykobi::segment<T, 2>> out_vec;
 			out_vec.reserve(graph.edges.size());
 			for (std::unique_ptr<EdgeGraph<wykobi::point2d<T>>::Edge> & pointer : graph.edges) {
@@ -540,7 +560,42 @@ namespace Math {
 			}
 			return out_vec;
 		}
+		/*
+		EdgeGraph<wykobi::point2d<T>> to vector of wykobi::polygon<T, 2>
+		On a 2d plane
+		Input:
+			graph:	EdgeGraph<wykobi::point2d<T>>
+		Return:
+			std::vector<wykobi::polygon<T, 2>>
+		*/
+		template <typename T>
+		std::vector<wykobi::polygon<T, 2>> getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<T>> & graph) {
+			/*
+			An edge can only be part of one(edge of graph) or two polygons(inside)
+			Psuedo code:
+				Always search right
+			*/
+			typedef EdgeGraph<wykobi::point2d<T>>::Node Node;
+			typedef EdgeGraph<wykobi::point2d<T>>::Edge Edge;
+			std::vector<wykobi::polygon<T, 2>> out_vec;
+			
+			std::list<Node*> current_path;
+			std::list<Node*> pending_nodes;
+			Node* current_start;
+			Node* current_node;
+			
+			pending_nodes.push_back(graph.nodes.front().get());
+			while (!pending_nodes.empty()) {
+				current_path.clear();
+				current_start = pending_nodes.front();
+				pending_nodes.pop_front();
+				current_path.push_back(current_start);
+				//while (curr)
 
+			}
+
+			return out_vec;
+		}
 
 		///*
 		//Generic Graph class

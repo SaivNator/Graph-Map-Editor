@@ -4,9 +4,10 @@
 
 #include <SFML\Graphics.hpp>
 #include <wykobi.hpp>
-
-#include "MapEditor.hpp"
 #include <clipper.hpp>
+
+//local
+#include "MapEditor.hpp"
 
 //Globals
 sf::RenderWindow window;
@@ -288,8 +289,9 @@ int main() {
 	};
 	Math::Graph::EdgeGraph<wykobi::point2d<float>> graph = Math::Graph::makeEdgeGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
 
-	graph.deleteNode(3);
+	//graph.deleteNode(3);
 	
+
 	//wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({
 	//	wykobi::make_point<float>(10, 10),
 	//	wykobi::make_point<float>(400, 10),
@@ -311,13 +313,11 @@ int main() {
 	//	wykobi::polygon<float, 2> s2 = wykobi::make_polygon<float>(wykobi::make_circle<float>(175, 175, 75), 5);
 	//	poly = Math::Clipper::mergePolygons(s1, s2)[0];
 	//}
-	
 	//auto vec = Math::Clipper::findFirstLegalPolygonCut(poly, 7);
 	//if (vec.empty()) {
 	//	std::cout << "NO CUT FOUND\n";
 	//}
 	//wykobi::segment<float, 2> seg = wykobi::make_segment<float>(poly[vec[0]], poly[vec[1]]);
-
 	//std::cout << "TEST: " << Math::isSegmentFromPolygonInsidePolygon(poly, 8, 9) << "\n";
 
 	std::vector<wykobi::polygon<float, 2>> polygons;
@@ -325,8 +325,8 @@ int main() {
 	//polygons.push_back(poly);
 	//segments.push_back(seg);
 	//polygons = Math::Clipper::removeSubPolygon(poly);
-	segments = Math::Graph::getSegmentsFromEdgeGraph<float>(graph);
-
+	segments = Math::Graph::getWykobiSegmentsFromEdgeGraph<float>(graph);
+	//Math::Graph::getWykobiPolygonsFromEdgeGraph<float>(graph);
 	
 	
 
@@ -343,15 +343,16 @@ int main() {
 		std::cout << Math::Debug::toString(seg) << "\n";
 	}
 
+	wykobi::point2d<float> middle_of_screen = wykobi::make_point<float>(fuck_view.getCenter().x, fuck_view.getCenter().y);
+	float test_angle = 0;
 	wykobi::point2d<float> mouse_point;
-	bool state = false;
-	bool old_state = false;
+	float state = 0.f;
+	float old_state = 0.f;
 
 	sf::VertexArray lineVertexArray = sf::VertexArray(sf::Lines);
 	std::vector<sf::Text> numbers;
 
 	while (window.isOpen()) {
-
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
@@ -359,14 +360,18 @@ int main() {
 			case sf::Event::Closed:
 				window.close();
 				break;
-			//case sf::Event::MouseMoved:
-			//	mouse_point = wykobi::make_point<float>(event.mouseMove.x, event.mouseMove.y);
-			//	state = Math::isSegmentFromPolygonSelfIntersecting(poly, 4, mouse_point);
-			//	if (state != old_state) {
-			//		old_state = state;
-			//		std::cout << state << "\n";
-			//	}
-			//	break;
+			case sf::Event::MouseMoved:
+				mouse_point = wykobi::make_point<float>(event.mouseMove.x, event.mouseMove.y);
+
+				
+				state = Math::getRelativeAngle<float>(test_angle, wykobi::cartesian_angle<float>(middle_of_screen, mouse_point));
+
+				
+				if (state != old_state) {
+					old_state = state;
+					std::cout << state << "\n";
+				}
+				break;
 			default:
 				break;
 			}
@@ -404,6 +409,9 @@ int main() {
 			}
 		}
 		
+		sf::CircleShape test_middle(10.f, 30);
+		test_middle.setPosition(fuck_view.getCenter());
+		
 
 		window.clear();
 		window.setView(fuck_view);
@@ -412,6 +420,7 @@ int main() {
 		for (sf::Text & t : numbers) {
 			window.draw(t);
 		}
+		window.draw(test_middle);
 
 		window.display();
 
