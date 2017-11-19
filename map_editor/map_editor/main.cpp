@@ -10,7 +10,7 @@
 
 //Globals
 sf::RenderWindow window;
-std::string title = "0_7";
+std::string title = "map_editor";
 sf::Font arial;
 
 //Delta time

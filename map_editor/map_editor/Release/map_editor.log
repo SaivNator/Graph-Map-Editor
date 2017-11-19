@@ -2,16 +2,76 @@
 main.cpp(381): warning C4018: '<': signed/unsigned mismatch
 main.cpp(388): warning C4018: '<': signed/unsigned mismatch
 main.cpp(400): warning C4018: '<': signed/unsigned mismatch
-c:\users\sivert\desktop\big_project\current\map_editor\map_editor\Math.hpp(518): warning C4018: '<': signed/unsigned mismatch
+c:\users\sivert\documents\github\graph-map-editor\map_editor\map_editor\Math.hpp(518): warning C4018: '<': signed/unsigned mismatch
   main.cpp(289): note: see reference to function template instantiation 'Math::Graph::EdgeGraph<wykobi::point2d<float>> Math::Graph::makeEdgeGraphFromNodes<wykobi::point2d<float>>(std::vector<wykobi::point2d<float>,std::allocator<_Ty>> &,std::vector<std::pair<int,int>,std::allocator<std::pair<int,int>>> &)' being compiled
           with
           [
               _Ty=wykobi::point2d<float>
           ]
-c:\users\sivert\desktop\big_project\current\map_editor\map_editor\Math.hpp(521): warning C4018: '<': signed/unsigned mismatch
+c:\users\sivert\documents\github\graph-map-editor\map_editor\map_editor\Math.hpp(521): warning C4018: '<': signed/unsigned mismatch
+  MapEditor.cpp
+MapEditor.cpp(31): warning C4018: '<': signed/unsigned mismatch
+MapEditor.cpp(111): warning C4018: '<': signed/unsigned mismatch
+MapEditor.cpp(307): warning C4018: '<': signed/unsigned mismatch
+MapEditor.cpp(314): warning C4018: '<': signed/unsigned mismatch
+MapEditor.cpp(338): warning C4018: '<': signed/unsigned mismatch
+MapEditor.cpp(347): warning C4018: '<': signed/unsigned mismatch
+c:\users\sivert\documents\github\graph-map-editor\map_editor\map_editor\Math.hpp(397): warning C4018: '<': signed/unsigned mismatch
+  MapEditor.cpp(33): note: see reference to function template instantiation 'Object Math::removeDuplicates<wykobi::polygon<float,2>>(Object)' being compiled
+          with
+          [
+              Object=wykobi::polygon<float,2>
+          ]
+c:\users\sivert\documents\github\graph-map-editor\map_editor\map_editor\Math.hpp(356): warning C4018: '<': signed/unsigned mismatch
+  MapEditor.cpp(305): note: see reference to function template instantiation 'std::vector<wykobi::point2d<float>,std::allocator<_Ty>> Math::makeWykobiPointVectorFromShape<wykobi::triangle<float,2>>(std::vector<wykobi::triangle<float,2>,std::allocator<wykobi::triangle<float,2>>> &)' being compiled
+          with
+          [
+              _Ty=wykobi::point2d<float>
+          ]
+c:\users\sivert\documents\github\graph-map-editor\map_editor\map_editor\Math.hpp(379): warning C4018: '<': signed/unsigned mismatch
+  MapEditor.cpp(691): note: see reference to function template instantiation 'int Math::numberOfEqualElements<MapPoint*>(std::vector<MapPoint *,std::allocator<_Ty>> &,std::vector<_Ty,std::allocator<_Ty>> &)' being compiled
+          with
+          [
+              _Ty=MapPoint *
+          ]
+c:\users\sivert\documents\github\graph-map-editor\map_editor\map_editor\Math.hpp(380): warning C4018: '<': signed/unsigned mismatch
+  Math.cpp
+Math.cpp(90): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(92): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(151): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(182): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(208): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(209): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(227): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(229): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(418): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(441): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(454): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(470): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(481): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(500): warning C4018: '>': signed/unsigned mismatch
+Math.cpp(509): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(611): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(647): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(666): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(668): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(714): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(719): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(721): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(834): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(851): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(871): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(888): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(916): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(928): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(966): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(1037): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(1050): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(1225): warning C4018: '<': signed/unsigned mismatch
+Math.cpp(1251): warning C4018: '<': signed/unsigned mismatch
   Generating code
-  0 of 1670 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+  1358 of 1670 functions (81.3%) were compiled, the rest were copied from previous compilation.
+    64 functions were new in current compilation
+    31 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  map_editor.vcxproj -> C:\Users\Sivert\Desktop\Big_Project\current\map_editor\Release\map_editor.exe
+  map_editor.vcxproj -> C:\Users\Sivert\Documents\GitHub\Graph-Map-Editor\map_editor\Release\map_editor.exe
