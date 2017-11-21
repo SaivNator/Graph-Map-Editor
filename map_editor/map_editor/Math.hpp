@@ -259,21 +259,6 @@ namespace Math {
 	*/
 	std::vector<wykobi::point2d<float>> rotateWykobiPointVector(std::vector<wykobi::point2d<float>> vec, wykobi::point2d<float> centre, float angle);
 
-	/*
-		Find shortest rotation from angle1 (start) to angle2 (goal).
-		start is in degrees.
-		goal is in degrees.
-		returns in degrees.
-		return is rotation relative to start.
-	*/
-	float shortestRotation(float start, float goal);
-
-	/*
-		Get angle towards point.
-		returns in degrees.
-	*/
-	float angleTowardsPoint(wykobi::point2d<float> origin, wykobi::point2d<float> target);
-	
 	//Algorithem
 	//std::vector<wykobi::segment<float, 2>> delaunayTriangulatePoints(std::vector<wykobi::point2d<float>> & wykobi_points);
 	
@@ -409,21 +394,79 @@ namespace Math {
 		}
 		return obj;
 	}
+
+	/*
+	Find shortest rotation from angle1 (start) to angle2 (goal).
+	input:
+		start:	start angle
+		goal:	goal angle
+		max:	maximum degrees (default 360)
+	return:
+		shortes angle towards goal from start
+	*/
+	template <typename T>
+	T shortestRotation(T start, T goal, T max) {
+		T angle;
+		if (start < goal) {
+			T plusTarget = goal - start;
+			T minusTarget = (start + max) - (goal);
+			if (plusTarget < minusTarget) {
+				angle = plusTarget;
+			}
+			else {
+				angle = -minusTarget;
+			}
+		}
+		else {
+			T plusTarget = start - goal;
+			T minusTarget = (goal + max) - (start);
+			if (plusTarget < minusTarget) {
+				angle = -plusTarget;
+			}
+			else {
+				angle = minusTarget;
+			}
+		}
+		return angle;
+	}
+	template <typename T>
+	T shortestRotation(T start, T goal) {
+		return shortestRotation<T>(start, goal, 360.f);
+	}
+
+	/*
+	Get angle towards point.
+	returns in degrees.
+	input:
+		origin:	origin angle
+	return:
+		angle towards point
+	*/
+	template <typename T>
+	T angleTowardsPoint(wykobi::point2d<T> origin, wykobi::point2d<T> target) {
+		return wykobi::cartesian_angle<T>(target, origin);
+	}
+
 	/*
 	Get relative angle
 	Input:
 		origin:	origin angle
 		target:	target angle
+		max:	maximum degree (default 360)
 	return:
 		how many degrees point relative
 	*/
 	template <typename T>
-	T getRelativeAngle(T origin, T target) {
+	T getRelativeAngle(T origin, T target, T max) {
 		T out = origin - target;
 		if (out < 0) {
-			out += 360;
+			out += max;
 		}
 		return out;
+	}
+	template <typename T>
+	T getRelativeAngle(T origin, T target) {
+		return getRelativeAngle<T>(origin, target, 360.f);
 	}
 
 	namespace Graph {
@@ -568,34 +611,40 @@ namespace Math {
 		Return:
 			std::vector<wykobi::polygon<T, 2>>
 		*/
-		template <typename T>
-		std::vector<wykobi::polygon<T, 2>> getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<T>> & graph) {
-			/*
-			An edge can only be part of one(edge of graph) or two polygons(inside)
-			Psuedo code:
-				Always search right
-			*/
-			typedef EdgeGraph<wykobi::point2d<T>>::Node Node;
-			typedef EdgeGraph<wykobi::point2d<T>>::Edge Edge;
-			std::vector<wykobi::polygon<T, 2>> out_vec;
-			
-			std::list<Node*> current_path;
-			std::list<Node*> pending_nodes;
-			Node* current_start;
-			Node* current_node;
-			
-			pending_nodes.push_back(graph.nodes.front().get());
-			while (!pending_nodes.empty()) {
-				current_path.clear();
-				current_start = pending_nodes.front();
-				pending_nodes.pop_front();
-				current_path.push_back(current_start);
-				//while (curr)
-
-			}
-
-			return out_vec;
-		}
+		std::vector<wykobi::polygon<float, 2>> getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<float>> & graph);
+		//template <typename T>
+		//std::vector<wykobi::polygon<T, 2>> getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<T>> & graph) {
+		//	/*
+		//	An edge can only be part of one(edge of graph) or two polygons(inside)
+		//	Psuedo code:
+		//		find the left-top vertex in graph
+		//	*/
+		//	typedef EdgeGraph<wykobi::point2d<T>>::Node Node;
+		//	typedef EdgeGraph<wykobi::point2d<T>>::Edge Edge;
+		//	std::vector<wykobi::polygon<T, 2>> out_vec;
+		//	//find left-top vertex
+		//	{
+		//		float min_x = 0;
+		//		float min_y = 0;
+		//		for (int i = 0; i < graph.nodes.size(); i++) {
+		//			if (graph.nodes[i]->)
+		//		}
+		//	}
+		//	//std::list<Node*> current_path;
+		//	//std::list<Node*> pending_nodes;
+		//	//Node* current_start;
+		//	//Node* current_node;
+		//	//
+		//	//pending_nodes.push_back(graph.nodes.front().get());
+		//	//while (!pending_nodes.empty()) {
+		//	//	current_path.clear();
+		//	//	current_start = pending_nodes.front();
+		//	//	pending_nodes.pop_front();
+		//	//	current_path.push_back(current_start);
+		//	//	//while (curr)
+		//	//}
+		//	return out_vec;
+		//}
 
 		///*
 		//Generic Graph class

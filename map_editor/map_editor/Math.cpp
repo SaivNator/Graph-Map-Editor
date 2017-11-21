@@ -2,6 +2,76 @@
 
 #include "Math.hpp"
 
+std::vector<wykobi::polygon<float, 2>> Math::Graph::getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<float>> & graph) {
+	typedef EdgeGraph<wykobi::point2d<float>>::Node Node;
+	typedef EdgeGraph<wykobi::point2d<float>>::Edge Edge;
+
+	std::vector<wykobi::polygon<float, 2>> out_vec;
+	//find left-top vertex
+	float min_x = graph.nodes[0]->obj.x;
+	float min_y = graph.nodes[0]->obj.y;
+	for (int i = 1; i < graph.nodes.size(); i++) {
+		if (graph.nodes[i]->obj.x < min_x) {
+			min_x = graph.nodes[i]->obj.x;
+		}
+		if (graph.nodes[i]->obj.y < min_y) {
+			min_y = graph.nodes[i]->obj.y;
+		}
+	}
+	wykobi::point2d<float> top_left = wykobi::make_point<float>(min_x, min_y);
+	Node* start_node = graph.nodes[0].get();
+	float current_low_distance = wykobi::distance<float>(start_node->obj, top_left);
+	for (int i = 1; i < graph.nodes.size(); i++) {
+		Node* test_node = graph.nodes[i].get();
+		float test_distance = wykobi::distance<float>(test_node->obj, top_left);
+		if (test_distance < current_low_distance) {
+			start_node = test_node;
+			current_low_distance = test_distance;
+		}
+	}
+
+	//traverse until start_node if found again
+	wykobi::polygon<float, 2> current_polygon;
+	Node* current_node = start_node;
+	Edge* last_edge = nullptr;
+	float last_angle = 45.f;
+	while (current_node->visited < 1) {
+
+		std::cout << last_angle << "\t";
+		
+		current_node->visited = 1;
+		
+		Edge* current_edge = nullptr;
+		Node* next_node = nullptr;
+		float low_angle = 360.f;
+		for (int i = 0; i < current_node->edges.size(); i++) {
+			Edge* e = current_node->edges[i];
+			if (e == last_edge) continue;
+
+			Node* n = (e->a != current_node) ? e->a : e->b;
+			float test_angle = getRelativeAngle<float>(last_angle, angleTowardsPoint<float>(current_node->obj, n->obj));
+			if (test_angle < low_angle) {
+				next_node = n;
+				current_edge = e;
+				low_angle = test_angle;
+			}
+		}
+
+		std::cout << getRelativeAngle<float>(last_angle, angleTowardsPoint<float>(current_node->obj, next_node->obj)) << "\n";
+
+		current_polygon.push_back(current_node->obj);
+		last_angle = angleTowardsPoint<float>(current_node->obj, next_node->obj) - 180.f;
+		if (last_angle < 0.f) last_angle += 360.f;
+		last_edge = current_edge;
+		current_node = next_node;
+	}
+
+	out_vec.push_back(current_polygon);
+
+
+	return out_vec;
+}
+
 std::vector<int> Math::Clipper::findFirstLegalPolygonCut(wykobi::polygon<float, 2> & poly, int start) {
 	std::vector<int> vec;
 	if (poly.size() <= 3) {
@@ -1179,35 +1249,6 @@ std::vector<wykobi::point2d<float>> Math::rotateWykobiPointVector(std::vector<wy
 		(*it) = rotateWykobiPoint((*it), centre, angle);
 	}
 	return vec;
-}
-
-float Math::shortestRotation(float start, float goal) {
-	float angle;
-	if (start < goal) {
-		float plusTarget = goal - start;
-		float minusTarget = (start + 360) - (goal);
-		if (plusTarget < minusTarget) {
-			angle = plusTarget;
-		}
-		else {
-			angle = -minusTarget;
-		}
-	}
-	else {
-		float plusTarget = start - goal;
-		float minusTarget = (goal + 360) - (start);
-		if (plusTarget < minusTarget) {
-			angle = -plusTarget;
-		}
-		else {
-			angle = minusTarget;
-		}
-	}
-	return angle;
-}
-
-float Math::angleTowardsPoint(wykobi::point2d<float> origin, wykobi::point2d<float> target) {
-	return wykobi::cartesian_angle<float>(target, origin);
 }
 
 std::string Math::Debug::toString(wykobi::point2d<float> & point) {

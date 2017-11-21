@@ -284,12 +284,13 @@ int main() {
 		std::pair<int, int>(0, 1),
 		std::pair<int, int>(1, 2),
 		std::pair<int, int>(2, 3),
-		std::pair<int, int>(3, 0),
-		std::pair<int, int>(0, 2)
+		std::pair<int, int>(3, 0)//,
+		//std::pair<int, int>(0, 2)
 	};
 	Math::Graph::EdgeGraph<wykobi::point2d<float>> graph = Math::Graph::makeEdgeGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
 
 	//graph.deleteNode(3);
+	
 	
 
 	//wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({
@@ -325,9 +326,9 @@ int main() {
 	//polygons.push_back(poly);
 	//segments.push_back(seg);
 	//polygons = Math::Clipper::removeSubPolygon(poly);
-	segments = Math::Graph::getWykobiSegmentsFromEdgeGraph<float>(graph);
+	//segments = Math::Graph::getWykobiSegmentsFromEdgeGraph<float>(graph);
 	//Math::Graph::getWykobiPolygonsFromEdgeGraph<float>(graph);
-	
+	polygons = Math::Graph::getWykobiPolygonsFromEdgeGraph(graph);
 	
 
 	sf::View fuck_view = window.getDefaultView();
@@ -344,7 +345,7 @@ int main() {
 	}
 
 	wykobi::point2d<float> middle_of_screen = wykobi::make_point<float>(fuck_view.getCenter().x, fuck_view.getCenter().y);
-	float test_angle = 0;
+	float test_angle = 90.f;
 	wykobi::point2d<float> mouse_point;
 	float state = 0.f;
 	float old_state = 0.f;
@@ -360,18 +361,14 @@ int main() {
 			case sf::Event::Closed:
 				window.close();
 				break;
-			case sf::Event::MouseMoved:
-				mouse_point = wykobi::make_point<float>(event.mouseMove.x, event.mouseMove.y);
-
-				
-				state = Math::getRelativeAngle<float>(test_angle, wykobi::cartesian_angle<float>(middle_of_screen, mouse_point));
-
-				
-				if (state != old_state) {
-					old_state = state;
-					std::cout << state << "\n";
-				}
-				break;
+			//case sf::Event::MouseMoved:
+			//	mouse_point = wykobi::make_point<float>(event.mouseMove.x, event.mouseMove.y);
+			//	state = Math::getRelativeAngle<float>(test_angle, Math::angleTowardsPoint(middle_of_screen, mouse_point));
+			//	if (state != old_state) {
+			//		old_state = state;
+			//		std::cout << state << "\n";
+			//	}
+			//	break;
 			default:
 				break;
 			}
@@ -408,11 +405,7 @@ int main() {
 				lineVertexArray.append(vertex);
 			}
 		}
-		
-		sf::CircleShape test_middle(10.f, 30);
-		test_middle.setPosition(fuck_view.getCenter());
-		
-
+	
 		window.clear();
 		window.setView(fuck_view);
 
@@ -420,7 +413,6 @@ int main() {
 		for (sf::Text & t : numbers) {
 			window.draw(t);
 		}
-		window.draw(test_middle);
 
 		window.display();
 
