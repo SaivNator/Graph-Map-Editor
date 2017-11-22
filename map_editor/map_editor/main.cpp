@@ -8,6 +8,8 @@
 
 //local
 #include "MapEditor.hpp"
+#include "Math.hpp"
+#include "Graph.hpp"
 
 //Globals
 sf::RenderWindow window;
@@ -287,12 +289,10 @@ int main() {
 		std::pair<int, int>(3, 0),
 		std::pair<int, int>(0, 2)
 	};
-	Math::Graph::EdgeGraph<wykobi::point2d<float>> graph = Math::Graph::makeEdgeGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
+	Graph::EdgeGraph<wykobi::point2d<float>> graph = Graph::makeEdgeGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
 
 	//graph.deleteNode(3);
 	
-	
-
 	//wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({
 	//	wykobi::make_point<float>(10, 10),
 	//	wykobi::make_point<float>(400, 10),
@@ -326,9 +326,9 @@ int main() {
 	//polygons.push_back(poly);
 	//segments.push_back(seg);
 	//polygons = Math::Clipper::removeSubPolygon(poly);
-	//segments = Math::Graph::getWykobiSegmentsFromEdgeGraph<float>(graph);
+	segments = Graph::getWykobiSegmentsFromEdgeGraph<float>(graph);
 	//Math::Graph::getWykobiPolygonsFromEdgeGraph<float>(graph);
-	polygons = Math::Graph::getWykobiPolygonsFromEdgeGraph(graph);
+	//polygons =Graph::getWykobiPolygonsFromEdgeGraph(graph);
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.zoom(-1.f);

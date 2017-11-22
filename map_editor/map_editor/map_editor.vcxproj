@@ -115,12 +115,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MapEditor.cpp" />
     <ClCompile Include="Math.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Global.hpp" />
+    <ClInclude Include="Graph.hpp" />
     <ClInclude Include="MapEditor.hpp" />
     <ClInclude Include="MapObjects.hpp" />
     <ClInclude Include="Math.hpp" />
