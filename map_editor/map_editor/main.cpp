@@ -284,8 +284,8 @@ int main() {
 		std::pair<int, int>(0, 1),
 		std::pair<int, int>(1, 2),
 		std::pair<int, int>(2, 3),
-		std::pair<int, int>(3, 0)//,
-		//std::pair<int, int>(0, 2)
+		std::pair<int, int>(3, 0),
+		std::pair<int, int>(0, 2)
 	};
 	Math::Graph::EdgeGraph<wykobi::point2d<float>> graph = Math::Graph::makeEdgeGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
 
@@ -329,14 +329,13 @@ int main() {
 	//segments = Math::Graph::getWykobiSegmentsFromEdgeGraph<float>(graph);
 	//Math::Graph::getWykobiPolygonsFromEdgeGraph<float>(graph);
 	polygons = Math::Graph::getWykobiPolygonsFromEdgeGraph(graph);
-	
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.zoom(-1.f);
 
 	std::cout << "Polygons: " << polygons.size() << "\n";
-	for (auto poly : polygons) {
-		std::cout << Math::Debug::toString(poly) << "\n";
+	for (int i = 0; i < polygons.size(); i++) {
+		std::cout << i << ": " << Math::Debug::toString(polygons[i]) << "\n";
 	}
 
 	std::cout << "Segments:\n";
