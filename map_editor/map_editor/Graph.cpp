@@ -2,39 +2,206 @@
 
 #include "Graph.hpp"
 
+//sauce: https://www.geometrictools.com/Documentation/MinimalCycleBasis.pdf
+
+typedef Graph::EdgeGraph<wykobi::point2d<float>>::Node Node;
+typedef Graph::EdgeGraph<wykobi::point2d<float>>::Edge Edge;
+
+Node* getClockwiseMost(Node* prev_node, Node* current_node) {
+	//check if prev exist
+	bool exist = false;
+	for (Edge* e : prev_node->edges) {
+		Node* n = (e->a != prev_node) ? e->a : e->b;
+		if (n == current_node) {
+			exist = true;
+			break;
+		}
+	}
+	if (!exist) return nullptr;
+	//find most Clockwise node
+	float origin_angle = Math::angleTowardsPoint<float>(current_node->obj, prev_node->obj);
+	float low_angle = wykobi::infinity<float>();
+	Node* low_node = nullptr;
+	for (Edge* e : current_node->edges) {
+		Node* n = (e->a != current_node) ? e->a : e->b;
+		if (n == prev_node) continue;
+		float test_angle = Math::angleTowardsPoint<float>(current_node->obj, n->obj);
+		if (test_angle < low_angle) {
+			low_angle = test_angle;
+			low_node = n;
+		}
+	}
+	return low_node;
+}
+
+Node* getCounterClockwiseMost(Node* prev_node, Node* current_node) {
+	//check if prev exist
+	bool exist = false;
+	for (Edge* e : prev_node->edges) {
+		Node* n = (e->a != prev_node) ? e->a : e->b;
+		if (n == current_node) {
+			exist = true;
+			break;
+		}
+	}
+	if (!exist) return nullptr;
+	//find most counter Clockwise node
+	float origin_angle = Math::angleTowardsPoint<float>(current_node->obj, prev_node->obj);
+	float high_angle = -1.f;
+	Node* high_node = nullptr;
+	for (Edge* e : current_node->edges) {
+		Node* n = (e->a != current_node) ? e->a : e->b;
+		if (n == prev_node) continue;
+		float test_angle = Math::angleTowardsPoint<float>(current_node->obj, n->obj);
+		if (test_angle > high_angle) {
+			high_angle = test_angle;
+			high_node = n;
+		}
+	}
+	return high_node;
+}
+
+struct Tree {
+	std::vector<int> cycle;
+	std::vector<Tree> children;
+};
+
+Tree extractCycleFromClosedWalk(std::vector<Node*> & closed_walk) {
+	Tree tree;
+	//3
+	std::unordered_map<Node*, int> duplicates;
+	std::vector<int> detachments;
+	for (int i = 1; i < closed_walk.size() - 1; i++) {
+		auto it = duplicates.find(closed_walk[i]);
+		if (it != duplicates.end()) {
+			int min_i = (*it).second;
+			int max_i = i;
+			detachments.push_back(min_i);
+			for (int j = min_i + 1; j < max_i; j++) {
+				duplicates.erase(closed_walk[j]);
+				detachments.erase(std::find(detachments.begin(), detachments.end(), j));
+			}
+			closed_walk.erase(closed_walk.begin() + min_i + 1, closed_walk.begin() + max_i);
+			i = min_i;
+		}
+		else {
+			duplicates.emplace(closed_walk[i], i);
+		}
+	}
+
+	//4
+	if (closed_walk.size() > 3) {
+		detachments.push_back(0);
+		std::sort(detachments.begin(), detachments.end());
+		for (int i : detachments) {
+			Node* original_node = closed_walk[i];
+			Node* max_node = closed_walk[i + 1];
+			Node* min_node = (i > 0) ? closed_walk[i - 1] : closed_walk[closed_walk.size() - 2];
+			//need to understand listing 4 @https://www.geometrictools.com/Documentation/MinimalCycleBasis.pdf
+		}
+	}
+
+	return tree;
+}
+
+Tree ExtractCycleFromComponent(Graph::EdgeGraph<wykobi::point2d<float>> & component) {
+	//find left most node
+	Node* min_node = component.nodes.front().get();
+	for (auto it = component.nodes.begin() + 1; it != component.nodes.end(); ++it) {
+		Node* n = (*it).get();
+		if (n->obj.x < min_node->obj.x) {
+			min_node = n;
+		}
+	}
+
+
+	//traverse???
+	std::vector<Node*> closed_walk;
+	closed_walk.push_back(min_node);
+	Node* current_node = min_node;
+	std::unique_ptr<Node> artificial_node(new Node(*current_node));
+	Node* prev_node = artificial_node.get();
+	prev_node->obj.y += 1.f;
+	Node* next_node = getClockwiseMost(prev_node, current_node);
+
+	while (next_node != min_node) {
+		closed_walk.push_back(next_node);
+		prev_node = current_node;
+		current_node = next_node;
+		next_node = getCounterClockwiseMost(prev_node, current_node);
+	}
+	closed_walk.push_back(min_node);
+	
+	Tree tree = extractCycleFromClosedWalk(closed_walk);
+	return tree;
+}
+
+void removeFilaments(Graph::EdgeGraph<wykobi::point2d<float>> & component) {
+	std::list<Node*> end_points;
+	for (auto it = component.nodes.begin(); it != component.nodes.end(); ++it) {
+		Node* n = (*it).get();
+		if (n->edges.size() == 1) {
+			end_points.push_back(n);
+		}
+	}
+	if (end_points.size() > 0) {
+		auto it = end_points.begin();
+		while (it != end_points.end()) {
+			Node* n = (*it);
+			Edge* e = n->edges.front();
+			Node* next = (e->a != n) ? e->a : e->b;
+			it = end_points.erase(it);
+			component.deleteNode(n);
+			if (next->edges.size() < 2) {
+				end_points.push_back(next);
+			}
+		}
+	}
+}
+
+//Tree extractBasis(Graph::EdgeGraph<wykobi::point2d<float>> component) {
+//	Tree tree;
+//}
+
+//void minimalCycleBasis(Graph::EdgeGraph<wykobi::point2d<float>> & graph, std::vector<Tree> & forest) {
+//	forest.insert()
+//}
+
+
 std::vector<wykobi::polygon<float, 2>> Graph::getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<float>> & graph) {
 	typedef EdgeGraph<wykobi::point2d<float>>::Node Node;
 	typedef EdgeGraph<wykobi::point2d<float>>::Edge Edge;
 
 	std::vector<wykobi::polygon<float, 2>> out_vec;
-	//find left-top vertex
-	float min_x = graph.nodes[0]->obj.x;
-	float min_y = graph.nodes[0]->obj.y;
-	for (int i = 1; i < graph.nodes.size(); i++) {
-		if (graph.nodes[i]->obj.x < min_x) {
-			min_x = graph.nodes[i]->obj.x;
-		}
-		if (graph.nodes[i]->obj.y < min_y) {
-			min_y = graph.nodes[i]->obj.y;
-		}
-	}
-	wykobi::point2d<float> top_left = wykobi::make_point<float>(min_x, min_y);
-	Node* start_node = graph.nodes[0].get();
-	float current_low_distance = wykobi::distance<float>(start_node->obj, top_left);
-	for (int i = 1; i < graph.nodes.size(); i++) {
-		Node* test_node = graph.nodes[i].get();
-		float test_distance = wykobi::distance<float>(test_node->obj, top_left);
-		if (test_distance < current_low_distance) {
-			start_node = test_node;
-			current_low_distance = test_distance;
-		}
-	}
 
-	//find polygons
+
 
 	return out_vec;
 }
 
+////find left-top vertex
+//float min_x = graph.nodes[0]->obj.x;
+//float min_y = graph.nodes[0]->obj.y;
+//for (int i = 1; i < graph.nodes.size(); i++) {
+//	if (graph.nodes[i]->obj.x < min_x) {
+//		min_x = graph.nodes[i]->obj.x;
+//	}
+//	if (graph.nodes[i]->obj.y < min_y) {
+//		min_y = graph.nodes[i]->obj.y;
+//	}
+//}
+//wykobi::point2d<float> top_left = wykobi::make_point<float>(min_x, min_y);
+//Node* start_node = graph.nodes[0].get();
+//float current_low_distance = wykobi::distance<float>(start_node->obj, top_left);
+//for (int i = 1; i < graph.nodes.size(); i++) {
+//	Node* test_node = graph.nodes[i].get();
+//	float test_distance = wykobi::distance<float>(test_node->obj, top_left);
+//	if (test_distance < current_low_distance) {
+//		start_node = test_node;
+//		current_low_distance = test_distance;
+//	}
+//}
+//find polygons
 //std::list<std::pair<Node*, Edge*>> pending_edges;
 //for (auto it = start_node->edges.begin(); it != start_node->edges.end(); ++it) {
 //	Edge* e = (*it);
