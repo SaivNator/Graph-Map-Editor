@@ -259,7 +259,15 @@ int main() {
 
 	//(507, 550)->(479, 603)->(497, 621)->(499, 608)->(507, 550)->(544, 547)->(744, 747)->(544, 747)->(625, 834)->(618, 851)->(644, 887)->(646, 889)->(446, 889)->(446, 851)->(418, 851)->(418, 723)->(561, 723)->(361, 523)->(361, 650)->(355, 650)->(359, 548)->(359, 348)
 	
+	//wykobi::vector2d<float> v1 = wykobi::make_vector<float>(10, 10);
+	//wykobi::vector2d<float> v2 = wykobi::make_vector<float>(1, -1);
+	wykobi::point2d<float> p1 = wykobi::make_point<float>(10, 10);
+	wykobi::point2d<float> p2 = wykobi::make_point<float>(1, -1);
+	wykobi::vector2d<float> v3 = p1 - p2;
+	std::cout << Math::Debug::toString(v3) << "\n";
 	
+	
+
 	return EXIT_SUCCESS;
 }
 
@@ -281,15 +289,21 @@ int main() {
 		wykobi::make_point<float>(400, 10),
 		wykobi::make_point<float>(400, 100),
 		wykobi::make_point<float>(10, 400),
+		wykobi::make_point<float>(500, 500),
+		wykobi::make_point<float>(600, 500),
 	};
 	std::vector<std::pair<int, int>> graph_edges = {
+		std::pair<int, int>(0, 2),
 		std::pair<int, int>(0, 1),
 		std::pair<int, int>(1, 2),
 		std::pair<int, int>(2, 3),
 		std::pair<int, int>(3, 0),
-		std::pair<int, int>(0, 2)
+		std::pair<int, int>(1, 4),
+		std::pair<int, int>(4, 5)
 	};
-	Graph::EdgeGraph<wykobi::point2d<float>> graph = Graph::makeEdgeGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
+	Graph::UndirectedGraph<wykobi::point2d<float>> graph = Graph::makeUndirectedGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
+
+	graph = graph.depthFirstSearch(graph.nodes[0].get());
 
 	//graph.deleteNode(3);
 	
@@ -326,7 +340,7 @@ int main() {
 	//polygons.push_back(poly);
 	//segments.push_back(seg);
 	//polygons = Math::Clipper::removeSubPolygon(poly);
-	segments = Graph::getWykobiSegmentsFromEdgeGraph<float>(graph);
+	segments = Graph::getWykobiSegmentsFromUndirectedGraph<float>(graph);
 	//Math::Graph::getWykobiPolygonsFromEdgeGraph<float>(graph);
 	//polygons =Graph::getWykobiPolygonsFromEdgeGraph(graph);
 

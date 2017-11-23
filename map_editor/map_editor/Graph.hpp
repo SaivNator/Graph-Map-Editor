@@ -23,11 +23,52 @@
 #include "Math.hpp"
 
 namespace Graph {
+	//Generic DirectedGraph class
+	template <typename T>
+	class DirectedGraph {
+		class Node {
+		public:
+			std::vector<Node*> edges;
+			T obj;
+			void makeEdge(Node* n) {
+				if (std::find(edges.begin(), edges.end(), n) == edges.end()) {
+					edges.push_back(n);
+				}
+			}
+		};
+		std::vector<std::unique_ptr<Node>> nodes;
+	public:
+		Node* makeNode(Node n) {
+			nodes.push_back(std::unique_ptr<Node>(new Node(n)));
+			return nodes.back().get();
+		}
+		void makeNode(T obj) {
+			Node n;
+			n.obj = obj;
+			return makeNode(n);
+		}
+		void makeNode(T obj, std::vector<int> & edges) {
+			Node n;
+			n.obj = obj;
+			n.edges.reserve(edges.size());
+			for (int e : edges) {
+				n.edges.push_back(nodes[e]);
+			}
+			return makeNode(n);
+		}
+		void makeNode(T obj, std::vector<Node*> edges) {
+			Node n;
+			n.obj = obj;
+			n.edges = edges;
+			return makeNode(n);
+		}
+	};
+
 	/*
-	Generic Edge Graph class
+	Generic UndirectedGraph class
 	*/
 	template <typename T>
-	class EdgeGraph {
+	class UndirectedGraph {
 	public:
 		class Node;
 		class Edge;
@@ -38,6 +79,16 @@ namespace Graph {
 			int visited = 0;
 			void eraseEdge(Edge* e) {
 				edges.erase(std::find(edges.begin(), edges.end(), e));
+			}
+			Edge* getEdge(Node* n) {
+				for (auto it = edges.begin(); it != edges.end(); ++it) {
+					Edge* e = (*it);
+					Node* test = (e->a != this) ? e->a : e->b;
+					if (test == n) {
+						return e;
+					}
+				}
+				return nullptr;
 			}
 		};
 		class Edge {
@@ -118,18 +169,38 @@ namespace Graph {
 		void deleteNode(Node* n) {
 			deleteNode(std::find_if(nodes.begin(), nodes.end(), [&](std::unique_ptr<Node> & p) { return p.get() == n; }));
 		}
+
+		Node* dfs(UndirectedGraph<T> & graph, Node* root) {
+			root->visited = 1;
+			Node* new_node = graph.makeNode(root->obj);
+			for (Edge* e : root->edges) {
+				Node* leaf = (e->a != root) ? e->a : e->b;
+				if (leaf->visited == 0) {
+					graph.makeEdge(new_node, dfs(graph, leaf));
+				}
+			}
+			return new_node;
+		}
+		UndirectedGraph<T> depthFirstSearch(Node* n) {
+			UndirectedGraph<T> graph;
+			dfs(graph, n);
+			for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+				(*it)->visited = 0;
+			}
+			return graph;
+		}
 	};
 	/*
-	Make EdgeGraph from nodes
+	Make UndirectedGraph from nodes
 	Input:
 	nodes:	vector of nodes
 	edges:	vector of edges (corresponds with index of nodes)
 	Return:
-	EdgeGraph<T>
+	UndirectedGraph<T>
 	*/
 	template <typename T>
-	EdgeGraph<T> makeEdgeGraphFromNodes(std::vector<T> & nodes, std::vector<std::pair<int, int>> & edges) {
-		EdgeGraph<T> graph;
+	UndirectedGraph<T> makeUndirectedGraphFromNodes(std::vector<T> & nodes, std::vector<std::pair<int, int>> & edges) {
+		UndirectedGraph<T> graph;
 		for (int i = 0; i < nodes.size(); i++) {
 			graph.makeNode(nodes[i]);
 		}
@@ -139,32 +210,32 @@ namespace Graph {
 		return graph;
 	}
 	/*
-	EdgeGraph<wykobi::point2d<T>> to vector of wykobi::segment<T, 2>
+	UndirectedGraph<wykobi::point2d<T>> to vector of wykobi::segment<T, 2>
 	On a 2d plane
 	Input:
-	graph:	EdgeGraph<wykobi::point2d<T>>
+	graph:	UndirectedGraph<wykobi::point2d<T>>
 	Return:
 	std::vector<wykobi::segment<T, 2>>
 	*/
 	template <typename T>
-	std::vector<wykobi::segment<T, 2>> getWykobiSegmentsFromEdgeGraph(EdgeGraph<wykobi::point2d<T>> & graph) {
+	std::vector<wykobi::segment<T, 2>> getWykobiSegmentsFromUndirectedGraph(UndirectedGraph<wykobi::point2d<T>> & graph) {
 		std::vector<wykobi::segment<T, 2>> out_vec;
 		out_vec.reserve(graph.edges.size());
-		for (std::unique_ptr<EdgeGraph<wykobi::point2d<T>>::Edge> & pointer : graph.edges) {
-			EdgeGraph<wykobi::point2d<T>>::Edge* edge = pointer.get();
+		for (std::unique_ptr<UndirectedGraph<wykobi::point2d<T>>::Edge> & pointer : graph.edges) {
+			UndirectedGraph<wykobi::point2d<T>>::Edge* edge = pointer.get();
 			out_vec.push_back(wykobi::make_segment<T>(edge->a->obj, edge->b->obj));
 		}
 		return out_vec;
 	}
 	/*
-	EdgeGraph<wykobi::point2d<T>> to vector of wykobi::polygon<T, 2>
+	UndirectedGraph<wykobi::point2d<T>> to vector of wykobi::polygon<T, 2>
 	On a 2d plane
 	Input:
-	graph:	EdgeGraph<wykobi::point2d<T>>
+	graph:	UndirectedGraph<wykobi::point2d<T>>
 	Return:
 	std::vector<wykobi::polygon<T, 2>>
 	*/
-	std::vector<wykobi::polygon<float, 2>> getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<float>> & graph);
+	std::vector<wykobi::polygon<float, 2>> getWykobiPolygonsFromUndirectedGraph(UndirectedGraph<wykobi::point2d<float>> & graph);
 	//template <typename T>
 	//std::vector<wykobi::polygon<T, 2>> getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<T>> & graph) {
 	//	/*
@@ -200,42 +271,7 @@ namespace Graph {
 	//}
 
 	///*
-	//Generic Graph class
-	//*/
-	//template <typename T>
-	//class Graph {
-	//	class Node {
-	//	public:
-	//		std::vector<Node*> edges;
-	//		T obj;
-	//	};
-	//	std::vector<std::unique_ptr<Node>> nodes;
-	//public:
-	//	Node* makeNode(Node n) {
-	//		nodes.push_back(std::unique_ptr<Node>(new Node(n)));
-	//		return nodes.back().get();
-	//	}
-	//	void makeNode(T obj) {
-	//		Node n;
-	//		n.obj = obj;
-	//		return makeNode(n);
-	//	}
-	//	void makeNode(T obj, std::vector<int> & edges) {
-	//		Node n;
-	//		n.obj = obj;
-	//		n.edges.reserve(edges.size());
-	//		for (int e : edges) {
-	//			n.edges.push_back(nodes[e]);
-	//		}
-	//		return makeNode(n);
-	//	}
-	//	void makeNode(T obj, std::vector<Node*> edges) {
-	//		Node n;
-	//		n.obj = obj;
-	//		n.edges = edges;
-	//		return makeNode(n);
-	//	}
-	//};
+	
 	///*
 	//Make EdgeGraph from nodes
 	//Input:

@@ -507,6 +507,7 @@ namespace Math {
 		String contents.
 		*/
 		std::string toString(wykobi::point2d<float> & point);
+		std::string toString(wykobi::vector2d<float> & vector);
 		std::string toString(wykobi::segment<float, 2> & seg);
 		std::string toString(wykobi::polygon<float, 2> & poly);
 		std::string toString(wykobi::triangle<float, 2> & tri);

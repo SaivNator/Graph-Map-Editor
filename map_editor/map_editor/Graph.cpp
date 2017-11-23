@@ -4,8 +4,8 @@
 
 //sauce: https://www.geometrictools.com/Documentation/MinimalCycleBasis.pdf
 
-typedef Graph::EdgeGraph<wykobi::point2d<float>>::Node Node;
-typedef Graph::EdgeGraph<wykobi::point2d<float>>::Edge Edge;
+typedef Graph::UndirectedGraph<wykobi::point2d<float>>::Node Node;
+typedef Graph::UndirectedGraph<wykobi::point2d<float>>::Edge Edge;
 
 Node* getClockwiseMost(Node* prev_node, Node* current_node) {
 	//check if prev exist
@@ -61,12 +61,22 @@ Node* getCounterClockwiseMost(Node* prev_node, Node* current_node) {
 	return high_node;
 }
 
+wykobi::vector2d<float> perp(wykobi::vector2d<float> & vector) {
+	return wykobi::make_vector<float>(vector.y, -vector.x);
+}
+
 struct Tree {
 	std::vector<int> cycle;
 	std::vector<Tree> children;
 };
 
-Tree extractCycleFromClosedWalk(std::vector<Node*> & closed_walk) {
+Tree extractBasis(Graph::UndirectedGraph<wykobi::point2d<float>> & component);
+
+std::vector<int> extractCycle(std::vector<Node*> & closed_walk) {
+
+}
+
+Tree extractCycleFromClosedWalk(Graph::UndirectedGraph<wykobi::point2d<float>> & graph, std::vector<Node*> & closed_walk) {
 	Tree tree;
 	//3
 	std::unordered_map<Node*, int> duplicates;
@@ -94,17 +104,51 @@ Tree extractCycleFromClosedWalk(std::vector<Node*> & closed_walk) {
 		detachments.push_back(0);
 		std::sort(detachments.begin(), detachments.end());
 		for (int i : detachments) {
+			//need to understand listing 4 @https://www.geometrictools.com/Documentation/MinimalCycleBasis.pdf
 			Node* original_node = closed_walk[i];
 			Node* max_node = closed_walk[i + 1];
 			Node* min_node = (i > 0) ? closed_walk[i - 1] : closed_walk[closed_walk.size() - 2];
-			//need to understand listing 4 @https://www.geometrictools.com/Documentation/MinimalCycleBasis.pdf
+			wykobi::vector2d<float> direction_min = min_node->obj - original_node->obj;
+			wykobi::vector2d<float> direction_max = max_node->obj - original_node->obj;
+
+			bool is_convex = (wykobi::dot_product<float>(direction_max, perp(direction_min)) >= 0);
+
+			std::vector<Node*> in_wedge;
+			std::vector<Node*> adjacent_nodes;
+			adjacent_nodes.insert(adjacent_nodes.end(), original_node->edges.begin(), original_node->edges.end());
+			for (Node* a_node : adjacent_nodes) {
+				if (a_node == min_node || a_node == max_node) continue;
+				wykobi::vector2d<float> direction = a_node->obj - original_node->obj;
+				bool contains_node;
+				if (is_convex) {
+					contains_node = (wykobi::dot_product<float>(direction, direction_min) > 0 && wykobi::dot_product<float>(direction, direction_max) < 0);
+				}
+				else {
+					(wykobi::dot_product<float>(direction, direction_min) > 0 || wykobi::dot_product<float>(direction, direction_max) < 0);
+				}
+				if (contains_node) {
+					in_wedge.push_back(a_node);
+				}
+			}
+			if (in_wedge.size() > 0) {
+				Node temp = *original_node;
+				temp.edges.clear();
+				Node* clone_node = graph.makeNode(temp);
+				for (Node* n : in_wedge) {
+					graph.deleteEdge(original_node->getEdge(n));
+					graph.makeEdge(clone_node, n);
+				}
+				Graph::UndirectedGraph<wykobi::point2d<float>> component = graph.depthFirstSearch(clone_node);
+				tree.children.push_back(extractBasis(component));
+			}	
 		}
+		tree.cycle = 
 	}
 
 	return tree;
 }
 
-Tree ExtractCycleFromComponent(Graph::EdgeGraph<wykobi::point2d<float>> & component) {
+Tree ExtractCycleFromComponent(Graph::UndirectedGraph<wykobi::point2d<float>> & component) {
 	//find left most node
 	Node* min_node = component.nodes.front().get();
 	for (auto it = component.nodes.begin() + 1; it != component.nodes.end(); ++it) {
@@ -132,11 +176,11 @@ Tree ExtractCycleFromComponent(Graph::EdgeGraph<wykobi::point2d<float>> & compon
 	}
 	closed_walk.push_back(min_node);
 	
-	Tree tree = extractCycleFromClosedWalk(closed_walk);
+	Tree tree = extractCycleFromClosedWalk(component, closed_walk);
 	return tree;
 }
 
-void removeFilaments(Graph::EdgeGraph<wykobi::point2d<float>> & component) {
+void removeFilaments(Graph::UndirectedGraph<wykobi::point2d<float>> & component) {
 	std::list<Node*> end_points;
 	for (auto it = component.nodes.begin(); it != component.nodes.end(); ++it) {
 		Node* n = (*it).get();
@@ -159,18 +203,18 @@ void removeFilaments(Graph::EdgeGraph<wykobi::point2d<float>> & component) {
 	}
 }
 
-//Tree extractBasis(Graph::EdgeGraph<wykobi::point2d<float>> component) {
-//	Tree tree;
-//}
+Tree extractBasis(Graph::UndirectedGraph<wykobi::point2d<float>> & component) {
+	Tree tree;
+}
 
 //void minimalCycleBasis(Graph::EdgeGraph<wykobi::point2d<float>> & graph, std::vector<Tree> & forest) {
 //	forest.insert()
 //}
 
 
-std::vector<wykobi::polygon<float, 2>> Graph::getWykobiPolygonsFromEdgeGraph(EdgeGraph<wykobi::point2d<float>> & graph) {
-	typedef EdgeGraph<wykobi::point2d<float>>::Node Node;
-	typedef EdgeGraph<wykobi::point2d<float>>::Edge Edge;
+std::vector<wykobi::polygon<float, 2>> Graph::getWykobiPolygonsFromUndirectedGraph(UndirectedGraph<wykobi::point2d<float>> & graph) {
+	typedef UndirectedGraph<wykobi::point2d<float>>::Node Node;
+	typedef UndirectedGraph<wykobi::point2d<float>>::Edge Edge;
 
 	std::vector<wykobi::polygon<float, 2>> out_vec;
 

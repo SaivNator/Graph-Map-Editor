@@ -1186,6 +1186,9 @@ std::string Math::Debug::toString(wykobi::point2d<float> & point) {
 	str << "(" << point.x << ", " << point.y << ")";
 	return str.str();
 }
+std::string Math::Debug::toString(wykobi::vector2d<float> & vector) {
+	return toString(wykobi::make_point<float>(vector.x, vector.y));
+}
 std::string Math::Debug::toString(wykobi::segment<float, 2> & seg) {
 	std::ostringstream str;
 	str << toString(seg[0]) << "->" << toString(seg[1]);
