@@ -370,48 +370,55 @@ std::vector<wykobi::polygon<float, 2>> Math::Clipper::removePolygonHull(wykobi::
 	}
 	return out_polygons;
 }
-//std::vector<wykobi::polygon<float, 2>> Math::Clipper::removePolygonHull(wykobi::polygon<float, 2> & poly, std::vector<wykobi::polygon<float, 2>> & hull_vec) {
-//	/*
-//	Psuedo code:
-//		for each hull
-//			check if inside poly
-//				if not then discard
-//		for each hull
-//			check if inside other hull
-//				if true then discard
-//		for each hull
-//			find two segments between that is not selfinterecting itself and is not selfintersecting poly and is not intersecting and hull and is not intersecting any already found segments
-//			if no segments between poly and hull was found then put in failed queue
-//		for each failed hull
-//			find segments between itself and successful hull
-//		make polygons from segments
-//		return polygons
-//	*/
-//
-//	std::vector<wykobi::polygon<float, 2>> out_vec;
-//
-//
-//	return out_vec;
-//}
-//std::vector<wykobi::polygon<float, 2>> Math::Clipper::removePolygonHull(std::vector<wykobi::polygon<float, 2>> & poly_vec, std::vector<wykobi::polygon<float, 2>> & hull_vec) {
-//	std::vector<wykobi::polygon<float, 2>> out_poly_vec;
-//	std::vector<wykobi::polygon<float, 2>> temp_poly_vec_1;
-//	for (wykobi::polygon<float, 2> & p : poly_vec) {
-//		//gather hull for p
-//		std::vector<wykobi::polygon<float, 2>> temp_hull_vec_1;
-//		for (wykobi::polygon<float, 2> & h : hull_vec) {
-//			if (isPolygonInsidePolygon(h, p)) {
-//				temp_hull_vec_1.push_back(h);
-//			}
-//		}
-//
-//		for (wykobi::polygon<float, 2> & h : temp_hull_vec_1) {
-//
-//		}
-//
-//	}
-//	return out_poly_vec;
-//}
+
+std::vector<wykobi::polygon<float, 2>> Math::Clipper::removePolygonHull(wykobi::polygon<float, 2> & poly, std::vector<wykobi::polygon<float, 2>> & hull_vec) {
+	std::list<wykobi::polygon<float, 2>> poly_list;
+	poly_list.push_back(poly);
+	for (wykobi::polygon<float, 2> & hull : hull_vec) {
+		bool hull_found = false;
+		for (auto it = poly_list.begin(); it != poly_list.end(); ++it) {
+			wykobi::polygon<float, 2> & p = (*it);
+			if (isPolygonInsidePolygon(hull, p)) {
+				auto temp = removePolygonHull(p, hull);
+				poly_list.erase(it);
+				poly_list.insert(poly_list.end(), temp.begin(), temp.end());
+				hull_found = true;
+				break;
+			}
+		}
+		if (!hull_found) {
+			std::vector<wykobi::polygon<float, 2>> overlapping_poly_1;
+			std::vector<wykobi::polygon<float, 2>> overlapping_poly_2;
+			auto it = poly_list.begin();
+			while (it != poly_list.end()) {
+				wykobi::polygon<float, 2> & p = (*it);
+				if (isPolygonsOverlapping(p, hull)) {
+					overlapping_poly_1.push_back(p);
+					it = poly_list.erase(it);
+				}
+				else {
+					++it;
+				}
+			}
+			for (wykobi::polygon<float, 2> & p : overlapping_poly_1) {
+				auto temp = clipPolygonDifference(p, hull);
+				overlapping_poly_2.insert(overlapping_poly_2.end(), temp.begin(), temp.end());
+			}
+			poly_list.insert(poly_list.begin(), overlapping_poly_2.begin(), overlapping_poly_2.end());
+		}
+	}
+	std::vector<wykobi::polygon<float, 2>> out_vec;
+	out_vec.insert(out_vec.end(), poly_list.begin(), poly_list.end());
+	return out_vec;
+}
+std::vector<wykobi::polygon<float, 2>> Math::Clipper::removePolygonHull(std::vector<wykobi::polygon<float, 2>> & poly_vec, std::vector<wykobi::polygon<float, 2>> & hull_vec) {
+	std::vector<wykobi::polygon<float, 2>> out_poly_vec;
+	for (wykobi::polygon<float, 2> & p : poly_vec) {
+		auto temp = removePolygonHull(p, hull_vec);
+		out_poly_vec.insert(out_poly_vec.end(), temp.begin(), temp.end());
+	}
+	return out_poly_vec;
+}
 
 wykobi::polygon<float, 2> Math::insertPointsOnEdgesOfPolygon(wykobi::polygon<float, 2> poly, std::vector<wykobi::point2d<float>> points) {
 	int i = 0;
@@ -1164,13 +1171,11 @@ std::vector<wykobi::point2d<float>> Math::translateWykobiPointVector(std::vector
 }
 
 wykobi::point2d<float> Math::rotateWykobiPoint(wykobi::point2d<float> p, wykobi::point2d<float> centre, float angle) {
-	/*
-	p = translateWykobiPoint(p, -centre.x, -centre.y);
-	float x = p.x * std::cos(angle) - p.y * std::sin(angle);
-	float y = p.y * std::cos(angle) + p.x * std::sin(angle);
-	return translateWykobiPoint(wykobi::make_point<float>(x, y), centre.x, centre.y);
-	*/
-	//angle = angle * 180 / wykobi::PI;
+	//p = translateWykobiPoint(p, -centre.x, -centre.y);
+	//float x = p.x * std::cos(angle) - p.y * std::sin(angle);
+	//float y = p.y * std::cos(angle) + p.x * std::sin(angle);
+	//return translateWykobiPoint(wykobi::make_point<float>(x, y), centre.x, centre.y);
+	////angle = angle * 180 / wykobi::PI;
 	return wykobi::rotate<float>(angle, p, centre);
 }
 
@@ -1234,6 +1239,49 @@ std::string Math::Debug::toCode(wykobi::polygon<float, 2> & poly) {
 	return str.str();
 }
 
+
+//std::vector<wykobi::polygon<float, 2>> Math::Clipper::removePolygonHull(wykobi::polygon<float, 2> & poly, std::vector<wykobi::polygon<float, 2>> & hull_vec) {
+//	/*
+//	Psuedo code:
+//		for each hull
+//			check if inside poly
+//				if not then discard
+//		for each hull
+//			check if inside other hull
+//				if true then discard
+//		for each hull
+//			find two segments between that is not selfinterecting itself and is not selfintersecting poly and is not intersecting and hull and is not intersecting any already found segments
+//			if no segments between poly and hull was found then put in failed queue
+//		for each failed hull
+//			find segments between itself and successful hull
+//		make polygons from segments
+//		return polygons
+//	*/
+//
+//	std::vector<wykobi::polygon<float, 2>> out_vec;
+//
+//
+//	return out_vec;
+//}
+//std::vector<wykobi::polygon<float, 2>> Math::Clipper::removePolygonHull(std::vector<wykobi::polygon<float, 2>> & poly_vec, std::vector<wykobi::polygon<float, 2>> & hull_vec) {
+//	std::vector<wykobi::polygon<float, 2>> out_poly_vec;
+//	std::vector<wykobi::polygon<float, 2>> temp_poly_vec_1;
+//	for (wykobi::polygon<float, 2> & p : poly_vec) {
+//		//gather hull for p
+//		std::vector<wykobi::polygon<float, 2>> temp_hull_vec_1;
+//		for (wykobi::polygon<float, 2> & h : hull_vec) {
+//			if (isPolygonInsidePolygon(h, p)) {
+//				temp_hull_vec_1.push_back(h);
+//			}
+//		}
+//
+//		for (wykobi::polygon<float, 2> & h : temp_hull_vec_1) {
+//
+//		}
+//
+//	}
+//	return out_poly_vec;
+//}
 
 /*
 	int corner = 0;

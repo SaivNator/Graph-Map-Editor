@@ -4,6 +4,8 @@
 
 //sauce: https://www.geometrictools.com/Documentation/MinimalCycleBasis.pdf
 
+/*
+
 typedef Graph::UndirectedGraph<wykobi::point2d<float>>::Node Node;
 typedef Graph::UndirectedGraph<wykobi::point2d<float>>::Edge Edge;
 
@@ -142,7 +144,7 @@ Tree extractCycleFromClosedWalk(Graph::UndirectedGraph<wykobi::point2d<float>> &
 				tree.children.push_back(extractBasis(component));
 			}	
 		}
-		tree.cycle = 
+		//tree.cycle = 
 	}
 
 	return tree;
@@ -217,11 +219,9 @@ std::vector<wykobi::polygon<float, 2>> Graph::getWykobiPolygonsFromUndirectedGra
 	typedef UndirectedGraph<wykobi::point2d<float>>::Edge Edge;
 
 	std::vector<wykobi::polygon<float, 2>> out_vec;
-
-
-
 	return out_vec;
 }
+*/
 
 ////find left-top vertex
 //float min_x = graph.nodes[0]->obj.x;

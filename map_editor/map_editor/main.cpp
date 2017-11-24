@@ -9,7 +9,6 @@
 //local
 #include "MapEditor.hpp"
 #include "Math.hpp"
-#include "Graph.hpp"
 
 //Globals
 sf::RenderWindow window;
@@ -284,29 +283,26 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	std::vector<wykobi::point2d<float>> graph_points = {
-		wykobi::make_point<float>(10, 10),
-		wykobi::make_point<float>(400, 10),
-		wykobi::make_point<float>(400, 100),
-		wykobi::make_point<float>(10, 400),
-		wykobi::make_point<float>(500, 500),
-		wykobi::make_point<float>(600, 500),
-	};
-	std::vector<std::pair<int, int>> graph_edges = {
-		std::pair<int, int>(0, 2),
-		std::pair<int, int>(0, 1),
-		std::pair<int, int>(1, 2),
-		std::pair<int, int>(2, 3),
-		std::pair<int, int>(3, 0),
-		std::pair<int, int>(1, 4),
-		std::pair<int, int>(4, 5)
-	};
-	Graph::UndirectedGraph<wykobi::point2d<float>> graph = Graph::makeUndirectedGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
-
-	graph = graph.depthFirstSearch(graph.nodes[0].get());
-
+	//std::vector<wykobi::point2d<float>> graph_points = {
+	//	wykobi::make_point<float>(10, 10),
+	//	wykobi::make_point<float>(400, 10),
+	//	wykobi::make_point<float>(400, 100),
+	//	wykobi::make_point<float>(10, 400),
+	//	wykobi::make_point<float>(500, 500),
+	//	wykobi::make_point<float>(600, 500),
+	//};
+	//std::vector<std::pair<int, int>> graph_edges = {
+	//	std::pair<int, int>(0, 2),
+	//	std::pair<int, int>(0, 1),
+	//	std::pair<int, int>(1, 2),
+	//	std::pair<int, int>(2, 3),
+	//	std::pair<int, int>(3, 0),
+	//	std::pair<int, int>(1, 4),
+	//	std::pair<int, int>(4, 5)
+	//};
+	//Graph::UndirectedGraph<wykobi::point2d<float>> graph = Graph::makeUndirectedGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
+	//graph = graph.depthFirstSearch(graph.nodes[0].get());
 	//graph.deleteNode(3);
-	
 	//wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({
 	//	wykobi::make_point<float>(10, 10),
 	//	wykobi::make_point<float>(400, 10),
@@ -340,7 +336,7 @@ int main() {
 	//polygons.push_back(poly);
 	//segments.push_back(seg);
 	//polygons = Math::Clipper::removeSubPolygon(poly);
-	segments = Graph::getWykobiSegmentsFromUndirectedGraph<float>(graph);
+	//segments = Graph::getWykobiSegmentsFromUndirectedGraph<float>(graph);
 	//Math::Graph::getWykobiPolygonsFromEdgeGraph<float>(graph);
 	//polygons =Graph::getWykobiPolygonsFromEdgeGraph(graph);
 

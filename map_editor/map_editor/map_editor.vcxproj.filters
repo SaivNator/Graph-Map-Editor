@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\broken">
+      <UniqueIdentifier>{a5a50237-69cf-4128-bd3d-d5e4490e95a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\broken">
+      <UniqueIdentifier>{2e3236b7-8cee-49e7-b71c-1bccb0421ff7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -25,7 +31,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Graph.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\broken</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -42,7 +48,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Graph.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\broken</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
