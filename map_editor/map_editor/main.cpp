@@ -91,7 +91,7 @@ int main() {
 
 	mapEditor.newMap(20, 10, 1024, 1024); 
 	
-
+	//toggle
 	mapEditor.getEditorView() = window.getDefaultView();
 	mapEditor.setShowChunkEdges(true);
 	mapEditor.setShowChunkRelations(false);
