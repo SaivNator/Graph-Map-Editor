@@ -78,6 +78,7 @@ namespace Math {
 		This will divide the polygon from existing points and return the surviveing polygons.
 		*/
 		std::vector<wykobi::polygon<float, 2>> removeSubPolygon(wykobi::polygon<float, 2> & poly);
+		std::vector<wykobi::polygon<float, 2>> removeSubPolygon(std::vector<wykobi::polygon<float, 2>> & poly_vec);
 
 		/*
 		Split polygon so hull does not exist.

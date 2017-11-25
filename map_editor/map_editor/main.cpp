@@ -67,7 +67,7 @@ int mousePos_y;
 float moveSpeed = 1000.f;	//per second
 float zoomSpeed = 1.f;		//per second
 
-#if 0
+#if 1
 
 int main() {
 
@@ -273,75 +273,44 @@ int main() {
 
 
 
-#elif 1
+#elif 0
 
 int main() {
 
 	window.create(sf::VideoMode(1000, 600), title, sf::Style::Default);
+	window.setFramerateLimit(60);
 	if (!arial.loadFromFile("fonts/arial.ttf")) {
 		std::cout << "Font load failed\n";
 		return EXIT_FAILURE;
 	}
 
-	//std::vector<wykobi::point2d<float>> graph_points = {
-	//	wykobi::make_point<float>(10, 10),
-	//	wykobi::make_point<float>(400, 10),
-	//	wykobi::make_point<float>(400, 100),
-	//	wykobi::make_point<float>(10, 400),
-	//	wykobi::make_point<float>(500, 500),
-	//	wykobi::make_point<float>(600, 500),
-	//};
-	//std::vector<std::pair<int, int>> graph_edges = {
-	//	std::pair<int, int>(0, 2),
-	//	std::pair<int, int>(0, 1),
-	//	std::pair<int, int>(1, 2),
-	//	std::pair<int, int>(2, 3),
-	//	std::pair<int, int>(3, 0),
-	//	std::pair<int, int>(1, 4),
-	//	std::pair<int, int>(4, 5)
-	//};
-	//Graph::UndirectedGraph<wykobi::point2d<float>> graph = Graph::makeUndirectedGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
-	//graph = graph.depthFirstSearch(graph.nodes[0].get());
-	//graph.deleteNode(3);
-	//wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({
-	//	wykobi::make_point<float>(10, 10),
-	//	wykobi::make_point<float>(400, 10),
-	//	wykobi::make_point<float>(400, 100),
-	//	wykobi::make_point<float>(300, 100),
-	//	wykobi::make_point<float>(300, 200),
-	//	wykobi::make_point<float>(400, 100),
-	//	wykobi::make_point<float>(400, 400),
-	//	wykobi::make_point<float>(300, 400),
-	//	wykobi::make_point<float>(300, 350),
-	//	wykobi::make_point<float>(250, 350),
-	//	wykobi::make_point<float>(300, 400),
-	//	wykobi::make_point<float>(10, 400),
-	//});
-	//wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({ wykobi::make_point<float>(754, 251),wykobi::make_point<float>(809, 263),wykobi::make_point<float>(830, 272),wykobi::make_point<float>(741, 272),wykobi::make_point<float>(810, 341),wykobi::make_point<float>(610, 341),wykobi::make_point<float>(610, 323),wykobi::make_point<float>(610, 311),wykobi::make_point<float>(745, 311),wykobi::make_point<float>(545, 111),wykobi::make_point<float>(545, 311),wykobi::make_point<float>(598, 311),wykobi::make_point<float>(610, 323),wykobi::make_point<float>(581, 316),wykobi::make_point<float>(389, 389),wykobi::make_point<float>(441, 292),wykobi::make_point<float>(537, 303),wykobi::make_point<float>(537, 103),wykobi::make_point<float>(554, 115),wykobi::make_point<float>(554, 51) });
-	//wykobi::polygon<float, 2> poly;
-	//{
-	//	wykobi::polygon<float, 2> s1 = wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 50), 10);
-	//	wykobi::polygon<float, 2> s2 = wykobi::make_polygon<float>(wykobi::make_circle<float>(175, 175, 75), 5);
-	//	poly = Math::Clipper::mergePolygons(s1, s2)[0];
-	//}
-	//auto vec = Math::Clipper::findFirstLegalPolygonCut(poly, 7);
-	//if (vec.empty()) {
-	//	std::cout << "NO CUT FOUND\n";
-	//}
-	//wykobi::segment<float, 2> seg = wykobi::make_segment<float>(poly[vec[0]], poly[vec[1]]);
-	//std::cout << "TEST: " << Math::isSegmentFromPolygonInsidePolygon(poly, 8, 9) << "\n";
+	wykobi::polygon<float, 2> poly_1 = wykobi::make_polygon<float>({
+		wykobi::make_point<float>(10, 10),
+		wykobi::make_point<float>(400, 10),
+		wykobi::make_point<float>(400, 400),
+		wykobi::make_point<float>(10, 400)
+	});
+
+	std::vector<wykobi::polygon<float, 2>> hull_vec;
+	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 20), 5));
+	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(200, 200, 20), 5));
+	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 100, 20), 5));
+	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(220, 50, 20), 5));
+	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 90, 20), 20));
+	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(500, 200, 20), 5));
 
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
-	//polygons.push_back(poly);
-	//segments.push_back(seg);
-	//polygons = Math::Clipper::removeSubPolygon(poly);
-	//segments = Graph::getWykobiSegmentsFromUndirectedGraph<float>(graph);
-	//Math::Graph::getWykobiPolygonsFromEdgeGraph<float>(graph);
-	//polygons =Graph::getWykobiPolygonsFromEdgeGraph(graph);
+	
+	//polygons.push_back(poly_1);
+	//polygons.push_back(hull_1);
+	//polygons.push_back(hull_2);
+	polygons = Math::Clipper::removePolygonHull(poly_1, hull_vec);
+	polygons = Math::Clipper::removeSubPolygon(polygons);
 
 	sf::View fuck_view = window.getDefaultView();
-	//fuck_view.zoom(-1.f);
+	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);
+	//fuck_view.zoom(0.17f);
 
 	std::cout << "Polygons: " << polygons.size() << "\n";
 	for (int i = 0; i < polygons.size(); i++) {
@@ -359,7 +328,14 @@ int main() {
 	float state = 0.f;
 	float old_state = 0.f;
 
+	std::vector<sf::Color> poly_color_vec(polygons.size());
+	for (int i = 0; i < polygons.size(); i++) {
+		sf::Color c = sf::Color(std::rand() % 256, std::rand() % 256, std::rand() % 256);
+		poly_color_vec[i] = c;
+	}
+
 	sf::VertexArray lineVertexArray = sf::VertexArray(sf::Lines);
+	sf::VertexArray triangleVertexArray = sf::VertexArray(sf::Triangles);
 	std::vector<sf::Text> numbers;
 
 	while (window.isOpen()) {
@@ -383,29 +359,47 @@ int main() {
 			}
 		}
 
-		int count = 0;
-
+		triangleVertexArray.clear();
 		lineVertexArray.clear();
 		numbers.clear();
 
+		int count = 0;
 		for (auto poly : polygons) {
-			for (int i = 0; i < poly.size(); i++) {
-				wykobi::segment<float, 2> seg = wykobi::edge<float>(poly, i);
-				sf::Vertex vertex1 = Math::wykobiPointToSfVertex(seg[0]);
-				sf::Vertex vertex2 = Math::wykobiPointToSfVertex(seg[1]);
-				lineVertexArray.append(vertex1);
-				lineVertexArray.append(vertex2);
+			auto tris = Math::triangulatePolygon(poly);
+			for (auto tri : tris) {	
+				for (int i = 0; i < 3; i++) {
+					auto vertex = Math::wykobiPointToSfVertex(tri[i]);
+					vertex.color = poly_color_vec[count];
+					triangleVertexArray.append(vertex);
+				}
 			}
-			for (int i = 0; i < poly.size(); i++) {
-				sf::Text t;
-				std::ostringstream s;
-				t.setFont(arial);
-				t.setCharacterSize(20);
-				s << i;
-				t.setPosition(Math::wykobiPointToSfVector(poly[i]));
-				t.setString(s.str());
-				numbers.push_back(t);
-			}
+			//for (int i = 0; i < poly.size(); i++) {
+			//	wykobi::segment<float, 2> seg = wykobi::edge<float>(poly, i);
+			//	sf::Vertex vertex1 = Math::wykobiPointToSfVertex(seg[0]);
+			//	sf::Vertex vertex2 = Math::wykobiPointToSfVertex(seg[1]);
+			//	lineVertexArray.append(vertex1);
+			//	lineVertexArray.append(vertex2);
+			//}
+			//for (int i = 0; i < poly.size(); i++) {
+			//	sf::Text t;
+			//	std::ostringstream s;
+			//	t.setFont(arial);
+			//	t.setCharacterSize(20);
+			//	s << i;
+			//	t.setPosition(Math::wykobiPointToSfVector(poly[i]));
+			//	t.setString(s.str());
+			//	numbers.push_back(t);
+			//}
+			//wykobi::point2d<float> centre = wykobi::centroid(poly);
+			//sf::Text t;
+			//std::ostringstream s;
+			//t.setFont(arial);
+			//t.setCharacterSize(20);
+			//s << "poly_" << count;
+			//t.setPosition(Math::wykobiPointToSfVector(centre));
+			//t.setString(s.str());
+			//numbers.push_back(t);
+			count++;
 		}
 		for (auto seg : segments) {
 			for (int i = 0; i < seg.size(); i++) {
@@ -418,6 +412,7 @@ int main() {
 		window.clear();
 		window.setView(fuck_view);
 
+		window.draw(triangleVertexArray);
 		window.draw(lineVertexArray);
 		for (sf::Text & t : numbers) {
 			window.draw(t);
@@ -434,6 +429,55 @@ int main() {
 }
 
 #endif
+
+//wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({
+//	wykobi::make_point<float>(10, 10),
+//	wykobi::make_point<float>(400, 10),
+//	wykobi::make_point<float>(400, 100),
+//	wykobi::make_point<float>(300, 100),
+//	wykobi::make_point<float>(300, 200),
+//	wykobi::make_point<float>(400, 100),
+//	wykobi::make_point<float>(400, 400),
+//	wykobi::make_point<float>(300, 400),
+//	wykobi::make_point<float>(300, 350),
+//	wykobi::make_point<float>(250, 350),
+//	wykobi::make_point<float>(300, 400),
+//	wykobi::make_point<float>(10, 400),
+//});
+//wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({ wykobi::make_point<float>(754, 251),wykobi::make_point<float>(809, 263),wykobi::make_point<float>(830, 272),wykobi::make_point<float>(741, 272),wykobi::make_point<float>(810, 341),wykobi::make_point<float>(610, 341),wykobi::make_point<float>(610, 323),wykobi::make_point<float>(610, 311),wykobi::make_point<float>(745, 311),wykobi::make_point<float>(545, 111),wykobi::make_point<float>(545, 311),wykobi::make_point<float>(598, 311),wykobi::make_point<float>(610, 323),wykobi::make_point<float>(581, 316),wykobi::make_point<float>(389, 389),wykobi::make_point<float>(441, 292),wykobi::make_point<float>(537, 303),wykobi::make_point<float>(537, 103),wykobi::make_point<float>(554, 115),wykobi::make_point<float>(554, 51) });
+//wykobi::polygon<float, 2> poly;
+//{
+//	wykobi::polygon<float, 2> s1 = wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 50), 10);
+//	wykobi::polygon<float, 2> s2 = wykobi::make_polygon<float>(wykobi::make_circle<float>(175, 175, 75), 5);
+//	poly = Math::Clipper::mergePolygons(s1, s2)[0];
+//}
+//auto vec = Math::Clipper::findFirstLegalPolygonCut(poly, 7);
+//if (vec.empty()) {
+//	std::cout << "NO CUT FOUND\n";
+//}
+//wykobi::segment<float, 2> seg = wykobi::make_segment<float>(poly[vec[0]], poly[vec[1]]);
+//std::cout << "TEST: " << Math::isSegmentFromPolygonInsidePolygon(poly, 8, 9) << "\n";
+
+//std::vector<wykobi::point2d<float>> graph_points = {
+//	wykobi::make_point<float>(10, 10),
+//	wykobi::make_point<float>(400, 10),
+//	wykobi::make_point<float>(400, 100),
+//	wykobi::make_point<float>(10, 400),
+//	wykobi::make_point<float>(500, 500),
+//	wykobi::make_point<float>(600, 500),
+//};
+//std::vector<std::pair<int, int>> graph_edges = {
+//	std::pair<int, int>(0, 2),
+//	std::pair<int, int>(0, 1),
+//	std::pair<int, int>(1, 2),
+//	std::pair<int, int>(2, 3),
+//	std::pair<int, int>(3, 0),
+//	std::pair<int, int>(1, 4),
+//	std::pair<int, int>(4, 5)
+//};
+//Graph::UndirectedGraph<wykobi::point2d<float>> graph = Graph::makeUndirectedGraphFromNodes<wykobi::point2d<float>>(graph_points, graph_edges);
+//graph = graph.depthFirstSearch(graph.nodes[0].get());
+//graph.deleteNode(3);
 
 //polygons.push_back(poly);
 //polygons.push_back(hull);

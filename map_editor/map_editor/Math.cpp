@@ -123,6 +123,17 @@ std::vector<wykobi::polygon<float, 2>> Math::Clipper::removeSubPolygon(wykobi::p
 	}
 	return vec;
 }
+std::vector<wykobi::polygon<float, 2>> Math::Clipper::removeSubPolygon(std::vector<wykobi::polygon<float, 2>> & poly_vec) {
+	std::vector<wykobi::polygon<float, 2>> new_poly_vec;
+	for (wykobi::polygon<float, 2> & poly : poly_vec) {
+		auto temp = removeSubPolygon(poly);
+		//std::cout << "hello -> " << temp.size() << "\n";
+		new_poly_vec.insert(new_poly_vec.end(), temp.begin(), temp.end());
+		//poly = removeDuplicates<wykobi::polygon<float, 2>>(poly);
+		//new_poly_vec.push_back(poly);
+	}
+	return new_poly_vec;
+}
 
 bool Math::isSegmentPointsEqual(wykobi::segment<float, 2> & seg1, wykobi::segment<float, 2> & seg2) {
 	if ((seg1[0] == seg2[0] && seg1[1] == seg2[1]) || (seg1[0] == seg2[1] && seg1[1] == seg2[0])) {

@@ -80,18 +80,21 @@ void MapEditor::disableDrawTool() {
 
 void MapEditor::updateDrawTool(wykobi::point2d<float> pos) {
 	drawToolPosition = pos;
-	wykobi::vector2d<float> transVector = wykobi::make_vector<float>(drawToolPosition);
-	drawToolTranslatedAndTriangulated.clear();
-	for (wykobi::triangle<float, 2> triangle : Math::triangulatePolygon(drawToolShape)) {
-		drawToolTranslatedAndTriangulated.push_back(wykobi::translate<float>(transVector, triangle));
-	}
+	//wykobi::vector2d<float> transVector = wykobi::make_vector<float>(drawToolPosition);
+	//drawToolTranslatedAndTriangulated.clear();
+	//for (wykobi::triangle<float, 2> triangle : Math::triangulatePolygon(drawToolShape)) {
+	//	drawToolTranslatedAndTriangulated.push_back(wykobi::translate<float>(transVector, triangle));
+	//}
 }
 
 void MapEditor::actionDrawTool() {
+	wykobi::vector2d<float> trans_vector = wykobi::make_vector<float>(drawToolPosition);
+	wykobi::polygon<float, 2> translated_polygon = wykobi::translate<float>(trans_vector, drawToolShape);
+	insertPolygon(translated_polygon, drawToolType);
 	//std::cout << mapTriangleVector.size() << "\t";
-	for (wykobi::triangle<float, 2> & triangle : drawToolTranslatedAndTriangulated) {
-		insertTriangle(triangle, drawToolType, 1.f);
-	}
+	//for (wykobi::triangle<float, 2> & triangle : drawToolTranslatedAndTriangulated) {
+	//	insertTriangle(triangle, drawToolType, 1.f);
+	//}
 	//std::cout << mapTriangleVector.size() << "\n";
 }
 
@@ -228,17 +231,92 @@ void MapEditor::insertPolygon(wykobi::polygon<float, 2> insert_polygon, int type
 		for (int i = 0; i < Global::numberOfTypes; i++) {
 			polygon_vector_1[i] = Math::Clipper::mergeTriangles(triangle_vector_1[i]);
 		}
-		
 		//Remove possible hull
 		for (int i = 0; i < Global::numberOfTypes; i++) {
-			wykobi::polygon<float, 2> current_outside;
-			wykobi::polygon<float, 2> current_inside;
+			for (wykobi::polygon<float, 2> & poly : polygon_vector_1[i]) {
+				std::vector<wykobi::polygon<float, 2>> hull_vec;
+				for (int j = 0; j < Global::numberOfTypes; j++) {
+					if (j == i) continue;
+					for (wykobi::polygon<float, 2> & hull : polygon_vector_1[j]) {
+						if (Math::isPolygonInsidePolygon(hull, poly)) {
+							hull_vec.push_back(hull);
+						}
+					}
+				}
+				std::vector<wykobi::polygon<float, 2>> temp_poly_vec = Math::Clipper::removePolygonHull(poly, hull_vec);
+				polygon_vector_2[i].insert(polygon_vector_2[i].end(), temp_poly_vec.begin(), temp_poly_vec.end());
+			}
 		}
+
+		//swap
+		polygon_vector_1.swap(polygon_vector_2);
 		
-		
-		//Add insert_polygon to polygon_vector_1
-		//polygon_vector_1[type].push_back(insert_polygon);
-		
+		//Make space for insert_polygon
+		wykobi::polygon<float, 2> chunk_frame = wykobi::make_polygon<float>(mapChunk->rectangle);
+		bool isHull = false;
+		if (Math::isPolygonInsidePolygon(insert_polygon, chunk_frame)) {
+			//if this then then insert_polygon might be a hull
+			//check if insert_polygon is hull
+			for (int i = 0; i < Global::numberOfTypes; i++) {
+				for (auto it = polygon_vector_1[i].begin(); it != polygon_vector_1[i].end(); ++it) {
+					wykobi::polygon<float, 2> poly = (*it);
+					if (Math::isPolygonInsidePolygon(insert_polygon, poly)) {
+						it = polygon_vector_1[i].erase(it);
+						auto temp_poly_vec = Math::Clipper::removePolygonHull(poly, insert_polygon);
+						polygon_vector_1[i].insert(polygon_vector_1[i].end(), temp_poly_vec.begin(), temp_poly_vec.end());
+						isHull = true;
+						break;
+					}
+				}
+				if (isHull) break;
+			}
+		}
+		if (isHull) {
+			//if this then there has been made space for insert_polygon
+			//if this then no polygon can be inside insert_polygon at this point
+			//add insert_polygon to polygon_vector_1
+			polygon_vector_1[type].push_back(insert_polygon);
+		}
+		else {
+			//if this then there might me one or more existing polygons that are inside insert_polygon, they are deleted
+			//if this then insert_polygon can't be a hull
+			//delete polygons that are inside insert_polygon
+			for (int i = 0; i < Global::numberOfTypes; i++) {
+				auto it = polygon_vector_1[i].begin();
+				while (it != polygon_vector_1[i].end()) {
+					wykobi::polygon<float, 2> & poly = (*it);
+					if (Math::isPolygonInsidePolygon(poly, insert_polygon)) {
+						it = polygon_vector_1[i].erase(it);
+					}
+					else {
+						++it;
+					}
+				}
+			}
+			//clip intersecting polygons
+			for (int i = 0; i < Global::numberOfTypes; i++) {
+				polygon_vector_2[i].clear();
+			}
+			for (int i = 0; i < Global::numberOfTypes; i++) {
+				for (auto it = polygon_vector_1[i].begin(); it != polygon_vector_1[i].end(); ++it) {
+					wykobi::polygon<float, 2> & poly = (*it);
+					if (Math::isPolygonsOverlapping(poly, insert_polygon)) {
+						auto temp_poly_vec = Math::Clipper::clipPolygonDifference(poly, insert_polygon);
+						polygon_vector_2[i].insert(polygon_vector_2[i].end(), temp_poly_vec.begin(), temp_poly_vec.end());
+					}
+					else {
+						polygon_vector_2[i].push_back(poly);
+					}
+				}
+			}
+			//clip and add insert_polygon to polygon_vector_2
+			auto temp_poly_vec = Math::Clipper::clipPolygonIntersection(insert_polygon, chunk_frame);
+			polygon_vector_2[type].insert(polygon_vector_2[type].end(), temp_poly_vec.begin(), temp_poly_vec.end());
+			polygon_vector_1.swap(polygon_vector_2);
+		}
+
+		//clear old chunk triangles and replace with new
+		applyPolygonsToChunk(mapChunk, polygon_vector_1);
 
 	}
 }
@@ -922,7 +1000,7 @@ void MapEditor::updateVertexArrays() {
 	//Tools
 	toolVertexArray.clear();
 	if (drawToolEnabled) {
-		for (wykobi::triangle<float, 2> & triangle : drawToolTranslatedAndTriangulated) {
+		for (wykobi::triangle<float, 2> & triangle : Math::triangulatePolygon(wykobi::translate<float>(wykobi::make_vector<float>(drawToolPosition), drawToolShape))) {
 			for (int i = 0; i < 3; i++) {
 				toolVertexArray.append(Math::wykobiPointToSfVertex(triangle[i]));
 			}

@@ -90,7 +90,7 @@ private:
 	int drawToolType = 0;
 	wykobi::point2d<float> drawToolPosition;
 	wykobi::polygon<float, 2> drawToolShape;
-	std::vector<wykobi::triangle<float, 2>> drawToolTranslatedAndTriangulated;
+	//std::vector<wykobi::triangle<float, 2>> drawToolTranslatedAndTriangulated;
 
 	/*
 	Debug.
