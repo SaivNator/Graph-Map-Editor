@@ -206,6 +206,26 @@ void MapEditor::deleteMapTriangle(MapTriangle * triangle) {
 }
 
 void MapEditor::insertPolygon(wykobi::polygon<float, 2> insert_polygon, int type) {
+#if 0
+	//gather relevant chunks
+	insert_polygon = Math::roundWykobiPolygon(insert_polygon);
+	insert_polygon = Math::removeDuplicates<wykobi::polygon<float, 2>>(insert_polygon);
+	std::vector<MapChunk*> chunks_vector_1;
+	std::vector<MapChunk*> chunks_vector_2;
+	chunks_vector_1 = getChunkInsideRectangle(Math::createRectangleFromPolygon(insert_polygon));
+	for (MapChunk * mapChunk : chunks_vector_1) {
+		if (Math::isPolygonsOverlapping(wykobi::make_polygon<float>(mapChunk->rectangle), insert_polygon)) {
+			chunks_vector_2.push_back(mapChunk);
+		}
+	}
+
+	//handle chunks
+	for (MapChunk* map_chunk : chunks_vector_2) {
+	
+	}
+
+
+#elif 1
 	//Gather relevant chunks
 	insert_polygon = Math::roundWykobiPolygon(insert_polygon);
 	insert_polygon = Math::removeDuplicates<wykobi::polygon<float, 2>>(insert_polygon);
@@ -223,6 +243,9 @@ void MapEditor::insertPolygon(wykobi::polygon<float, 2> insert_polygon, int type
 		std::vector<std::vector<wykobi::triangle<float, 2>>> triangle_vector_2(Global::numberOfTypes);
 		std::vector<std::vector<wykobi::polygon<float, 2>>> polygon_vector_1(Global::numberOfTypes);
 		std::vector<std::vector<wykobi::polygon<float, 2>>> polygon_vector_2(Global::numberOfTypes);
+
+		//std::vector<std::vector<wykobi::point2d<float>>> point_vector_1(Global::numberOfTypes);
+
 		//Sort triangles
 		for (MapTriangle * mapTriangle : mapChunk->triangles) {
 			triangle_vector_1[mapTriangle->type].push_back(mapTriangle->getWykobiTriangle());
@@ -230,6 +253,7 @@ void MapEditor::insertPolygon(wykobi::polygon<float, 2> insert_polygon, int type
 		//Merge triangles in to polygons
 		for (int i = 0; i < Global::numberOfTypes; i++) {
 			polygon_vector_1[i] = Math::Clipper::mergeTriangles(triangle_vector_1[i]);
+			//point_vector_1[i] = Math::makeWykobiPointVectorFromShape<wykobi::triangle<float, 2>>(triangle_vector_1[i]);
 		}
 		//Remove possible hull
 		for (int i = 0; i < Global::numberOfTypes; i++) {
@@ -275,7 +299,8 @@ void MapEditor::insertPolygon(wykobi::polygon<float, 2> insert_polygon, int type
 			//if this then there has been made space for insert_polygon
 			//if this then no polygon can be inside insert_polygon at this point
 			//add insert_polygon to polygon_vector_1
-			polygon_vector_1[type].push_back(insert_polygon);
+			//polygon_vector_1[type].push_back(insert_polygon);
+			polygon_vector_2.swap(polygon_vector_1);
 		}
 		else {
 			//if this then there might me one or more existing polygons that are inside insert_polygon, they are deleted
@@ -309,388 +334,22 @@ void MapEditor::insertPolygon(wykobi::polygon<float, 2> insert_polygon, int type
 					}
 				}
 			}
-			//clip and add insert_polygon to polygon_vector_2
-			auto temp_poly_vec = Math::Clipper::clipPolygonIntersection(insert_polygon, chunk_frame);
-			polygon_vector_2[type].insert(polygon_vector_2[type].end(), temp_poly_vec.begin(), temp_poly_vec.end());
-			polygon_vector_1.swap(polygon_vector_2);
 		}
+		//insert lost points
+		//for (int i = 0; i < Global::numberOfTypes; i++) {
+		//	polygon_vector_2[i] = Math::insertPointsOnEdgesOfPolygon(polygon_vector_2[i], point_vector_1[i]);
+		//}
+		//clip and add insert_polygon to polygon_vector_2
+		auto temp_poly_vec = Math::Clipper::clipPolygonIntersection(insert_polygon, chunk_frame);
+		polygon_vector_2[type].insert(polygon_vector_2[type].end(), temp_poly_vec.begin(), temp_poly_vec.end());
+		polygon_vector_1.swap(polygon_vector_2);
 
 		//clear old chunk triangles and replace with new
 		applyPolygonsToChunk(mapChunk, polygon_vector_1);
-
-	}
-}
-
-void MapEditor::insertTriangle(wykobi::triangle<float, 2> insert_triangle, int type) {
-	insertTriangle(insert_triangle, type, 0.f);
-}
-void MapEditor::insertTriangle(wykobi::triangle<float, 2> insert_triangle, int type, float error) {
-#if 1
-	/*
-	Pseudo code:
-	1. Round insert_triangle
-	2. Gather chunks insert_triangle is overlapping and put them in intersected_chunks_list.
-	3. For each chunk in intersected_chunks_list:
-		1. Merge all triangles in chunk in to polygons sorted by type, call it merged_polygons.
-		2. if insert_triangle is inside one polygon in merged_polygons then:
-			1. if insert_triangle and polygon has same type, then break (finish). (this case will only happen if insert_triangle is in one chunk).
-			2. else, then remove hull insert_triangle is makeing from polygon, then triangulate append to chunk, then break
-		3. else:
-			1. Merge insert_triangle with polygons that are the same type, and clip difference polygons with != type.
-			2. if insert_triangle was not merged, then make insert_triangle it's own polygon
-			3. then triangulate and yadi yadi ya.
-	*/
-#if DEBUG
-	std::cout << "insertTriangle_begin" << "\n";
-#endif
-#if DEBUG
-	std::cout << "\t" << "roundInsertTriangle_begin" << "\n";
-#endif
-	//Round inser_triangle
-	insert_triangle = Math::roundWykobiTriangle(insert_triangle);
-	wykobi::polygon<float, 2> insert_polygon = wykobi::make_polygon(insert_triangle);
-#if DEBUG
-	std::cout << "\t" << "roundInsertTriangle_end" << "\n";
-#endif
-#if DEBUG
-	std::cout << "\t" << "findChunks_begin" << "\n";
-#endif
-	//Gather chunks triangle is overlapping.
-	std::vector<MapChunk*> chunks = getChunkInsideRectangle(Math::createRectangleFromTriangle(insert_triangle));
-	std::vector<MapChunk*> intersected_chunks;
-	for (MapChunk * chunk : chunks) {
-		if (wykobi::intersect<float>(insert_triangle, chunk->rectangle) || Math::isPolygonInsidePolygon(wykobi::make_polygon<float>(chunk->rectangle), wykobi::make_polygon<float>(insert_triangle))) {
-			intersected_chunks.push_back(chunk);
-		}
-	}
-#if DEBUG
-	std::cout << "\t" << "findChunks_end" << "\n";
-#endif
-#if DEBUG
-	std::cout << "\t" << "makeSpace_begin" << "\n";
-#endif
-	//Make space for insert_triangle.
-	for (MapChunk * chunk : intersected_chunks) {
-		std::vector<std::vector<wykobi::polygon<float, 2>>> polygons_sorted_in_types(Global::numberOfTypes);
-		std::vector<std::vector<wykobi::polygon<float, 2>>> temp_polygons_sorted_in_types(Global::numberOfTypes);
-		for (int i = 0; i < Global::numberOfTypes; i++) {
-			std::vector<wykobi::triangle<float, 2>> temp_triangles;
-			for (MapTriangle * mapTriangle : chunk->triangles) {
-				if (mapTriangle->type == i) {
-					temp_triangles.push_back(mapTriangle->getWykobiTriangle());
-				}
-			}
-			std::vector<wykobi::point2d<float>> temp_point_vector = Math::makeWykobiPointVectorFromShape<wykobi::triangle<float, 2>>(temp_triangles);
-			polygons_sorted_in_types[i] = Math::Clipper::mergeTriangles(temp_triangles);
-			for (int j = 0; j < polygons_sorted_in_types[i].size(); j++) {
-				polygons_sorted_in_types[i][j] = Math::insertPointsOnEdgesOfPolygon(polygons_sorted_in_types[i][j], temp_point_vector);
-			}
-		}
-		bool isInsertDone = false;
-		std::vector<wykobi::polygon<float, 2>> insert_polygon_clipped_in_chunk = Math::Clipper::clipPolygonIntersection(insert_polygon, wykobi::make_polygon<float>(chunk->rectangle));
-		for (int i = 0; i < Global::numberOfTypes; i++) {
-			for (int j = 0; j < polygons_sorted_in_types[i].size(); j++) {
-				wykobi::polygon<float, 2> & polygon = polygons_sorted_in_types[i][j];
-				std::vector<wykobi::point2d<float>> polygon_points = Math::makeWykobiPointVectorFromShape(polygon);
-				//check if insert_triangle is inside a polygon with simular types	(this can only happend once)
-				if (Math::isPolygonInsidePolygon(insert_polygon, polygon)) {
-					if (i == type) {
-						return;	//if this then there is nothing to insert to the map.
-					}
-					else {
-						//if this then remove hull from polygon then insert insert_polygon as an independent polygon
-						std::vector<wykobi::polygon<float, 2>> temp_poly = Math::Clipper::removePolygonHull(polygon, insert_polygon);
-						temp_polygons_sorted_in_types[i].insert(temp_polygons_sorted_in_types[i].end(), temp_poly.begin(), temp_poly.end());
-						temp_polygons_sorted_in_types[type].push_back(insert_polygon);
-						isInsertDone = true;
-					}
-				}
-				//check if insert_triangle is overlapping a polygon
-				else if (Math::isPolygonsOverlapping(polygon, insert_polygon)) {
-					if (i == type && !isInsertDone) {
-						//if this merge insert_triangle with polygon.
-						std::vector<wykobi::polygon<float, 2>> temp_poly;
-						temp_poly.push_back(polygon);
-						temp_poly.insert(temp_poly.end(), insert_polygon_clipped_in_chunk.begin(), insert_polygon_clipped_in_chunk.end());
-						temp_poly = Math::Clipper::mergePolygons(temp_poly);
-						for (int k = 0; k < temp_poly.size(); k++) {
-							temp_poly[k] = Math::insertPointsOnEdgesOfPolygon(temp_poly[k], polygon_points);
-						}
-						temp_polygons_sorted_in_types[i].insert(temp_polygons_sorted_in_types[i].end(), temp_poly.begin(), temp_poly.end());
-						isInsertDone = true;
-					}
-					else {
-						//if this clip polygon against insert_triangle
-						std::vector<wykobi::polygon<float, 2>> temp_poly = Math::Clipper::clipPolygonDifference(polygon, insert_polygon);
-						for (int k = 0; k < temp_poly.size(); k++) {
-							temp_poly[k] = Math::insertPointsOnEdgesOfPolygon(temp_poly[k], polygon_points);
-						}
-						temp_polygons_sorted_in_types[i].insert(temp_polygons_sorted_in_types[i].begin(), temp_poly.begin(), temp_poly.end());
-					}
-				}
-				else {
-					temp_polygons_sorted_in_types[i].push_back(polygon);
-				}
-			}
-		}
-		if (!isInsertDone) {
-			temp_polygons_sorted_in_types[type].insert(temp_polygons_sorted_in_types[type].end(), insert_polygon_clipped_in_chunk.begin(), insert_polygon_clipped_in_chunk.end());
-		}
-		applyPolygonsToChunk(chunk, temp_polygons_sorted_in_types);
-	}
-#if DEBUG
-	std::cout << "\t" << "makeSpace_end" << "\n";
-#endif
-
-#elif 0
-	/*
-	Pseudo code:
-	1. Gather chunks insert_triangle is overlapping and put them in intersected_chunks_list.
-	2. For each chunk in intersected_chunks_list:
-		1. Make space for insert_triangle.
-	3. For each chunk in intersected_chunks_list:
-		1. Clip insert_triangle inside chunk->rectangle, call it clipped_insert_polygon.
-		2. If there are any points in chunk that is on any segment of clipped_insert_polygon, insert them to clipped_insert_polygon.
-		3. Triangulate clipped_insert_polygon and make MapTriangles of the triangles.
-	*/
-#if DEBUG
-	std::cout << "insertTriangle_begin" << "\n"; 
-#endif
-#if DEBUG
-	std::cout << "\t" << "findChunks_begin" << "\n";
-#endif
-	//Gather chunks triangle is overlapping.
-	std::vector<MapChunk*> chunks = getChunkInsideRectangle(Math::createRectangleFromTriangle(insert_triangle));
-	std::vector<MapChunk*> intersected_chunks;
-	for (MapChunk * chunk : chunks) {
-		if (wykobi::intersect<float>(insert_triangle, chunk->rectangle) || Math::isPolygonInsidePolygon(wykobi::make_polygon<float>(chunk->rectangle), wykobi::make_polygon<float>(insert_triangle))) {
-			intersected_chunks.push_back(chunk);
-		}
-	}
-#if DEBUG
-	std::cout << "\t" << "findChunks_end" << "\n";
-#endif
-#if DEBUG
-	std::cout << "\t" << "handleChunk_begin" << "\n";
-#endif
-	//Make space for insert_triangle.
-	for (MapChunk * chunk : intersected_chunks) {
-#if DEBUG
-		std::cout << "\t\t" << "handleTriangles_begin" << "\n";
-#endif
-		std::list<MapTriangle*> mapTriangles_to_clip;
-		std::list<MapTriangle*> mapTriangles_to_delete;
-		for (MapTriangle * current_mapTriangle : chunk->triangles) {
-			wykobi::triangle<float, 2> current_triangle = current_mapTriangle->getWykobiTriangle();
-			if (Math::isTrianglesOverlapping(current_triangle, insert_triangle)) {
-				if (Math::isTriangleInsideTriangle(current_triangle, insert_triangle)) {
-					mapTriangles_to_delete.push_back(current_mapTriangle);
-				}
-				else {
-					mapTriangles_to_clip.push_back(current_mapTriangle);
-				}
-			}
-		}
-#if DEBUG
-		std::cout << "\t\t" << "handleTriangles_end" << "\n";
-#endif
-#if DEBUG
-		std::cout << "\t\t" << "deleteTriangles_begin" << "\n";
-#endif
-		//delete unwanted triangles
-		for (MapTriangle * current_mapTriangle : mapTriangles_to_delete) {
-			deleteMapTriangle(current_mapTriangle);
-		}
-#if DEBUG
-		std::cout << "\t\t" << "deleteTriangles_end" << "\n";
-#endif
-		//clip triangles
-#if DEBUG
-		std::cout << "\t\t" << "gatherTriangles_begin" << "\n";
-#endif
-		//gather triangles by type
-		std::vector<std::vector<wykobi::triangle<float, 2>>> triangles_sorted_in_types(Global::numberOfTypes, std::vector<wykobi::triangle<float, 2>>());
-		for (MapTriangle * current_mapTriangle : mapTriangles_to_clip) {
-			triangles_sorted_in_types[current_mapTriangle->type].push_back(current_mapTriangle->getWykobiTriangle());
-			deleteMapTriangle(current_mapTriangle);
-		}
-#if DEBUG
-		std::cout << "\t\t" << "gatherTriangles_end" << "\n";
-#endif
-#if DEBUG
-		std::cout << "\t\t" << "mergeTriangles_begin" << "\n";
-#endif
-		//merge triangles by type and make space for insert triangle
-		std::vector<std::vector<wykobi::polygon<float, 2>>> polygons_sorted_in_types(Global::numberOfTypes);
-		for (int i = 0; i < triangles_sorted_in_types.size(); i++) {
-#if DEBUG
-			std::cout << "\t\t\t" << "makePolygons_begin" << "\n";
-#endif
-			//merge triangles in to polygons.
-			polygons_sorted_in_types[i] = Math::Clipper::mergeTriangles(triangles_sorted_in_types[i]);
-#if DEBUG
-			std::cout << "\t\t\t" << "makePolygons_end" << "\n";
-#endif
-#if DEBUG
-			std::cout << "\t\t\t" << "clipPolygons_begin" << "\n";
-#endif
-			//clip polygons (remove parts that are under insert_triangle).
-			std::vector<wykobi::polygon<float, 2>> temp_polygon_vector;
-			for (wykobi::polygon<float, 2> poly1 : polygons_sorted_in_types[i]) {
-				if (Math::isPolygonInsidePolygon(wykobi::make_polygon<float>(insert_triangle), poly1)) {
-					std::vector<wykobi::polygon<float, 2>> temp_vec = Math::Clipper::removePolygonHull(poly1, wykobi::make_polygon<float>(insert_triangle));
-					temp_polygon_vector.insert(temp_polygon_vector.end(), temp_vec.begin(), temp_vec.end());
-					break;
-				}
-				for (wykobi::polygon<float, 2> poly2 : Math::Clipper::clipPolygonDifference(poly1, wykobi::make_polygon<float>(insert_triangle))) {
-					temp_polygon_vector.push_back(poly2);
-				}
-			}
-#if DEBUG
-			std::cout << "\t\t\t" << "clipPolygons_end" << "\n";
-#endif
-#if DEBUG
-			std::cout << "\t\t\t" << "insertLostPoints_begin" << "\n";
-#endif
-			polygons_sorted_in_types[i].swap(temp_polygon_vector);
-			//insert possible lost points.
-			std::vector<wykobi::point2d<float>> temp_point_vector = Math::makeWykobiPointVectorFromShape<wykobi::triangle<float, 2>>(triangles_sorted_in_types[i]);
-			for (int j = 0; j < polygons_sorted_in_types[i].size(); j++) {
-				polygons_sorted_in_types[i][j] = Math::insertPointsOnEdgesOfPolygon(polygons_sorted_in_types[i][j], temp_point_vector);
-			}
-#if DEBUG
-			std::cout << "\t\t\t" << "insertLostPoints_end" << "\n";
-#endif
-#if DEBUG
-			std::cout << "\t\t\t" << "triangulatePolygons_begin" << "\n";
-#endif
-			//triangulate polygons and make MapTriangles of triangles.
-			for (wykobi::polygon<float, 2> poly : polygons_sorted_in_types[i]) {
-#if DEBUG
-				std::cout << "\t\t\t\t" << "insidePoly_begin " << Math::Debug::toCode(poly) << "\n";
-#endif
-				poly = Math::removeDuplicates<wykobi::polygon<float, 2>>(poly);	//PATCH (will leave empty spots).
-				for (wykobi::triangle<float, 2> tri : Math::triangulatePolygon(poly)) {
-#if DEBUG
-					std::cout << "\t\t\t\t\t" << "insideTri_begin" << "\n";
-#endif
-					makeMapTriangle(chunk, i, tri, error);
-#if DEBUG
-					std::cout << "\t\t\t\t\t" << "insideTri_end" << "\n";
-#endif
-				}
-#if DEBUG
-				std::cout << "\t\t\t\t" << "insidePoly_end" << "\n";
-#endif
-			}
-#if DEBUG
-			std::cout << "\t\t\t" << "triangulatePolygons_end" << "\n";
-#endif
-		}
-#if DEBUG
-		std::cout << "\t\t" << "mergeTriangles_end" << "\n";
-#endif
-#if DEBUG
-		std::cout << "\t\t" << "addTriangles_begin" << "\n";
-#endif
-		//Add insert_triangle.
-		for (wykobi::polygon<float, 2> poly : Math::Clipper::clipPolygonIntersection(wykobi::make_polygon<float>(insert_triangle), wykobi::make_polygon<float>(chunk->rectangle))) {
-			for (wykobi::triangle<float, 2> tri : Math::triangulatePolygon(poly)) {
-				makeMapTriangle(chunk, type, tri, error);
-			}
-		}
-#if DEBUG		
-		std::cout << "\t\t" << "addTriangles_end" << "\n";
-#endif
-	}
-#if DEBUG
-	std::cout << "\t" << "handleChunks_end" << "\n";
-#endif
-#if DEBUG
-	std::cout << "\t" << "triangleRelations_begin" << "\n";
-#endif
-	//relations
-	for (MapChunk * chunk : intersected_chunks) {
-		generateTriangleRelationsInChunk(chunk);
-	}
-#if DEBUG
-	std::cout << "\t" << "triangleRelations_end" << "\n";
-#endif
-#if DEBUG
-	std::cout << "\t" << "removeUnusedPoints_begin" << "\n";
-#endif	
-	removeUnusedMapPoints();
-#if DEBUG
-	std::cout << "\t" << "removeUnusedPoints_end" << "\n";
-#endif
-#if DEBUG
-	std::cout << "insertTriangle_end" << "\n\n";
-#endif
-
-#elif 0
-	//Gather chunks triangle is overlapping.
-	std::vector<MapChunk*> chunks = getChunkInsideRectangle(Math::createRectangleFromTriangle(insert_triangle));
-	std::vector<MapChunk*> intersected_chunks;
-	for (MapChunk * chunk : chunks) {
-		if (wykobi::intersect<float>(insert_triangle, chunk->rectangle)) {
-			intersected_chunks.push_back(chunk);
-		}
-	}
-	for (MapChunk * chunk : intersected_chunks) {	
-		//make space for new triangle
-		std::vector<MapTriangle*> test_triangles = chunk->triangles;
-		for (auto it = test_triangles.begin(); it != test_triangles.end(); ++it) {
-			MapTriangle * mapTriangle = (*it);
-			wykobi::triangle<float, 2> current_triangle = mapTriangle->getWykobiTriangle();
-			//if (wykobi::intersect<float>(current_triangle, insert_triangle)) {
-			if (Math::isTrianglesOverlapping(current_triangle, insert_triangle)) {
-				std::vector<wykobi::triangle<float, 2>> pending_triangles;
-				int current_type = mapTriangle->type;
-				//if current_triangle is inside insert_triangle then delete current_triangle
-				if (Math::isTriangleInsideTriangle(current_triangle, insert_triangle)) {
-					deleteMapTriangle(mapTriangle);
-					continue;
-				}
-				//if insert_triangle is inside current_triangle then divide current_triangle at centre of current_triangle
-				else if (Math::isTriangleInsideTriangle(insert_triangle, current_triangle)) {
-					wykobi::point2d<float> point = Math::averageCentreOfTriangle2d(insert_triangle);
-					auto vec = Math::Clipper::divideTriangleWithPointInside(current_triangle, point);	
-					pending_triangles.insert(pending_triangles.end(), vec.begin(), vec.end());
-					deleteMapTriangle(mapTriangle);
-				}
-				//else insert_triangle is overlapping one or more edges of current_triangle
-				else {
-					pending_triangles.push_back(current_triangle);
-					deleteMapTriangle(mapTriangle);
-				}
-				//clip
-				for (wykobi::triangle<float, 2> tri : pending_triangles) {
-					wykobi::polygon<float, 2> current_polygon = wykobi::make_polygon<float>(tri);
-					std::vector<wykobi::polygon<float, 2>> vec = Math::Clipper::clipPolygonDifference(current_polygon, wykobi::make_polygon<float>(insert_triangle));
-					for (wykobi::polygon<float, 2> clipped_current_polygon : vec) {
-						std::vector<wykobi::triangle<float, 2>> small_triangles = Math::triangulatePolygon(clipped_current_polygon);
-						for (wykobi::triangle<float, 2> small_tri : small_triangles) {
-							makeMapTriangle(chunk, current_type, small_tri, 2.f);	//MAY ADJUST ERROR
-						}
-					}
-				}
-			}
-		}
-		//insert new triangle here:
-		wykobi::polygon<float, 2> clipped_insert_polygon;
-		wykobi::algorithm::sutherland_hodgman_polygon_clipper<wykobi::point2d<float>>(chunk->rectangle, wykobi::make_polygon<float>(insert_triangle), clipped_insert_polygon);
-		if (clipped_insert_polygon.size() < 3) {
-			continue;
-		}
-		clipped_insert_polygon = Math::removeDuplicates<wykobi::polygon<float, 2>>(clipped_insert_polygon);
-		auto vec = Math::triangulatePolygon(clipped_insert_polygon);
-		for (auto tri : vec) {
-			makeMapTriangle(chunk, type, tri, 2);
-		}
-		generateTriangleRelationsInChunk(chunk);
 	}
 #endif
 }
+
 
 std::vector<MapChunk*> MapEditor::getChunkInsideRectangle(wykobi::rectangle<float> & rect) {
 	std::vector<MapChunk*> chunks;
@@ -1084,3 +743,375 @@ void MapEditor::draw(sf::RenderTarget & target, sf::RenderStates states) const {
 	//Debug
 	target.draw(debugLineVertexArray);
 }
+
+
+/*
+void MapEditor::insertTriangle(wykobi::triangle<float, 2> insert_triangle, int type) {
+insertTriangle(insert_triangle, type, 0.f);
+}
+void MapEditor::insertTriangle(wykobi::triangle<float, 2> insert_triangle, int type, float error) {
+#if 1
+//Pseudo code:
+//1. Round insert_triangle
+//2. Gather chunks insert_triangle is overlapping and put them in intersected_chunks_list.
+//3. For each chunk in intersected_chunks_list:
+//	1. Merge all triangles in chunk in to polygons sorted by type, call it merged_polygons.
+//	2. if insert_triangle is inside one polygon in merged_polygons then:
+//		1. if insert_triangle and polygon has same type, then break (finish). (this case will only happen if insert_triangle is in one chunk).
+//		2. else, then remove hull insert_triangle is makeing from polygon, then triangulate append to chunk, then break
+//	3. else:
+//		1. Merge insert_triangle with polygons that are the same type, and clip difference polygons with != type.
+//		2. if insert_triangle was not merged, then make insert_triangle it's own polygon
+//		3. then triangulate and yadi yadi ya.
+#if DEBUG
+std::cout << "insertTriangle_begin" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t" << "roundInsertTriangle_begin" << "\n";
+#endif
+//Round inser_triangle
+insert_triangle = Math::roundWykobiTriangle(insert_triangle);
+wykobi::polygon<float, 2> insert_polygon = wykobi::make_polygon(insert_triangle);
+#if DEBUG
+std::cout << "\t" << "roundInsertTriangle_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t" << "findChunks_begin" << "\n";
+#endif
+//Gather chunks triangle is overlapping.
+std::vector<MapChunk*> chunks = getChunkInsideRectangle(Math::createRectangleFromTriangle(insert_triangle));
+std::vector<MapChunk*> intersected_chunks;
+for (MapChunk * chunk : chunks) {
+if (wykobi::intersect<float>(insert_triangle, chunk->rectangle) || Math::isPolygonInsidePolygon(wykobi::make_polygon<float>(chunk->rectangle), wykobi::make_polygon<float>(insert_triangle))) {
+intersected_chunks.push_back(chunk);
+}
+}
+#if DEBUG
+std::cout << "\t" << "findChunks_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t" << "makeSpace_begin" << "\n";
+#endif
+//Make space for insert_triangle.
+for (MapChunk * chunk : intersected_chunks) {
+std::vector<std::vector<wykobi::polygon<float, 2>>> polygons_sorted_in_types(Global::numberOfTypes);
+std::vector<std::vector<wykobi::polygon<float, 2>>> temp_polygons_sorted_in_types(Global::numberOfTypes);
+for (int i = 0; i < Global::numberOfTypes; i++) {
+std::vector<wykobi::triangle<float, 2>> temp_triangles;
+for (MapTriangle * mapTriangle : chunk->triangles) {
+if (mapTriangle->type == i) {
+temp_triangles.push_back(mapTriangle->getWykobiTriangle());
+}
+}
+std::vector<wykobi::point2d<float>> temp_point_vector = Math::makeWykobiPointVectorFromShape<wykobi::triangle<float, 2>>(temp_triangles);
+polygons_sorted_in_types[i] = Math::Clipper::mergeTriangles(temp_triangles);
+for (int j = 0; j < polygons_sorted_in_types[i].size(); j++) {
+polygons_sorted_in_types[i][j] = Math::insertPointsOnEdgesOfPolygon(polygons_sorted_in_types[i][j], temp_point_vector);
+}
+}
+bool isInsertDone = false;
+std::vector<wykobi::polygon<float, 2>> insert_polygon_clipped_in_chunk = Math::Clipper::clipPolygonIntersection(insert_polygon, wykobi::make_polygon<float>(chunk->rectangle));
+for (int i = 0; i < Global::numberOfTypes; i++) {
+for (int j = 0; j < polygons_sorted_in_types[i].size(); j++) {
+wykobi::polygon<float, 2> & polygon = polygons_sorted_in_types[i][j];
+std::vector<wykobi::point2d<float>> polygon_points = Math::makeWykobiPointVectorFromShape(polygon);
+//check if insert_triangle is inside a polygon with simular types	(this can only happend once)
+if (Math::isPolygonInsidePolygon(insert_polygon, polygon)) {
+if (i == type) {
+return;	//if this then there is nothing to insert to the map.
+}
+else {
+//if this then remove hull from polygon then insert insert_polygon as an independent polygon
+std::vector<wykobi::polygon<float, 2>> temp_poly = Math::Clipper::removePolygonHull(polygon, insert_polygon);
+temp_polygons_sorted_in_types[i].insert(temp_polygons_sorted_in_types[i].end(), temp_poly.begin(), temp_poly.end());
+temp_polygons_sorted_in_types[type].push_back(insert_polygon);
+isInsertDone = true;
+}
+}
+//check if insert_triangle is overlapping a polygon
+else if (Math::isPolygonsOverlapping(polygon, insert_polygon)) {
+if (i == type && !isInsertDone) {
+//if this merge insert_triangle with polygon.
+std::vector<wykobi::polygon<float, 2>> temp_poly;
+temp_poly.push_back(polygon);
+temp_poly.insert(temp_poly.end(), insert_polygon_clipped_in_chunk.begin(), insert_polygon_clipped_in_chunk.end());
+temp_poly = Math::Clipper::mergePolygons(temp_poly);
+for (int k = 0; k < temp_poly.size(); k++) {
+temp_poly[k] = Math::insertPointsOnEdgesOfPolygon(temp_poly[k], polygon_points);
+}
+temp_polygons_sorted_in_types[i].insert(temp_polygons_sorted_in_types[i].end(), temp_poly.begin(), temp_poly.end());
+isInsertDone = true;
+}
+else {
+//if this clip polygon against insert_triangle
+std::vector<wykobi::polygon<float, 2>> temp_poly = Math::Clipper::clipPolygonDifference(polygon, insert_polygon);
+for (int k = 0; k < temp_poly.size(); k++) {
+temp_poly[k] = Math::insertPointsOnEdgesOfPolygon(temp_poly[k], polygon_points);
+}
+temp_polygons_sorted_in_types[i].insert(temp_polygons_sorted_in_types[i].begin(), temp_poly.begin(), temp_poly.end());
+}
+}
+else {
+temp_polygons_sorted_in_types[i].push_back(polygon);
+}
+}
+}
+if (!isInsertDone) {
+temp_polygons_sorted_in_types[type].insert(temp_polygons_sorted_in_types[type].end(), insert_polygon_clipped_in_chunk.begin(), insert_polygon_clipped_in_chunk.end());
+}
+applyPolygonsToChunk(chunk, temp_polygons_sorted_in_types);
+}
+#if DEBUG
+std::cout << "\t" << "makeSpace_end" << "\n";
+#endif
+
+#elif 0
+//Pseudo code:
+//1. Gather chunks insert_triangle is overlapping and put them in intersected_chunks_list.
+//2. For each chunk in intersected_chunks_list:
+//	1. Make space for insert_triangle.
+//3. For each chunk in intersected_chunks_list:
+//	1. Clip insert_triangle inside chunk->rectangle, call it clipped_insert_polygon.
+//	2. If there are any points in chunk that is on any segment of clipped_insert_polygon, insert them to clipped_insert_polygon.
+//	3. Triangulate clipped_insert_polygon and make MapTriangles of the triangles.
+#if DEBUG
+std::cout << "insertTriangle_begin" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t" << "findChunks_begin" << "\n";
+#endif
+//Gather chunks triangle is overlapping.
+std::vector<MapChunk*> chunks = getChunkInsideRectangle(Math::createRectangleFromTriangle(insert_triangle));
+std::vector<MapChunk*> intersected_chunks;
+for (MapChunk * chunk : chunks) {
+if (wykobi::intersect<float>(insert_triangle, chunk->rectangle) || Math::isPolygonInsidePolygon(wykobi::make_polygon<float>(chunk->rectangle), wykobi::make_polygon<float>(insert_triangle))) {
+intersected_chunks.push_back(chunk);
+}
+}
+#if DEBUG
+std::cout << "\t" << "findChunks_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t" << "handleChunk_begin" << "\n";
+#endif
+//Make space for insert_triangle.
+for (MapChunk * chunk : intersected_chunks) {
+#if DEBUG
+std::cout << "\t\t" << "handleTriangles_begin" << "\n";
+#endif
+std::list<MapTriangle*> mapTriangles_to_clip;
+std::list<MapTriangle*> mapTriangles_to_delete;
+for (MapTriangle * current_mapTriangle : chunk->triangles) {
+wykobi::triangle<float, 2> current_triangle = current_mapTriangle->getWykobiTriangle();
+if (Math::isTrianglesOverlapping(current_triangle, insert_triangle)) {
+if (Math::isTriangleInsideTriangle(current_triangle, insert_triangle)) {
+mapTriangles_to_delete.push_back(current_mapTriangle);
+}
+else {
+mapTriangles_to_clip.push_back(current_mapTriangle);
+}
+}
+}
+#if DEBUG
+std::cout << "\t\t" << "handleTriangles_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t\t" << "deleteTriangles_begin" << "\n";
+#endif
+//delete unwanted triangles
+for (MapTriangle * current_mapTriangle : mapTriangles_to_delete) {
+deleteMapTriangle(current_mapTriangle);
+}
+#if DEBUG
+std::cout << "\t\t" << "deleteTriangles_end" << "\n";
+#endif
+//clip triangles
+#if DEBUG
+std::cout << "\t\t" << "gatherTriangles_begin" << "\n";
+#endif
+//gather triangles by type
+std::vector<std::vector<wykobi::triangle<float, 2>>> triangles_sorted_in_types(Global::numberOfTypes, std::vector<wykobi::triangle<float, 2>>());
+for (MapTriangle * current_mapTriangle : mapTriangles_to_clip) {
+triangles_sorted_in_types[current_mapTriangle->type].push_back(current_mapTriangle->getWykobiTriangle());
+deleteMapTriangle(current_mapTriangle);
+}
+#if DEBUG
+std::cout << "\t\t" << "gatherTriangles_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t\t" << "mergeTriangles_begin" << "\n";
+#endif
+//merge triangles by type and make space for insert triangle
+std::vector<std::vector<wykobi::polygon<float, 2>>> polygons_sorted_in_types(Global::numberOfTypes);
+for (int i = 0; i < triangles_sorted_in_types.size(); i++) {
+#if DEBUG
+std::cout << "\t\t\t" << "makePolygons_begin" << "\n";
+#endif
+//merge triangles in to polygons.
+polygons_sorted_in_types[i] = Math::Clipper::mergeTriangles(triangles_sorted_in_types[i]);
+#if DEBUG
+std::cout << "\t\t\t" << "makePolygons_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t\t\t" << "clipPolygons_begin" << "\n";
+#endif
+//clip polygons (remove parts that are under insert_triangle).
+std::vector<wykobi::polygon<float, 2>> temp_polygon_vector;
+for (wykobi::polygon<float, 2> poly1 : polygons_sorted_in_types[i]) {
+if (Math::isPolygonInsidePolygon(wykobi::make_polygon<float>(insert_triangle), poly1)) {
+std::vector<wykobi::polygon<float, 2>> temp_vec = Math::Clipper::removePolygonHull(poly1, wykobi::make_polygon<float>(insert_triangle));
+temp_polygon_vector.insert(temp_polygon_vector.end(), temp_vec.begin(), temp_vec.end());
+break;
+}
+for (wykobi::polygon<float, 2> poly2 : Math::Clipper::clipPolygonDifference(poly1, wykobi::make_polygon<float>(insert_triangle))) {
+temp_polygon_vector.push_back(poly2);
+}
+}
+#if DEBUG
+std::cout << "\t\t\t" << "clipPolygons_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t\t\t" << "insertLostPoints_begin" << "\n";
+#endif
+polygons_sorted_in_types[i].swap(temp_polygon_vector);
+//insert possible lost points.
+std::vector<wykobi::point2d<float>> temp_point_vector = Math::makeWykobiPointVectorFromShape<wykobi::triangle<float, 2>>(triangles_sorted_in_types[i]);
+for (int j = 0; j < polygons_sorted_in_types[i].size(); j++) {
+polygons_sorted_in_types[i][j] = Math::insertPointsOnEdgesOfPolygon(polygons_sorted_in_types[i][j], temp_point_vector);
+}
+#if DEBUG
+std::cout << "\t\t\t" << "insertLostPoints_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t\t\t" << "triangulatePolygons_begin" << "\n";
+#endif
+//triangulate polygons and make MapTriangles of triangles.
+for (wykobi::polygon<float, 2> poly : polygons_sorted_in_types[i]) {
+#if DEBUG
+std::cout << "\t\t\t\t" << "insidePoly_begin " << Math::Debug::toCode(poly) << "\n";
+#endif
+poly = Math::removeDuplicates<wykobi::polygon<float, 2>>(poly);	//PATCH (will leave empty spots).
+for (wykobi::triangle<float, 2> tri : Math::triangulatePolygon(poly)) {
+#if DEBUG
+std::cout << "\t\t\t\t\t" << "insideTri_begin" << "\n";
+#endif
+makeMapTriangle(chunk, i, tri, error);
+#if DEBUG
+std::cout << "\t\t\t\t\t" << "insideTri_end" << "\n";
+#endif
+}
+#if DEBUG
+std::cout << "\t\t\t\t" << "insidePoly_end" << "\n";
+#endif
+}
+#if DEBUG
+std::cout << "\t\t\t" << "triangulatePolygons_end" << "\n";
+#endif
+}
+#if DEBUG
+std::cout << "\t\t" << "mergeTriangles_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t\t" << "addTriangles_begin" << "\n";
+#endif
+//Add insert_triangle.
+for (wykobi::polygon<float, 2> poly : Math::Clipper::clipPolygonIntersection(wykobi::make_polygon<float>(insert_triangle), wykobi::make_polygon<float>(chunk->rectangle))) {
+for (wykobi::triangle<float, 2> tri : Math::triangulatePolygon(poly)) {
+makeMapTriangle(chunk, type, tri, error);
+}
+}
+#if DEBUG
+std::cout << "\t\t" << "addTriangles_end" << "\n";
+#endif
+}
+#if DEBUG
+std::cout << "\t" << "handleChunks_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t" << "triangleRelations_begin" << "\n";
+#endif
+//relations
+for (MapChunk * chunk : intersected_chunks) {
+generateTriangleRelationsInChunk(chunk);
+}
+#if DEBUG
+std::cout << "\t" << "triangleRelations_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "\t" << "removeUnusedPoints_begin" << "\n";
+#endif
+removeUnusedMapPoints();
+#if DEBUG
+std::cout << "\t" << "removeUnusedPoints_end" << "\n";
+#endif
+#if DEBUG
+std::cout << "insertTriangle_end" << "\n\n";
+#endif
+
+#elif 0
+//Gather chunks triangle is overlapping.
+std::vector<MapChunk*> chunks = getChunkInsideRectangle(Math::createRectangleFromTriangle(insert_triangle));
+std::vector<MapChunk*> intersected_chunks;
+for (MapChunk * chunk : chunks) {
+if (wykobi::intersect<float>(insert_triangle, chunk->rectangle)) {
+intersected_chunks.push_back(chunk);
+}
+}
+for (MapChunk * chunk : intersected_chunks) {
+//make space for new triangle
+std::vector<MapTriangle*> test_triangles = chunk->triangles;
+for (auto it = test_triangles.begin(); it != test_triangles.end(); ++it) {
+MapTriangle * mapTriangle = (*it);
+wykobi::triangle<float, 2> current_triangle = mapTriangle->getWykobiTriangle();
+//if (wykobi::intersect<float>(current_triangle, insert_triangle)) {
+if (Math::isTrianglesOverlapping(current_triangle, insert_triangle)) {
+std::vector<wykobi::triangle<float, 2>> pending_triangles;
+int current_type = mapTriangle->type;
+//if current_triangle is inside insert_triangle then delete current_triangle
+if (Math::isTriangleInsideTriangle(current_triangle, insert_triangle)) {
+deleteMapTriangle(mapTriangle);
+continue;
+}
+//if insert_triangle is inside current_triangle then divide current_triangle at centre of current_triangle
+else if (Math::isTriangleInsideTriangle(insert_triangle, current_triangle)) {
+wykobi::point2d<float> point = Math::averageCentreOfTriangle2d(insert_triangle);
+auto vec = Math::Clipper::divideTriangleWithPointInside(current_triangle, point);
+pending_triangles.insert(pending_triangles.end(), vec.begin(), vec.end());
+deleteMapTriangle(mapTriangle);
+}
+//else insert_triangle is overlapping one or more edges of current_triangle
+else {
+pending_triangles.push_back(current_triangle);
+deleteMapTriangle(mapTriangle);
+}
+//clip
+for (wykobi::triangle<float, 2> tri : pending_triangles) {
+wykobi::polygon<float, 2> current_polygon = wykobi::make_polygon<float>(tri);
+std::vector<wykobi::polygon<float, 2>> vec = Math::Clipper::clipPolygonDifference(current_polygon, wykobi::make_polygon<float>(insert_triangle));
+for (wykobi::polygon<float, 2> clipped_current_polygon : vec) {
+std::vector<wykobi::triangle<float, 2>> small_triangles = Math::triangulatePolygon(clipped_current_polygon);
+for (wykobi::triangle<float, 2> small_tri : small_triangles) {
+makeMapTriangle(chunk, current_type, small_tri, 2.f);	//MAY ADJUST ERROR
+}
+}
+}
+}
+}
+//insert new triangle here:
+wykobi::polygon<float, 2> clipped_insert_polygon;
+wykobi::algorithm::sutherland_hodgman_polygon_clipper<wykobi::point2d<float>>(chunk->rectangle, wykobi::make_polygon<float>(insert_triangle), clipped_insert_polygon);
+if (clipped_insert_polygon.size() < 3) {
+continue;
+}
+clipped_insert_polygon = Math::removeDuplicates<wykobi::polygon<float, 2>>(clipped_insert_polygon);
+auto vec = Math::triangulatePolygon(clipped_insert_polygon);
+for (auto tri : vec) {
+makeMapTriangle(chunk, type, tri, 2);
+}
+generateTriangleRelationsInChunk(chunk);
+}
+#endif
+}
+*/
+
+//end

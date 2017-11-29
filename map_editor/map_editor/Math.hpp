@@ -165,8 +165,10 @@ namespace Math {
 	/*
 	Add intersection points to polygon.
 	If point is on an edge in polygon then insert point in polygon.
+	A point will only be inserted once for each polygon.
 	*/
 	wykobi::polygon<float, 2> insertPointsOnEdgesOfPolygon(wykobi::polygon<float, 2> poly, std::vector<wykobi::point2d<float>> points);
+	std::vector<wykobi::polygon<float, 2>> insertPointsOnEdgesOfPolygon(std::vector<wykobi::polygon<float, 2>> vec, std::vector<wykobi::point2d<float>> & points);
 
 	/*
 	Merge triangles that share vertices.
@@ -230,6 +232,20 @@ namespace Math {
 	return intersection points.
 	*/
 	std::vector<wykobi::point2d<float>> intersectLineRectanglePoints(wykobi::line<float, 2> & line, wykobi::rectangle<float> & rect);
+
+	/*
+	Check if point is convex.
+	(Check if next is left of last->middle)
+	*/
+	template <typename T>
+	bool isEdgeConvex(wykobi::point2d<T> & last, wykobi::point2d<T> & middle, wykobi::point2d<T> & next) {
+		
+	}
+
+	/*
+	Find ear (for triangulating)
+	*/
+
 
 	/*
 	Triangulate polygon.

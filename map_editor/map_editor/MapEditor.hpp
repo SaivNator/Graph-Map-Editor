@@ -171,16 +171,7 @@ private:
 	/*
 	Insert polygon on map.
 	*/
-	void insertPolygon(wykobi::polygon<float, 2> insert_polygon, int type);
-
-	/*
-	Insert triangle on map.
-	Clip triangle in to polygons that fit in to the chunks the triangle is overlapping.
-	Then clip the intersection polygons so the triangle fits in to the mesh (if that makes any sense???).
-	DOES NOT WORK ATM!!!!
-	*/
-	void insertTriangle(wykobi::triangle<float, 2> insert_triangle, int type);
-	void insertTriangle(wykobi::triangle<float, 2> insert_triangle, int type, float error); 
+	void insertPolygon(wykobi::polygon<float, 2> insert_polygon, int type); 
 
 	/*
 	Remove all MapTriangles from a chunk.
@@ -282,8 +273,6 @@ public:
 	*/
 	std::vector<MapChunk*> getChunkInsideRectangle(wykobi::rectangle<float> & rect);
 
-	
-
 	/*
 	Transform screen pos to game pos.
 	*/
@@ -311,3 +300,11 @@ public:
 
 #endif // !MapEditor_HEADER
 
+///*
+//Insert triangle on map.
+//Clip triangle in to polygons that fit in to the chunks the triangle is overlapping.
+//Then clip the intersection polygons so the triangle fits in to the mesh (if that makes any sense???).
+//DOES NOT WORK ATM!!!!
+//*/
+//void insertTriangle(wykobi::triangle<float, 2> insert_triangle, int type);
+//void insertTriangle(wykobi::triangle<float, 2> insert_triangle, int type, float error);

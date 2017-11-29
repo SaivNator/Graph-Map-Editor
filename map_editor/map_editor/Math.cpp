@@ -453,6 +453,12 @@ wykobi::polygon<float, 2> Math::insertPointsOnEdgesOfPolygon(wykobi::polygon<flo
 	}
 	return poly;
 }
+std::vector<wykobi::polygon<float, 2>> Math::insertPointsOnEdgesOfPolygon(std::vector<wykobi::polygon<float, 2>> vec, std::vector<wykobi::point2d<float>> & points) {
+	for (int i = 0; i < vec.size(); i++) {
+		vec[i] = insertPointsOnEdgesOfPolygon(vec[i], points);
+	}
+	return vec;
+}
 
 wykobi::polygon<float, 2> Math::insertTriangleInPolygonSharedVerticies(wykobi::polygon<float, 2> poly, wykobi::triangle<float, 2> tri) {
 	//check if 3 shared verticies
@@ -820,10 +826,18 @@ std::vector<wykobi::point2d<float>> Math::intersectLineRectanglePoints(wykobi::l
 	return out;
 }
 
+
 std::vector<wykobi::triangle<float, 2>> Math::triangulatePolygon(wykobi::polygon<float, 2> poly) {
+#if 0
 	std::vector<wykobi::triangle<float, 2>> triangle_list;
 	wykobi::algorithm::polygon_triangulate<wykobi::point2d<float>>(poly, std::back_inserter(triangle_list));
 	return triangle_list;
+
+#elif 1
+
+
+#endif // 0
+
 }
 
 std::vector<wykobi::triangle<float, 2>> Math::Clipper::divideTriangleInTwo(wykobi::triangle<float, 2> & tri, int point) {
