@@ -9,6 +9,7 @@
 //local
 #include "MapEditor.hpp"
 #include "Math.hpp"
+#include "CommonContour.hpp"
 
 //Globals
 sf::RenderWindow window;
@@ -67,7 +68,7 @@ int mousePos_y;
 float moveSpeed = 1000.f;	//per second
 float zoomSpeed = 1.f;		//per second
 
-#if 1
+#if 0
 
 int main() {
 
@@ -256,14 +257,8 @@ int main() {
 
 int main() {
 
-	//(507, 550)->(479, 603)->(497, 621)->(499, 608)->(507, 550)->(544, 547)->(744, 747)->(544, 747)->(625, 834)->(618, 851)->(644, 887)->(646, 889)->(446, 889)->(446, 851)->(418, 851)->(418, 723)->(561, 723)->(361, 523)->(361, 650)->(355, 650)->(359, 548)->(359, 348)
-	
-	//wykobi::vector2d<float> v1 = wykobi::make_vector<float>(10, 10);
-	//wykobi::vector2d<float> v2 = wykobi::make_vector<float>(1, -1);
-	wykobi::point2d<float> p1 = wykobi::make_point<float>(10, 10);
-	wykobi::point2d<float> p2 = wykobi::make_point<float>(1, -1);
-	wykobi::vector2d<float> v3 = p1 - p2;
-	std::cout << Math::Debug::toString(v3) << "\n";
+	wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(10, 10, 20, 20));
+	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(15, 15, 30, 10, 30, 20));
 	
 	
 
@@ -273,7 +268,7 @@ int main() {
 
 
 
-#elif 0
+#elif 1
 
 int main() {
 
@@ -284,29 +279,38 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	wykobi::polygon<float, 2> poly_1 = wykobi::make_polygon<float>({
-		wykobi::make_point<float>(10, 10),
-		wykobi::make_point<float>(400, 10),
-		wykobi::make_point<float>(400, 400),
-		wykobi::make_point<float>(10, 400)
-	});
-
-	std::vector<wykobi::polygon<float, 2>> hull_vec;
-	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 20), 5));
-	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(200, 200, 20), 5));
-	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 100, 20), 5));
-	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(220, 50, 20), 5));
-	hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 90, 20), 20));
+	//wykobi::polygon<float, 2> poly_1 = wykobi::make_polygon<float>({
+	//	wykobi::make_point<float>(10, 10),
+	//	wykobi::make_point<float>(400, 10),
+	//	wykobi::make_point<float>(400, 400),
+	//	wykobi::make_point<float>(10, 400)
+	//});
+	//
+	//std::vector<wykobi::polygon<float, 2>> hull_vec;
+	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 20), 5));
+	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(200, 200, 20), 5));
+	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 100, 20), 5));
+	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(220, 50, 20), 5));
+	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 90, 20), 20));
 	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(500, 200, 20), 5));
+
+	wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(100, 100, 200, 200));
+	
+	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(150, 150, 300, 100, 300, 200));
 
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
+
+	segments = CommonContour::merge(p1, p2);
 	
+	//polygons.push_back(p1);
+	//polygons.push_back(p2);
+	//polygons.push_back(wykobi::translate(wykobi::make_vector<float>(0, 200), CommonContour::merge(p1, p2).front()));
 	//polygons.push_back(poly_1);
 	//polygons.push_back(hull_1);
 	//polygons.push_back(hull_2);
-	polygons = Math::Clipper::removePolygonHull(poly_1, hull_vec);
-	polygons = Math::Clipper::removeSubPolygon(polygons);
+	//polygons = Math::Clipper::removePolygonHull(poly_1, hull_vec);
+	//polygons = Math::Clipper::removeSubPolygon(polygons);
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);
@@ -365,31 +369,31 @@ int main() {
 
 		int count = 0;
 		for (auto poly : polygons) {
-			auto tris = Math::triangulatePolygon(poly);
-			for (auto tri : tris) {	
-				for (int i = 0; i < 3; i++) {
-					auto vertex = Math::wykobiPointToSfVertex(tri[i]);
-					vertex.color = poly_color_vec[count];
-					triangleVertexArray.append(vertex);
-				}
+			//auto tris = Math::triangulatePolygon(poly);
+			//for (auto tri : tris) {	
+			//	for (int i = 0; i < 3; i++) {
+			//		auto vertex = Math::wykobiPointToSfVertex(tri[i]);
+			//		vertex.color = poly_color_vec[count];
+			//		triangleVertexArray.append(vertex);
+			//	}
+			//}
+			for (int i = 0; i < poly.size(); i++) {
+				wykobi::segment<float, 2> seg = wykobi::edge<float>(poly, i);
+				sf::Vertex vertex1 = Math::wykobiPointToSfVertex(seg[0]);
+				sf::Vertex vertex2 = Math::wykobiPointToSfVertex(seg[1]);
+				lineVertexArray.append(vertex1);
+				lineVertexArray.append(vertex2);
 			}
-			//for (int i = 0; i < poly.size(); i++) {
-			//	wykobi::segment<float, 2> seg = wykobi::edge<float>(poly, i);
-			//	sf::Vertex vertex1 = Math::wykobiPointToSfVertex(seg[0]);
-			//	sf::Vertex vertex2 = Math::wykobiPointToSfVertex(seg[1]);
-			//	lineVertexArray.append(vertex1);
-			//	lineVertexArray.append(vertex2);
-			//}
-			//for (int i = 0; i < poly.size(); i++) {
-			//	sf::Text t;
-			//	std::ostringstream s;
-			//	t.setFont(arial);
-			//	t.setCharacterSize(20);
-			//	s << i;
-			//	t.setPosition(Math::wykobiPointToSfVector(poly[i]));
-			//	t.setString(s.str());
-			//	numbers.push_back(t);
-			//}
+			for (int i = 0; i < poly.size(); i++) {
+				sf::Text t;
+				std::ostringstream s;
+				t.setFont(arial);
+				t.setCharacterSize(20);
+				s << i;
+				t.setPosition(Math::wykobiPointToSfVector(poly[i]));
+				t.setString(s.str());
+				numbers.push_back(t);
+			}
 			//wykobi::point2d<float> centre = wykobi::centroid(poly);
 			//sf::Text t;
 			//std::ostringstream s;
@@ -399,7 +403,7 @@ int main() {
 			//t.setPosition(Math::wykobiPointToSfVector(centre));
 			//t.setString(s.str());
 			//numbers.push_back(t);
-			count++;
+			//count++;
 		}
 		for (auto seg : segments) {
 			for (int i = 0; i < seg.size(); i++) {

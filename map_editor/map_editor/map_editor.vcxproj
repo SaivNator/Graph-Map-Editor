@@ -121,6 +121,7 @@
     <ClCompile Include="Math.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommonContour.hpp" />
     <ClInclude Include="Global.hpp" />
     <ClInclude Include="Graph.hpp" />
     <ClInclude Include="MapEditor.hpp" />

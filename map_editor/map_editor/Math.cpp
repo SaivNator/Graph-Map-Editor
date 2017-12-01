@@ -539,98 +539,6 @@ wykobi::polygon<float, 2> Math::insertPointInPolygon(wykobi::polygon<float, 2> p
 	return wykobi::make_polygon<float>(point_list);
 }
 
-std::vector<wykobi::polygon<float, 2>> Math::mergeTrianglesSharedVertices(std::vector<wykobi::triangle<float, 2>> & triangles) {
-#if 1
-	std::list<wykobi::triangle<float, 2>> pending;
-	std::list<wykobi::triangle<float, 2>> failed;
-	std::vector<wykobi::polygon<float, 2>> finished_polygons;
-
-	pending.insert(pending.end(), triangles.begin(), triangles.end());
-
-	while (!pending.empty()) {
-		wykobi::polygon<float, 2> current_polygon = wykobi::make_polygon<float>(pending.front());
-		pending.pop_front();
-
-		while (!pending.empty()) {
-			
-		}
-
-
-	}
-
-	return finished_polygons;
-
-#elif 0
-	std::list<wykobi::triangle<float, 2>> pending;
-	std::list<wykobi::triangle<float, 2>> failed;
-	std::list<wykobi::triangle<float, 2>> added;
-	std::vector<wykobi::polygon<float, 2>> finished_polygons;
-	for (wykobi::triangle<float, 2> & tri : triangles) {
-		pending.push_back(tri);
-	}
-	wykobi::polygon<float, 2> current_polygon = wykobi::make_polygon<float>(pending.front());
-	pending.pop_front();
-	while (true) {
-		wykobi::triangle<float, 2> current_test_triangle = pending.front();
-		pending.pop_front();
-		bool solution = false;
-		for (int i = 0; i < current_polygon.size(); i++) {
-			int a = i;
-			int b = i + 1;
-			if (b == current_polygon.size()) {
-				b = 0;
-			}
-			wykobi::point2d<float> & p1 = current_polygon[a];
-			wykobi::point2d<float> & p2 = current_polygon[b];
-			for (int j = 0; j < 3; j++) {
-				wykobi::point2d<float> add_point = current_test_triangle[j];
-				std::vector<wykobi::point2d<float>> test_vert;
-				test_vert.reserve(2);
-				for (int k = 0; k < 3; k++) {
-					if (k == j) {
-						continue;
-					}
-					else {
-						test_vert.push_back(current_test_triangle[k]);
-					}
-				}
-				if ((p1 == test_vert[0] && p2 == test_vert[1]) || (p1 == test_vert[1] && p2 == test_vert[0])) {
-					current_polygon = insertPointInPolygon(current_polygon, add_point, a + 1);
-					solution = true;
-					break;
-				}
-			}
-			if (solution) {
-				break;
-			}
-		}
-		if (solution) {
-			added.push_back(current_test_triangle);
-		}
-		else {
-			failed.push_back(current_test_triangle);
-		}
-		if (pending.empty()) {
-			if (failed.empty()) {
-				break;
-			}
-			pending.swap(failed);
-			failed.clear();
-			finished_polygons.push_back(current_polygon);
-			if (!pending.empty()) {
-				current_polygon = wykobi::make_polygon<float>(pending.front());
-				pending.pop_front();
-				if (pending.empty()) {
-					finished_polygons.push_back(current_polygon);
-					break;
-				}
-			}
-		}
-	}
-	return finished_polygons;
-#endif
-}
-
 wykobi::polygon<float, 2> Math::roundWykobiPolygon(wykobi::polygon<float, 2> poly) {
 	for (int i = 0; i < poly.size(); i++) {
 		poly[i] = roundWykobiPoint(poly[i]);
@@ -832,12 +740,30 @@ std::vector<wykobi::triangle<float, 2>> Math::triangulatePolygon(wykobi::polygon
 	std::vector<wykobi::triangle<float, 2>> triangle_list;
 	wykobi::algorithm::polygon_triangulate<wykobi::point2d<float>>(poly, std::back_inserter(triangle_list));
 	return triangle_list;
-
 #elif 1
-
-
+	std::vector<wykobi::triangle<float, 2>> triangle_vec;
+	if (poly.size() < 3) {
+		return triangle_vec;
+	}
+	else if (poly.size() == 3) {
+		triangle_vec.push_back(wykobi::make_triangle<float>(poly[0], poly[1], poly[2]));
+		return triangle_vec;
+	}
+	if (wykobi::polygon_orientation(poly) != wykobi::Clockwise) {
+		poly.reverse();
+	}
+	while (poly.size() > 3) {
+		for (std::size_t i = 0; i < poly.size(); ++i) {
+			if (wykobi::convex_vertex(i, poly, wykobi::Clockwise) && wykobi::vertex_is_ear(i, poly)) {
+				triangle_vec.push_back(wykobi::vertex_triangle(i, poly));
+				poly.erase(i);
+				break;
+			}
+		}
+	}
+	triangle_vec.push_back(wykobi::vertex_triangle(1, poly));
+	return triangle_vec;
 #endif // 0
-
 }
 
 std::vector<wykobi::triangle<float, 2>> Math::Clipper::divideTriangleInTwo(wykobi::triangle<float, 2> & tri, int point) {
@@ -1035,9 +961,7 @@ wykobi::rectangle<float> Math::orderRectangle(wykobi::rectangle<float> rect) {
 }
 
 bool Math::isPolygonIntersectRectangle(wykobi::polygon<float, 2> poly, wykobi::rectangle<float> rect) {
-
 	rect = orderRectangle(rect);
-
 	std::vector<wykobi::triangle<float, 2>> triangle_list;
 	wykobi::algorithm::polygon_triangulate<wykobi::point2d<float>>(poly, std::back_inserter(triangle_list));
 	for (auto triangle : triangle_list) {
@@ -1062,18 +986,14 @@ float Math::distanceBetween2Points(wykobi::point2d<float> & p1, wykobi::point2d<
 }
 
 wykobi::point2d<float> Math::averageCentreOfTriangle2d(wykobi::triangle<float, 2> & triangle) {
-
 	float x = 0;
 	float y = 0;
-
 	for (int i = 0; i < triangle.size(); i++) {
 		x = x + triangle[i].x;
 		y = y + triangle[i].y;
 	}
-
 	x = x / (float)triangle.size();
 	y = y / (float)triangle.size();
-
 	return wykobi::make_point<float>(x, y);
 }
 wykobi::point2d<float> Math::avarageCentreOfRectangle2d(wykobi::rectangle<float> & rectangle) {
@@ -1099,51 +1019,21 @@ sf::Vertex Math::wykobiPointToSfVertex(wykobi::point2d<float> & p) {
 	return v;
 }
 
-/*
-std::vector<wykobi::segment<float, 2>> Math::delaunayTriangulatePoints(std::vector<wykobi::point2d<float>> & wykobi_points) {
-	std::vector<Vector2<float>> points(wykobi_points.size());
-	for (int i = 0; i < wykobi_points.size(); i++) {
-		points[i].x = wykobi_points[i].x;
-		points[i].y = wykobi_points[i].y;
-	}
-
-	Delaunay<float> triangulation;
-	triangulation.triangulate(points);
-
-	auto edges = triangulation.getEdges();
-	
-	std::vector<wykobi::segment<float, 2>> segments(edges.size());
-	
-	for (int i = 0; i < edges.size(); i++) {
-		wykobi::point2d<float> p1 = wykobi::make_point<float>(edges[i].p1.x, edges[i].p1.y);
-		wykobi::point2d<float> p2 = wykobi::make_point<float>(edges[i].p2.x, edges[i].p2.y);
-		segments[i] = wykobi::make_segment<float>(p1, p2);
-	}
-	return segments;
-}
-*/
-
 std::vector<std::pair<int, int>> Math::integerLine2d(int x1, int y1, int x2, int y2) {
-
 	std::vector<std::pair<int, int>> line;
-
 	int delta_x(x2 - x1);
 	// if x1 == x2, then it does not matter what we set here
 	signed char const ix((delta_x > 0) - (delta_x < 0));
 	delta_x = std::abs(delta_x) << 1;
-
 	int delta_y(y2 - y1);
 	// if y1 == y2, then it does not matter what we set here
 	signed char const iy((delta_y > 0) - (delta_y < 0));
 	delta_y = std::abs(delta_y) << 1;
-
 	line.push_back(std::pair<int, int>(x1, y1));
-
 	if (delta_x >= delta_y)
 	{
 		// error may go below zero
 		int error(delta_y - (delta_x >> 1));
-
 		while (x1 != x2)
 		{
 			// reduce error, while taking into account the corner case of error == 0
@@ -1153,10 +1043,8 @@ std::vector<std::pair<int, int>> Math::integerLine2d(int x1, int y1, int x2, int
 				y1 += iy;
 			}
 			// else do nothing
-
 			error += delta_y;
 			x1 += ix;
-
 			line.push_back(std::pair<int, int>(x1, y1));
 		}
 	}
@@ -1164,7 +1052,6 @@ std::vector<std::pair<int, int>> Math::integerLine2d(int x1, int y1, int x2, int
 	{
 		// error may go below zero
 		int error(delta_x - (delta_y >> 1));
-
 		while (y1 != y2)
 		{
 			// reduce error, while taking into account the corner case of error == 0
@@ -1174,10 +1061,8 @@ std::vector<std::pair<int, int>> Math::integerLine2d(int x1, int y1, int x2, int
 				x1 += ix;
 			}
 			// else do nothing
-
 			error += delta_x;
 			y1 += iy;
-
 			line.push_back(std::pair<int, int>(x1, y1));
 		}
 	}
@@ -1264,6 +1149,115 @@ std::string Math::Debug::toCode(wykobi::polygon<float, 2> & poly) {
 	return str.str();
 }
 
+
+
+//std::vector<wykobi::polygon<float, 2>> Math::mergeTrianglesSharedVertices(std::vector<wykobi::triangle<float, 2>> & triangles) {
+//#if 1
+//	std::list<wykobi::triangle<float, 2>> pending;
+//	std::list<wykobi::triangle<float, 2>> failed;
+//	std::vector<wykobi::polygon<float, 2>> finished_polygons;
+//	pending.insert(pending.end(), triangles.begin(), triangles.end());
+//	while (!pending.empty()) {
+//		wykobi::polygon<float, 2> current_polygon = wykobi::make_polygon<float>(pending.front());
+//		pending.pop_front();
+//		while (!pending.empty()) {	
+//		}
+//	}
+//	return finished_polygons;
+//#elif 0
+//	std::list<wykobi::triangle<float, 2>> pending;
+//	std::list<wykobi::triangle<float, 2>> failed;
+//	std::list<wykobi::triangle<float, 2>> added;
+//	std::vector<wykobi::polygon<float, 2>> finished_polygons;
+//	for (wykobi::triangle<float, 2> & tri : triangles) {
+//		pending.push_back(tri);
+//	}
+//	wykobi::polygon<float, 2> current_polygon = wykobi::make_polygon<float>(pending.front());
+//	pending.pop_front();
+//	while (true) {
+//		wykobi::triangle<float, 2> current_test_triangle = pending.front();
+//		pending.pop_front();
+//		bool solution = false;
+//		for (int i = 0; i < current_polygon.size(); i++) {
+//			int a = i;
+//			int b = i + 1;
+//			if (b == current_polygon.size()) {
+//				b = 0;
+//			}
+//			wykobi::point2d<float> & p1 = current_polygon[a];
+//			wykobi::point2d<float> & p2 = current_polygon[b];
+//			for (int j = 0; j < 3; j++) {
+//				wykobi::point2d<float> add_point = current_test_triangle[j];
+//				std::vector<wykobi::point2d<float>> test_vert;
+//				test_vert.reserve(2);
+//				for (int k = 0; k < 3; k++) {
+//					if (k == j) {
+//						continue;
+//					}
+//					else {
+//						test_vert.push_back(current_test_triangle[k]);
+//					}
+//				}
+//				if ((p1 == test_vert[0] && p2 == test_vert[1]) || (p1 == test_vert[1] && p2 == test_vert[0])) {
+//					current_polygon = insertPointInPolygon(current_polygon, add_point, a + 1);
+//					solution = true;
+//					break;
+//				}
+//			}
+//			if (solution) {
+//				break;
+//			}
+//		}
+//		if (solution) {
+//			added.push_back(current_test_triangle);
+//		}
+//		else {
+//			failed.push_back(current_test_triangle);
+//		}
+//		if (pending.empty()) {
+//			if (failed.empty()) {
+//				break;
+//			}
+//			pending.swap(failed);
+//			failed.clear();
+//			finished_polygons.push_back(current_polygon);
+//			if (!pending.empty()) {
+//				current_polygon = wykobi::make_polygon<float>(pending.front());
+//				pending.pop_front();
+//				if (pending.empty()) {
+//					finished_polygons.push_back(current_polygon);
+//					break;
+//				}
+//			}
+//		}
+//	}
+//	return finished_polygons;
+//#endif
+//}
+
+/*
+std::vector<wykobi::segment<float, 2>> Math::delaunayTriangulatePoints(std::vector<wykobi::point2d<float>> & wykobi_points) {
+std::vector<Vector2<float>> points(wykobi_points.size());
+for (int i = 0; i < wykobi_points.size(); i++) {
+points[i].x = wykobi_points[i].x;
+points[i].y = wykobi_points[i].y;
+}
+
+Delaunay<float> triangulation;
+triangulation.triangulate(points);
+
+auto edges = triangulation.getEdges();
+
+std::vector<wykobi::segment<float, 2>> segments(edges.size());
+
+for (int i = 0; i < edges.size(); i++) {
+wykobi::point2d<float> p1 = wykobi::make_point<float>(edges[i].p1.x, edges[i].p1.y);
+wykobi::point2d<float> p2 = wykobi::make_point<float>(edges[i].p2.x, edges[i].p2.y);
+segments[i] = wykobi::make_segment<float>(p1, p2);
+}
+return segments;
+}
+*/
 
 //std::vector<wykobi::polygon<float, 2>> Math::Clipper::removePolygonHull(wykobi::polygon<float, 2> & poly, std::vector<wykobi::polygon<float, 2>> & hull_vec) {
 //	/*

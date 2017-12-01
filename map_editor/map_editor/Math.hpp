@@ -173,7 +173,7 @@ namespace Math {
 	/*
 	Merge triangles that share vertices.
 	*/
-	std::vector<wykobi::polygon<float, 2>> mergeTrianglesSharedVertices(std::vector<wykobi::triangle<float, 2>> & triangles);
+	//std::vector<wykobi::polygon<float, 2>> mergeTrianglesSharedVertices(std::vector<wykobi::triangle<float, 2>> & triangles);
 
 	/*
 	Insert triangle in polygon if triangle share 2 vertices.
@@ -234,19 +234,8 @@ namespace Math {
 	std::vector<wykobi::point2d<float>> intersectLineRectanglePoints(wykobi::line<float, 2> & line, wykobi::rectangle<float> & rect);
 
 	/*
-	Check if point is convex.
-	(Check if next is left of last->middle)
-	*/
-	template <typename T>
-	bool isEdgeConvex(wykobi::point2d<T> & last, wykobi::point2d<T> & middle, wykobi::point2d<T> & next) {
-		
-	}
-
-	/*
 	Find ear (for triangulating)
 	*/
-
-
 	/*
 	Triangulate polygon.
 	*/
@@ -491,7 +480,7 @@ namespace Math {
 		angle towards point
 	*/
 	template <typename T>
-	T angleTowardsPoint(wykobi::point2d<T> origin, wykobi::point2d<T> target) {
+	float angleTowardsPoint(wykobi::point2d<T> origin, wykobi::point2d<T> target) {
 		return wykobi::cartesian_angle<T>(target, origin);
 	}
 
@@ -542,3 +531,29 @@ namespace Math {
 
 
 #endif // !Math_HEADER
+
+
+
+///*
+//Check if point is convex.
+//(Check if next is left of last->middle)
+//*/
+//template <typename T>
+//bool isEdgeConvex(wykobi::point2d<T> & last, wykobi::point2d<T> & middle, wykobi::point2d<T> & next) {
+//	//float origin_angle = angleTowardsPoint<float>(last, middle);
+//	//float test_angle = angleTowardsPoint<float>(middle, next);
+//	//if (getRelativeAngle<float>(origin_angle, test_angle) < 180.f) {
+//	//	return true;
+//	//}
+//	//else {
+//	//	return false;
+//	//}
+//}
+///*
+//Check if point is concave.
+//(Check if next is right of last->middle)
+//*/
+//template <typename T>
+//bool isEdgeConcave(wykobi::point2d<T> & last, wykobi::point2d<T> & middle, wykobi::point2d<T> & next) {
+//	return !isEdgeConvex<T>(last, middle, next);
+//}

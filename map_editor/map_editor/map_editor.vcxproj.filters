@@ -50,5 +50,8 @@
     <ClInclude Include="Graph.hpp">
       <Filter>Header Files\broken</Filter>
     </ClInclude>
+    <ClInclude Include="CommonContour.hpp">
+      <Filter>Header Files\broken</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
