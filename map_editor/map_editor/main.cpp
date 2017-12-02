@@ -279,38 +279,24 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	//wykobi::polygon<float, 2> poly_1 = wykobi::make_polygon<float>({
-	//	wykobi::make_point<float>(10, 10),
-	//	wykobi::make_point<float>(400, 10),
-	//	wykobi::make_point<float>(400, 400),
-	//	wykobi::make_point<float>(10, 400)
-	//});
-	//
-	//std::vector<wykobi::polygon<float, 2>> hull_vec;
-	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 20), 5));
-	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(200, 200, 20), 5));
-	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 100, 20), 5));
-	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(220, 50, 20), 5));
-	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 90, 20), 20));
-	//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(500, 200, 20), 5));
+
 
 	wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(100, 100, 200, 200));
+	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(150, 150, 160, 50, 300, 200));
+	wykobi::polygon<float, 2> p3;
+	{
+		wykobi::polygon<float, 2> s1 = wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 50), 10);
+		wykobi::polygon<float, 2> s2 = wykobi::make_polygon<float>(wykobi::make_circle<float>(175, 175, 75), 5);
+		p3 = Math::Clipper::mergePolygons(s1, s2)[0];
+	}
 	
-	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(150, 150, 300, 100, 300, 200));
+	//p1 = wykobi::scale<float>(2, 2, p1);
+	//p2 = wykobi::scale<float>(2, 2, p2);
 
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
 
-	segments = CommonContour::merge(p1, p2);
-	
-	//polygons.push_back(p1);
-	//polygons.push_back(p2);
-	//polygons.push_back(wykobi::translate(wykobi::make_vector<float>(0, 200), CommonContour::merge(p1, p2).front()));
-	//polygons.push_back(poly_1);
-	//polygons.push_back(hull_1);
-	//polygons.push_back(hull_2);
-	//polygons = Math::Clipper::removePolygonHull(poly_1, hull_vec);
-	//polygons = Math::Clipper::removeSubPolygon(polygons);
+	segments = CommonContour::mergeUnion(p1, p3);
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);
@@ -340,7 +326,8 @@ int main() {
 
 	sf::VertexArray lineVertexArray = sf::VertexArray(sf::Lines);
 	sf::VertexArray triangleVertexArray = sf::VertexArray(sf::Triangles);
-	std::vector<sf::Text> numbers;
+	std::vector<sf::Text> texts;
+	std::vector<sf::CircleShape> points;
 
 	while (window.isOpen()) {
 		sf::Event event;
@@ -365,7 +352,8 @@ int main() {
 
 		triangleVertexArray.clear();
 		lineVertexArray.clear();
-		numbers.clear();
+		texts.clear();
+		points.clear();
 
 		int count = 0;
 		for (auto poly : polygons) {
@@ -392,7 +380,7 @@ int main() {
 				s << i;
 				t.setPosition(Math::wykobiPointToSfVector(poly[i]));
 				t.setString(s.str());
-				numbers.push_back(t);
+				texts.push_back(t);
 			}
 			//wykobi::point2d<float> centre = wykobi::centroid(poly);
 			//sf::Text t;
@@ -407,10 +395,25 @@ int main() {
 		}
 		for (auto seg : segments) {
 			for (int i = 0; i < seg.size(); i++) {
-				sf::Vertex vertex = Math::wykobiPointToSfVertex(seg[i]);
+				wykobi::point2d<float> p = seg[i];
+				sf::Vertex vertex = Math::wykobiPointToSfVertex(p);
 				vertex.color = sf::Color::Green;
 				lineVertexArray.append(vertex);
+				
+				float radius = 2.f;
+				sf::CircleShape c;
+				c.setPosition(Math::wykobiPointToSfVector(p - wykobi::make_vector<float>(radius, radius)));
+				c.setRadius(radius);
+				points.push_back(c);
 			}
+
+			sf::Text dir;
+			dir.setFont(arial);
+			dir.setCharacterSize(10);
+			dir.rotate(Math::angleTowardsPoint<float>(seg[0], seg[1]));
+			dir.setPosition(Math::wykobiPointToSfVector(wykobi::segment_mid_point(seg)));
+			dir.setString("->");
+			texts.push_back(dir);
 		}
 	
 		window.clear();
@@ -418,7 +421,11 @@ int main() {
 
 		window.draw(triangleVertexArray);
 		window.draw(lineVertexArray);
-		for (sf::Text & t : numbers) {
+		
+		for (sf::CircleShape & c : points) {
+			window.draw(c);
+		}
+		for (sf::Text & t : texts) {
 			window.draw(t);
 		}
 
@@ -434,6 +441,21 @@ int main() {
 
 #endif
 
+
+//wykobi::polygon<float, 2> poly_1 = wykobi::make_polygon<float>({
+//	wykobi::make_point<float>(10, 10),
+//	wykobi::make_point<float>(400, 10),
+//	wykobi::make_point<float>(400, 400),
+//	wykobi::make_point<float>(10, 400)
+//});
+//
+//std::vector<wykobi::polygon<float, 2>> hull_vec;
+//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 20), 5));
+//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(200, 200, 20), 5));
+//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 100, 20), 5));
+//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(220, 50, 20), 5));
+//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(208, 90, 20), 20));
+//hull_vec.push_back(wykobi::make_polygon<float>(wykobi::make_circle<float>(500, 200, 20), 5));
 //wykobi::polygon<float, 2> poly = wykobi::make_polygon<float>({
 //	wykobi::make_point<float>(10, 10),
 //	wykobi::make_point<float>(400, 10),

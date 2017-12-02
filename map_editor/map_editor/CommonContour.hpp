@@ -31,6 +31,37 @@ namespace CommonContour {
 		}
 	};
 
+	Graph::Node* getClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node) {
+		//find most Clockwise node
+		float origin_angle = Math::angleTowardsPoint<float>(current_node->point, prev_node->point);
+		float low_angle = wykobi::infinity<float>();
+		Graph::Node* low_node = nullptr;
+		for (Graph::Node* n : current_node->edges) {
+			if (n == prev_node) continue;
+			float test_angle = Math::getRelativeAngle<float>(origin_angle, Math::angleTowardsPoint<float>(current_node->point, n->point));
+			if (test_angle < low_angle) {
+				low_angle = test_angle;
+				low_node = n;
+			}
+		}
+		return low_node;
+	}
+	Graph::Node* getCounterClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node) {
+		//find most Clockwise node
+		float origin_angle = Math::angleTowardsPoint<float>(current_node->point, prev_node->point);
+		float high_angle = -1.f;
+		Graph::Node* high_node = nullptr;
+		for (Graph::Node* n : current_node->edges) {
+			if (n == prev_node) continue;
+			float test_angle = Math::getRelativeAngle<float>(origin_angle, Math::angleTowardsPoint<float>(current_node->point, n->point));
+			if (test_angle > high_angle) {
+				high_angle = test_angle;
+				high_node = n;
+			}
+		}
+		return high_node;
+	}
+
 	std::vector<wykobi::segment<float, 2>> getWykobiSegmentsFromGraph(Graph & graph) {
 		std::vector<wykobi::segment<float, 2>> out_vec;
 		for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
@@ -42,8 +73,8 @@ namespace CommonContour {
 		return out_vec;
 	}
 
-	//std::vector<wykobi::polygon<float, 2>> merge(wykobi::polygon<float, 2> & poly1, wykobi::polygon<float, 2> & poly2) {
-	std::vector<wykobi::segment<float, 2>> merge(wykobi::polygon<float, 2> & poly1, wykobi::polygon<float, 2> & poly2) {
+	//std::vector<wykobi::polygon<float, 2>> mergeUnion(wykobi::polygon<float, 2> & poly1, wykobi::polygon<float, 2> & poly2) {
+	std::vector<wykobi::segment<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
 		//std::vector<wykobi::polygon<float, 2>> poly_vec;
 		//if (Math::isPolygonInsidePolygon(poly1, poly2)) {
 		//	poly_vec.push_back(poly2);
@@ -59,75 +90,149 @@ namespace CommonContour {
 		//	return poly_vec;
 		//}
 
+		//make sure both polygons are clockwise
+		if (wykobi::polygon_orientation(poly1) != wykobi::CounterClockwise) {
+			poly1.reverse();
+		}
+		if (wykobi::polygon_orientation(poly2) != wykobi::CounterClockwise) {
+			poly2.reverse();
+		}
+
+		//std::cout << Math::Debug::toString(poly1) << "\n";
+		//std::cout << Math::Debug::toString(poly2) << "\n";
+
 		//make graph
 		Graph graph;
 		std::vector<std::vector<Graph::Node*>> intersection_vec(poly2.size());	//edge of poly2, Node
+		Graph::Node* start_node = nullptr;
 		Graph::Node* current_node = nullptr;
 		Graph::Node* next_node = nullptr;
-		current_node = graph.makeNode(poly1[0]);
-		std::size_t i = 1;
-		do {
-			if (i == poly1.size()) i = 0;
-			wykobi::point2d<float> & next_point = poly1[i];
-			wykobi::segment<float, 2> current_segment = wykobi::make_segment<float>(current_node->point, next_point);
-			//std::vector<wykobi::point2d<float>> point_vec;
-			std::vector<std::pair<int, wykobi::point2d<float>>> point_vec;
-			for (std::size_t j = 0; j < poly2.size(); ++j) {
-				wykobi::segment<float, 2> test_segment = wykobi::edge<float>(poly2, j);
-				if (wykobi::intersect(current_segment, test_segment)) {
-					//point_vec.push_back(wykobi::intersection_point(current_segment, test_segment));
-					point_vec.push_back(std::pair<int, wykobi::point2d<float>>(j, wykobi::intersection_point(current_segment, test_segment)));
+		Graph::Node* prev_node = nullptr;
+		for (std::size_t i = 0; i <= poly1.size(); i++) {
+			if (i == 0) {
+				current_node = graph.makeNode(poly1[i]);
+				start_node = current_node;
+			}
+			else {
+				prev_node = current_node;
+				wykobi::point2d<float> next_poly_point;
+				if (i == poly1.size()) {
+					next_poly_point = start_node->point;
+				}
+				else {
+					next_poly_point = poly1[i];
+				}
+				wykobi::segment<float, 2> current_segment = wykobi::make_segment<float>(prev_node->point, next_poly_point);
+				std::vector<std::pair<int, wykobi::point2d<float>>> point_vec;
+				for (std::size_t j = 0; j < poly2.size(); ++j) {
+					wykobi::segment<float, 2> test_segment = wykobi::edge<float>(poly2, j);
+					if (wykobi::intersect(current_segment, test_segment)) {
+						point_vec.push_back(std::pair<int, wykobi::point2d<float>>(j, wykobi::intersection_point(current_segment, test_segment)));
+					}
+				}
+				std::sort(point_vec.begin(), point_vec.end(), [&](auto & p1, auto & p2) {
+					return wykobi::distance(prev_node->point, p1.second) < wykobi::distance(prev_node->point, p2.second);
+				});
+				for (auto & pair : point_vec) {
+					current_node = graph.makeNode(pair.second);
+					intersection_vec[pair.first].push_back(current_node);
+					prev_node->edges.push_back(current_node);
+					prev_node = current_node;
+				}
+				if (i == poly1.size()) {
+					current_node->edges.push_back(start_node);
+				}
+				else {
+					current_node = graph.makeNode(next_poly_point);
+					prev_node->edges.push_back(current_node);
 				}
 			}
-			//std::sort(point_vec.begin(), point_vec.end(), [&](wykobi::point2d<float> & p1, wykobi::point2d<float> & p2) {
-			//	return wykobi::distance(current_node->point, p1) < wykobi::distance(current_node->point, p2);
-			//});
-			std::sort(point_vec.begin(), point_vec.end(), [&](auto & p1, auto & p2) {
-				return wykobi::distance(current_node->point, p1.second) < wykobi::distance(current_node->point, p2.second);
-			});
-			//for (wykobi::point2d<float> & p : point_vec) {
-			//	next_node = graph.makeNode(p);
-			//	current_node->edges.push_back(next_node);
-			//	current_node = next_node;
-			//}
-			for (auto & pair : point_vec) {
-				next_node = graph.makeNode(pair.second);
-				intersection_vec[pair.first].push_back(next_node);
+		}
+		current_node = nullptr;
+		next_node = nullptr;
+		start_node = nullptr;
+		for (std::size_t i = 0; i < poly2.size(); ++i) {
+			if (i == 0) {
+				current_node = graph.makeNode(poly2[i]);
+				start_node = current_node;
+			}
+			else {
+				next_node = graph.makeNode(poly2[i]);
 				current_node->edges.push_back(next_node);
 				current_node = next_node;
 			}
-			next_node = graph.makeNode(next_point);
-			current_node->edges.push_back(next_node);
+			if (!intersection_vec[i].empty()) {
+				if (intersection_vec[i].size() > 1) {
+					std::sort(intersection_vec[i].begin(), intersection_vec[i].end(), [&](Graph::Node* n1, Graph::Node* n2) {
+						return wykobi::distance(current_node->point, n1->point) < wykobi::distance(current_node->point, n2->point);
+					});
+				}
+				for (Graph::Node* n : intersection_vec[i]) {
+					next_node = n;
+					current_node->edges.push_back(next_node);
+					current_node = next_node;
+				}
+			}
+		}
+		current_node->edges.push_back(start_node);
+
+		//find most top-left node
+		std::vector<Graph::Node*> node_path;
+		current_node = nullptr;
+		next_node = nullptr;
+		start_node = nullptr;
+		prev_node = nullptr;
+		wykobi::point2d<float> edge_point = wykobi::make_point<float>(wykobi::infinity<float>(), wykobi::infinity<float>());
+		float low_dist = wykobi::infinity<float>();
+		for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
+			Graph::Node* n = graph.nodes[i].get();
+			if (n->point.x < edge_point.x) edge_point.x = n->point.x;
+			if (n->point.y < edge_point.y) edge_point.y = n->point.y;
+		}
+		for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
+			Graph::Node* n = graph.nodes[i].get();
+			float test_dist = wykobi::distance<float>(edge_point, n->point);
+			if (test_dist < low_dist) {
+				low_dist = test_dist;
+				start_node = n;
+			}
+		}
+		
+		//traverse graph
+		Graph::Node fake_node;
+		fake_node.point = start_node->point - wykobi::make_vector<float>(1, 0);
+		current_node = getCounterClockwiseMost(&fake_node, start_node);
+		//current_node = start_node->edges.front();
+		//std::cout << Math::Debug::toString(fake_node.point) << "->" << Math::Debug::toString(start_node->point) << "\n";
+		std::cout << Math::Debug::toString(start_node->point) << "	" << start_node << "\n";
+		prev_node = start_node;
+		node_path.push_back(start_node);
+		while (current_node != start_node) {
+			std::cout << Math::Debug::toString(current_node->point) << "	" << current_node << "\n";
+			node_path.push_back(current_node);
+			next_node = getCounterClockwiseMost(prev_node, current_node);
+			prev_node = current_node;
 			current_node = next_node;
-			++i;
-		} while (i != 1);
-		//current_node = graph.makeNode(poly2[0]);
-		//next_node = nullptr;
-		//i = 1;
-		//do {
-		//	if (i == poly1.size()) i = 0;
-		//	wykobi::point2d<float> & next_point = poly1[i];
-		//
-		//	if (!intersection_vec[i].empty()) {
-		//		if (intersection_vec[i].size() > 1) {
-		//			std::sort(intersection_vec[i].begin(), intersection_vec[i].end(), [&](Graph::Node* n1, Graph::Node* n2) {
-		//				return wykobi::distance(current_node->point, n1->point) < wykobi::distance(current_node->point, n2->point);
-		//			});
-		//		}
-		//		for (Graph::Node* n : intersection_vec[i]) {
-		//			next_node = n;
-		//			current_node->edges.push_back(next_node);
-		//			current_node = next_node;
-		//		}
-		//	}
-		//	next_node = graph.makeNode(next_point);
-		//	current_node->edges.push_back(next_node);
-		//	++i;
-		//} while (i != 1);
+		}
+		
+		Graph test_graph;
+		prev_node = nullptr;
+		for (Graph::Node* n : node_path) {
+			Graph::Node* t = test_graph.makeNode(n->point);
+			if (prev_node != nullptr) {
+				prev_node->edges.push_back(t);
+			}
+			prev_node = t;
+		}
+		test_graph.nodes.back()->edges.push_back(test_graph.nodes.front().get());
 		
 
 		
-		return getWykobiSegmentsFromGraph(graph);
+		//std::cout << graph.nodes.front().get() << "\n";
+		//std::cout << (graph.nodes.begin() + 5)->get()->edges.front() << "\n";
+
+		return getWykobiSegmentsFromGraph(test_graph);
+		//return getWykobiSegmentsFromGraph(graph);
 		//return poly_vec;
 	}
 
