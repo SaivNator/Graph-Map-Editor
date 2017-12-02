@@ -31,7 +31,12 @@ namespace CommonContour {
 		}
 	};
 
+	wykobi::vector2d<float> perp(wykobi::vector2d<float> & vector) {
+		return wykobi::make_vector<float>(vector.y, -vector.x);
+	}
+
 	Graph::Node* getClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node) {
+#if 0
 		//find most Clockwise node
 		float origin_angle = Math::angleTowardsPoint<float>(current_node->point, prev_node->point);
 		float low_angle = wykobi::infinity<float>();
@@ -45,8 +50,42 @@ namespace CommonContour {
 			}
 		}
 		return low_node;
+#elif 1
+		std::vector<Graph::Node*> edges = current_node->edges;
+		auto it = std::find(edges.begin(), edges.end(), prev_node);
+		if (it != edges.end()) edges.erase(it);
+		if (edges.empty()) return nullptr;
+		it = edges.begin();
+		wykobi::vector2d<float> current_dir = current_node->point - prev_node->point;
+		Graph::Node* next_node = (*it);
+		++it;
+		wykobi::vector2d<float> next_dir = next_node->point - current_node->point;
+		bool is_current_convex = (wykobi::dot_product(next_dir, perp(current_dir)) <= 0);
+		while (it != edges.end()) {
+			Graph::Node* test_node = (*it);
+			wykobi::vector2d<float> test_dir = test_node->point - current_node->point;
+			if (is_current_convex) {
+				//(Dot(dcurr, Perp(dadj)) < 0 or Dot(dnext, Perp(dadj)) < 0)
+				if (wykobi::dot_product(current_dir, perp(test_dir)) < 0 || wykobi::dot_product(next_dir, perp(test_dir)) < 0) {
+					next_dir = test_dir;
+					next_node = test_node;
+					is_current_convex = (wykobi::dot_product(next_dir, perp(current_dir)) <= 0);
+				}
+			}
+			else {
+				if (wykobi::dot_product(current_dir, perp(test_dir)) < 0 && wykobi::dot_product(next_dir, perp(test_dir)) < 0) {
+					next_dir = test_dir;
+					next_node = test_node;
+					is_current_convex = (wykobi::dot_product(next_dir, perp(current_dir)) <= 0);
+				}
+			}
+			++it;
+		}
+		return next_node;
+#endif
 	}
 	Graph::Node* getCounterClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node) {
+#if 0
 		//find most Clockwise node
 		float origin_angle = Math::angleTowardsPoint<float>(current_node->point, prev_node->point);
 		float high_angle = -1.f;
@@ -60,6 +99,38 @@ namespace CommonContour {
 			}
 		}
 		return high_node;
+#elif 1
+		std::vector<Graph::Node*> edges = current_node->edges;
+		auto it = std::find(edges.begin(), edges.end(), prev_node);
+		if (it != edges.end()) edges.erase(it);
+		if (edges.empty()) return nullptr;
+		it = edges.begin();
+		wykobi::vector2d<float> current_dir = current_node->point - prev_node->point;
+		Graph::Node* next_node = (*it);
+		++it;
+		wykobi::vector2d<float> next_dir = next_node->point - current_node->point;
+		bool is_current_convex = (wykobi::dot_product(next_dir, perp(current_dir)) <= 0);
+		while (it != edges.end()) {
+			Graph::Node* test_node = (*it);
+			wykobi::vector2d<float> test_dir = test_node->point - current_node->point;
+			if (is_current_convex) {
+				if (wykobi::dot_product(current_dir, perp(test_dir)) > 0 && wykobi::dot_product(next_dir, perp(test_dir)) > 0) {
+					next_dir = test_dir;
+					next_node = test_node;
+					is_current_convex = (wykobi::dot_product(next_dir, perp(current_dir)) <= 0);
+				}
+			}
+			else {
+				if (wykobi::dot_product(current_dir, perp(test_dir)) > 0 || wykobi::dot_product(next_dir, perp(test_dir)) > 0) {
+					next_dir = test_dir;
+					next_node = test_node;
+					is_current_convex = (wykobi::dot_product(next_dir, perp(current_dir)) <= 0);
+				}
+			}
+			++it;
+		}
+		return next_node;
+#endif
 	}
 
 	std::vector<wykobi::segment<float, 2>> getWykobiSegmentsFromGraph(Graph & graph) {
@@ -73,22 +144,22 @@ namespace CommonContour {
 		return out_vec;
 	}
 
-	//std::vector<wykobi::polygon<float, 2>> mergeUnion(wykobi::polygon<float, 2> & poly1, wykobi::polygon<float, 2> & poly2) {
-	std::vector<wykobi::segment<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
-		//std::vector<wykobi::polygon<float, 2>> poly_vec;
-		//if (Math::isPolygonInsidePolygon(poly1, poly2)) {
-		//	poly_vec.push_back(poly2);
-		//	return poly_vec;
-		//}
-		//else if (Math::isPolygonInsidePolygon(poly2, poly1)) {
-		//	poly_vec.push_back(poly1);
-		//	return poly_vec;
-		//}
-		//else if (!Math::isPolygonsOverlapping(poly1, poly2)) {
-		//	poly_vec.push_back(poly1);
-		//	poly_vec.push_back(poly2);
-		//	return poly_vec;
-		//}
+	std::vector<wykobi::polygon<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
+	//std::vector<wykobi::segment<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
+		std::vector<wykobi::polygon<float, 2>> poly_vec;
+		if (Math::isPolygonInsidePolygon(poly1, poly2)) {
+			poly_vec.push_back(poly2);
+			return poly_vec;
+		}
+		else if (Math::isPolygonInsidePolygon(poly2, poly1)) {
+			poly_vec.push_back(poly1);
+			return poly_vec;
+		}
+		else if (!Math::isPolygonsOverlapping(poly1, poly2)) {
+			poly_vec.push_back(poly1);
+			poly_vec.push_back(poly2);
+			return poly_vec;
+		}
 
 		//make sure both polygons are clockwise
 		if (wykobi::polygon_orientation(poly1) != wykobi::CounterClockwise) {
@@ -108,7 +179,7 @@ namespace CommonContour {
 		Graph::Node* current_node = nullptr;
 		Graph::Node* next_node = nullptr;
 		Graph::Node* prev_node = nullptr;
-		for (std::size_t i = 0; i <= poly1.size(); i++) {
+		for (std::size_t i = 0; i <= poly1.size(); ++i) {
 			if (i == 0) {
 				current_node = graph.makeNode(poly1[i]);
 				start_node = current_node;
@@ -197,41 +268,45 @@ namespace CommonContour {
 				start_node = n;
 			}
 		}
-		
 		//traverse graph
 		Graph::Node fake_node;
-		fake_node.point = start_node->point - wykobi::make_vector<float>(1, 0);
-		current_node = getCounterClockwiseMost(&fake_node, start_node);
+		fake_node.point = start_node->point - wykobi::make_vector<float>(1.f, 0.f);
+		current_node = getClockwiseMost(&fake_node, start_node);
 		//current_node = start_node->edges.front();
 		//std::cout << Math::Debug::toString(fake_node.point) << "->" << Math::Debug::toString(start_node->point) << "\n";
-		std::cout << Math::Debug::toString(start_node->point) << "	" << start_node << "\n";
+		//std::cout << Math::Debug::toString(start_node->point) << "	" << start_node << "\n";
 		prev_node = start_node;
 		node_path.push_back(start_node);
 		while (current_node != start_node) {
-			std::cout << Math::Debug::toString(current_node->point) << "	" << current_node << "\n";
+			//std::cout << Math::Debug::toString(current_node->point) << "	" << current_node << "\n";
 			node_path.push_back(current_node);
-			next_node = getCounterClockwiseMost(prev_node, current_node);
+			next_node = getClockwiseMost(prev_node, current_node);
 			prev_node = current_node;
 			current_node = next_node;
 		}
-		
-		Graph test_graph;
-		prev_node = nullptr;
+		wykobi::polygon<float, 2> out_poly;
+		out_poly.reserve(node_path.size());
 		for (Graph::Node* n : node_path) {
-			Graph::Node* t = test_graph.makeNode(n->point);
-			if (prev_node != nullptr) {
-				prev_node->edges.push_back(t);
-			}
-			prev_node = t;
+			out_poly.push_back(n->point);
 		}
-		test_graph.nodes.back()->edges.push_back(test_graph.nodes.front().get());
+		poly_vec.push_back(out_poly);
+		return poly_vec;
 		
 
-		
+		//Graph test_graph;
+		//prev_node = nullptr;
+		//for (Graph::Node* n : node_path) {
+		//	Graph::Node* t = test_graph.makeNode(n->point);
+		//	if (prev_node != nullptr) {
+		//		prev_node->edges.push_back(t);
+		//	}
+		//	prev_node = t;
+		//}
+		//test_graph.nodes.back()->edges.push_back(test_graph.nodes.front().get());
 		//std::cout << graph.nodes.front().get() << "\n";
 		//std::cout << (graph.nodes.begin() + 5)->get()->edges.front() << "\n";
 
-		return getWykobiSegmentsFromGraph(test_graph);
+		//return getWykobiSegmentsFromGraph(test_graph);
 		//return getWykobiSegmentsFromGraph(graph);
 		//return poly_vec;
 	}

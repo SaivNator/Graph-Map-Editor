@@ -282,21 +282,32 @@ int main() {
 
 
 	wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(100, 100, 200, 200));
-	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(150, 150, 160, 50, 300, 200));
+	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(150, 150, 300, 100, 300, 200));
 	wykobi::polygon<float, 2> p3;
 	{
 		wykobi::polygon<float, 2> s1 = wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 50), 10);
 		wykobi::polygon<float, 2> s2 = wykobi::make_polygon<float>(wykobi::make_circle<float>(175, 175, 75), 5);
 		p3 = Math::Clipper::mergePolygons(s1, s2)[0];
 	}
+	wykobi::polygon<float, 2> p4;
+	wykobi::polygon<float, 2> p5;
 	
-	//p1 = wykobi::scale<float>(2, 2, p1);
-	//p2 = wykobi::scale<float>(2, 2, p2);
+	p1 = wykobi::scale<float>(2, 2, p1);
+	p2 = wykobi::scale<float>(2, 2, p2);
+	p3 = wykobi::scale<float>(2, 2, p3);
+	
+	p4 = wykobi::translate(wykobi::make_vector(75.f, -50.f), p2);
+	p5 = wykobi::translate(wykobi::make_vector(0.f, 100.f), p4);
+
+	
+	p1 = wykobi::rotate(180.f, p1, wykobi::centroid(p1));
+	p2 = wykobi::rotate(225.f, p2, wykobi::centroid(p1));
 
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
 
-	segments = CommonContour::mergeUnion(p1, p3);
+	//polygons = CommonContour::mergeUnion(CommonContour::mergeUnion(p1, p4).front(), p5);
+	polygons = CommonContour::mergeUnion(p1, p4);
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);

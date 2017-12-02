@@ -376,7 +376,7 @@ namespace Math {
 	std::vector<wykobi::point2d<float>> makeWykobiPointVectorFromShape(std::vector<T> & vec) {
 		std::vector<wykobi::point2d<float>> points;
 		for (T & obj : vec) {
-			for (int i = 0; i < obj.size(); i++) {
+			for (std::size_t i = 0; i < obj.size(); ++i) {
 				points.push_back(obj[i]);
 			}
 		}
@@ -387,6 +387,26 @@ namespace Math {
 		std::vector<T> vec;
 		vec.push_back(shape);
 		return makeWykobiPointVectorFromShape<T>(vec);
+	}
+
+	/*
+	Shapes to vector of segments
+	*/
+	template <typename T>
+	std::vector<wykobi::segment<float, 2>> makeWykobiSegmentVectorFromShape(std::vector<T> & vec) {
+		std::vector<wykobi::segment<float, 2>> segment_vec;
+		for (T & obj : vec) {
+			for (std::size_t i = 0; i < obj.size(); ++i) {
+				segment_vec.push_back(wykobi::edge(obj, i));
+			}
+		}
+		return segment_vec;
+	}
+	template <typename T>
+	std::vector<wykobi::segment<float, 2>> makeWykobiSegmentVectorFromShape(T & shape) {
+		std::vector<T> vec;
+		vec.push_back(shape);
+		return makeWykobiSegmentVectorFromShape(vec);
 	}
 
 	/*
