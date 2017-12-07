@@ -19,6 +19,9 @@
     <Filter Include="Source Files\broken">
       <UniqueIdentifier>{2e3236b7-8cee-49e7-b71c-1bccb0421ff7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\homemade clipper">
+      <UniqueIdentifier>{292ce84c-7ae5-48e5-98c6-40b9f4a938f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -51,7 +54,7 @@
       <Filter>Header Files\broken</Filter>
     </ClInclude>
     <ClInclude Include="CommonContour.hpp">
-      <Filter>Header Files\broken</Filter>
+      <Filter>Header Files\homemade clipper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

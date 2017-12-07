@@ -291,13 +291,15 @@ int main() {
 	}
 	wykobi::polygon<float, 2> p4;
 	wykobi::polygon<float, 2> p5;
+	wykobi::polygon<float, 2> p6;
 	
-	p1 = wykobi::scale<float>(2, 2, p1);
-	p2 = wykobi::scale<float>(2, 2, p2);
-	p3 = wykobi::scale<float>(2, 2, p3);
+	//p1 = wykobi::scale<float>(2, 2, p1);
+	//p2 = wykobi::scale<float>(2, 2, p2);
+	//p3 = wykobi::scale<float>(2, 2, p3);
 	
 	p4 = wykobi::translate(wykobi::make_vector(75.f, -50.f), p2);
 	p5 = wykobi::translate(wykobi::make_vector(0.f, 100.f), p4);
+	p6 = wykobi::translate(wykobi::make_vector(100.f, 0.f), p1);
 
 	
 	p1 = wykobi::rotate(180.f, p1, wykobi::centroid(p1));
@@ -307,7 +309,10 @@ int main() {
 	std::vector<wykobi::segment<float, 2>> segments;
 
 	//polygons = CommonContour::mergeUnion(CommonContour::mergeUnion(p1, p4).front(), p5);
-	polygons = CommonContour::mergeUnion(p1, p4);
+	//polygons = CommonContour::mergeUnion(p1, p4);
+	//polygons = CommonContour::mergeUnion(p1, p5);
+	//polygons = CommonContour::mergeUnion(p1, p6);
+	segments = CommonContour::mergeUnion(p1, p6);
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);
