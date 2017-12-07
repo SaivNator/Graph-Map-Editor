@@ -54,10 +54,102 @@ namespace CommonContour {
 		if (wykobi::polygon_orientation(poly2) != wykobi::CounterClockwise) {
 			poly2.reverse();
 		}
+
+		Graph graph;
+		std::vector<Graph::Node*> poly1_path;
+		std::vector<Graph::Node*> poly2_path;
+
+		for (std::size_t i = 0; i < poly1.size(); ++i) {
+			poly1_path.push_back(graph.makeNode(poly1[i]));
+		}
+
+		for (std::size_t i = 0; i < poly2.size(); ++i) {
+			auto it = std::find_if(poly1_path.begin(), poly1_path.end(), [&](Graph::Node* n1) { return n1->point == poly2[i]; });
+			if (it != poly1_path.end()) {
+				poly2_path.push_back((*it));
+			}
+			else {
+				poly2_path.push_back(graph.makeNode(poly2[i]));
+			}
+		}
+
+		auto it_1 = poly1_path.begin();
+		while (it_1 != poly1_path.end()) {
+			Graph::Node* outer_node_a = (*it_1);
+			Graph::Node* outer_node_b = ((it_1 + 1) != poly1_path.end()) ? (*(it_1 + 1)) : (*poly1_path.begin());
+
+			wykobi::segment<float, 2> outer_segment = wykobi::make_segment(outer_node_a->point, outer_node_b->point);
+
+			std::vector<Graph::Node*> intersection_vec;
+
+			auto it_2 = poly2_path.begin();
+			while (it_2 != poly2_path.end()) {
+				Graph::Node* inner_node_a = (*it_2);
+				Graph::Node* inner_node_b = ((it_2 + 1) != poly2_path.end()) ? (*(it_2 + 1)) : (*poly2_path.begin());
+
+				wykobi::segment<float, 2> inner_segment = wykobi::make_segment(inner_node_a->point, inner_node_b->point);
+
+				if (wykobi::intersect(outer_segment, inner_segment)) {
+					wykobi::point2d<float> intersection = wykobi::intersection_point(outer_segment, inner_segment);
+
+					
+
+					if (
+						intersection == outer_node_a->point ||
+						intersection == outer_node_b->point ||
+						intersection == inner_node_a->point ||
+						intersection == inner_node_b->point
+						) 
+					{
+						
+						++it_2;
+					}
+					else {
+						Graph::Node* n = graph.makeNode(intersection);
+						
+						intersection_vec.push_back(n);
+						it_2 = poly2_path.insert(it_2, n);
+						++it_2;
+					}
+				}
+				else {
+					++it_2;
+				}
+			}
+			if (!intersection_vec.empty()) {
+				if (intersection_vec.size() > 1) {
+					std::sort(intersection_vec.begin(), intersection_vec.end(), [&](Graph::Node* n1, Graph::Node* n2)
+						{ return wykobi::distance(outer_node_a->point, n1->point) < wykobi::distance(outer_node_a->point, n2->point); }
+					);
+				}
+				for (Graph::Node* n : intersection_vec) {
+					it_1 = poly1_path.insert(it_1, n);
+				}
+			}
+			++it_1;
+		}
 		
+		it_1 = poly1_path.begin();
+		while (it_1 != poly1_path.end()) {
+			Graph::Node* outer_node_a = (*it_1);
+			Graph::Node* outer_node_b = ((it_1 + 1) != poly1_path.end()) ? (*(it_1 + 1)) : (*poly1_path.begin());
+			outer_node_a->edges.push_back(outer_node_b);
+			++it_1;
+		}
+		
+		it_1 = poly2_path.begin();
+		while (it_1 != poly2_path.end()) {
+			Graph::Node* outer_node_a = (*it_1);
+			Graph::Node* outer_node_b = ((it_1 + 1) != poly2_path.end()) ? (*(it_1 + 1)) : (*poly2_path.begin());
+			outer_node_a->edges.push_back(outer_node_b);
+			++it_1;
+		}
+
+		return graph;
+
+		/*
 		Graph graph;
 		std::vector<std::vector<Graph::Node*>> intersection_vec(poly2.size());	//contains nodes for intersecion points on edges
-
 		//make nodes of all points in poly1
 		std::vector<Graph::Node*> poly1_path;
 		for (std::size_t i = 0; i < poly1.size(); ++i) {
@@ -138,6 +230,7 @@ namespace CommonContour {
 			current_node->edges.push_back(node_b);
 		}
 		return graph;
+		*/
 	}
 
 	
