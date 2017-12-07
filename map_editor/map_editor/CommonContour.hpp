@@ -62,7 +62,6 @@ namespace CommonContour {
 		for (std::size_t i = 0; i < poly1.size(); ++i) {
 			poly1_path.push_back(graph.makeNode(poly1[i]));
 		}
-
 		for (std::size_t i = 0; i < poly2.size(); ++i) {
 			auto it = std::find_if(poly1_path.begin(), poly1_path.end(), [&](Graph::Node* n1) { return n1->point == poly2[i]; });
 			if (it != poly1_path.end()) {
@@ -73,27 +72,88 @@ namespace CommonContour {
 			}
 		}
 
-		auto it_1 = poly1_path.begin();
-		while (it_1 != poly1_path.end()) {
-			Graph::Node* outer_node_a = (*it_1);
-			Graph::Node* outer_node_b = ((it_1 + 1) != poly1_path.end()) ? (*(it_1 + 1)) : (*poly1_path.begin());
+		std::vector<std::vector<Graph::Node*>> poly1_intersections(poly1_path.size());
+		std::vector<std::vector<Graph::Node*>> poly2_intersections(poly2_path.size());
+
+		//find
+		for (std::size_t i = 0; i < poly1_path.size(); ++i) {
+			Graph::Node* outer_node_a = poly1_path[i];
+			Graph::Node* outer_node_b = (i + 1 < poly1_path.size()) ? poly1_path[i + 1] : poly1_path[0];
 
 			wykobi::segment<float, 2> outer_segment = wykobi::make_segment(outer_node_a->point, outer_node_b->point);
 
-			std::vector<Graph::Node*> intersection_vec;
-
-			auto it_2 = poly2_path.begin();
-			while (it_2 != poly2_path.end()) {
-				Graph::Node* inner_node_a = (*it_2);
-				Graph::Node* inner_node_b = ((it_2 + 1) != poly2_path.end()) ? (*(it_2 + 1)) : (*poly2_path.begin());
-
+			for (std::size_t j = 0; j < poly2_path.size(); ++j) {
+				Graph::Node* inner_node_a = poly2_path[j];
+				Graph::Node* inner_node_b = (j + 1 < poly2_path.size()) ? poly2_path[j + 1] : poly2_path[0];
 				wykobi::segment<float, 2> inner_segment = wykobi::make_segment(inner_node_a->point, inner_node_b->point);
-
 				if (wykobi::intersect(outer_segment, inner_segment)) {
 					wykobi::point2d<float> intersection = wykobi::intersection_point(outer_segment, inner_segment);
+					if (
+						intersection == outer_node_a->point ||
+						intersection == outer_node_b->point ||
+						intersection == inner_node_a->point ||
+						intersection == inner_node_b->point
+						)
+					{
+						//???
+					}
+					else {
+						//add to intersecton vectors
+						Graph::Node* n = graph.makeNode(intersection);
+						poly1_intersections[i].push_back(n);
+						poly2_intersections[j].push_back(n);
+					}
+				}
+			}
+		}
+		//insert intersections
+		std::vector<Graph::Node*> temp_path;
+		for (std::size_t i = 0; i < poly1_path.size(); ++i) {
+			Graph::Node* current_node = poly1_path[i];
+			temp_path.push_back(current_node);
+			if (!poly1_intersections[i].empty()) {
+				if (poly1_intersections[i].size() > 1) {
+					std::sort(poly1_intersections[i].begin(), poly1_intersections[i].end(), [&](Graph::Node* n1, Graph::Node* n2)
+						{ return (wykobi::distance(current_node->point, n1->point) < wykobi::distance(current_node->point, n2->point)); }
+					);
+				}
+				for (Graph::Node* n : poly1_intersections[i]) {
+					temp_path.push_back(n);
+				}
+			}
+		}
+		poly1_path.swap(temp_path);
+		temp_path.clear();
+		for (std::size_t i = 0; i < poly2_path.size(); ++i) {
+			Graph::Node* current_node = poly2_path[i];
+			temp_path.push_back(current_node);
+			if (!poly2_intersections[i].empty()) {
+				if (poly2_intersections[i].size() > 1) {
+					std::sort(poly2_intersections[i].begin(), poly2_intersections[i].end(), [&](Graph::Node* n1, Graph::Node* n2)
+					{ return (wykobi::distance(current_node->point, n1->point) < wykobi::distance(current_node->point, n2->point)); }
+					);
+				}
+				for (Graph::Node* n : poly2_intersections[i]) {
+					temp_path.push_back(n);
+				}
+			}
+		}
+		poly2_path.swap(temp_path);
 
-					
-
+		/*
+		auto it_1 = poly1_path.begin();
+		while (it_1 != poly1_path.end()) {
+			Graph::Node* outer_node_a = (*it_1);
+			Graph::Node* outer_node_b = (std::next(it_1) != poly1_path.end()) ? (*std::next(it_1)) : (*poly1_path.begin());
+			wykobi::segment<float, 2> outer_segment = wykobi::make_segment(outer_node_a->point, outer_node_b->point);
+			//std::vector<Graph::Node*> intersection_vec;
+			//auto it_2 = poly2_path.begin();
+			while (it_2 != poly2_path.end()) {
+				Graph::Node* inner_node_a = (*it_2);
+				Graph::Node* inner_node_b = (std::next(it_2) != poly2_path.end()) ? (*std::next(it_2)) : (*poly2_path.begin());
+				wykobi::segment<float, 2> inner_segment = wykobi::make_segment(inner_node_a->point, inner_node_b->point);
+				if (wykobi::intersect(outer_segment, inner_segment)) {
+					wykobi::point2d<float> intersection = wykobi::intersection_point(outer_segment, inner_segment);
 					if (
 						intersection == outer_node_a->point ||
 						intersection == outer_node_b->point ||
@@ -101,19 +161,17 @@ namespace CommonContour {
 						intersection == inner_node_b->point
 						) 
 					{
-						
-						++it_2;
+						std::next(it_2);
 					}
 					else {
 						Graph::Node* n = graph.makeNode(intersection);
-						
 						intersection_vec.push_back(n);
-						it_2 = poly2_path.insert(it_2, n);
-						++it_2;
+						//it_2 = poly2_path.insert(it_2, n);
+						it_2 = std::next(it_2);
 					}
 				}
 				else {
-					++it_2;
+					it_2 = std::next(it_2);
 				}
 			}
 			if (!intersection_vec.empty()) {
@@ -126,13 +184,14 @@ namespace CommonContour {
 					it_1 = poly1_path.insert(it_1, n);
 				}
 			}
-			++it_1;
+			it_1 = std::next(it_1);
 		}
-		
-		it_1 = poly1_path.begin();
+		*/
+
+		auto it_1 = poly1_path.begin();
 		while (it_1 != poly1_path.end()) {
 			Graph::Node* outer_node_a = (*it_1);
-			Graph::Node* outer_node_b = ((it_1 + 1) != poly1_path.end()) ? (*(it_1 + 1)) : (*poly1_path.begin());
+			Graph::Node* outer_node_b = (std::next(it_1) != poly1_path.end()) ? (*std::next(it_1)) : (*poly1_path.begin());
 			outer_node_a->edges.push_back(outer_node_b);
 			++it_1;
 		}
@@ -140,7 +199,7 @@ namespace CommonContour {
 		it_1 = poly2_path.begin();
 		while (it_1 != poly2_path.end()) {
 			Graph::Node* outer_node_a = (*it_1);
-			Graph::Node* outer_node_b = ((it_1 + 1) != poly2_path.end()) ? (*(it_1 + 1)) : (*poly2_path.begin());
+			Graph::Node* outer_node_b = (std::next(it_1) != poly2_path.end()) ? (*std::next(it_1)) : (*poly2_path.begin());
 			outer_node_a->edges.push_back(outer_node_b);
 			++it_1;
 		}
@@ -246,22 +305,22 @@ namespace CommonContour {
 		return out_vec;
 	}
 
-	//std::vector<wykobi::polygon<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
-	std::vector<wykobi::segment<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
-		//std::vector<wykobi::polygon<float, 2>> poly_vec;
-		//if (Math::isPolygonInsidePolygon(poly1, poly2)) {
-		//	poly_vec.push_back(poly2);
-		//	return poly_vec;
-		//}
-		//else if (Math::isPolygonInsidePolygon(poly2, poly1)) {
-		//	poly_vec.push_back(poly1);
-		//	return poly_vec;
-		//}
-		//else if (!Math::isPolygonsOverlapping(poly1, poly2)) {
-		//	poly_vec.push_back(poly1);
-		//	poly_vec.push_back(poly2);
-		//	return poly_vec;
-		//}
+	std::vector<wykobi::polygon<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
+	//std::vector<wykobi::segment<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
+		std::vector<wykobi::polygon<float, 2>> poly_vec;
+		if (Math::isPolygonInsidePolygon(poly1, poly2)) {
+			poly_vec.push_back(poly2);
+			return poly_vec;
+		}
+		else if (Math::isPolygonInsidePolygon(poly2, poly1)) {
+			poly_vec.push_back(poly1);
+			return poly_vec;
+		}
+		else if (!Math::isPolygonsOverlapping(poly1, poly2)) {
+			poly_vec.push_back(poly1);
+			poly_vec.push_back(poly2);
+			return poly_vec;
+		}
 
 		//make sure both polygons are clockwise
 		if (wykobi::polygon_orientation(poly1) != wykobi::CounterClockwise) {
@@ -396,8 +455,8 @@ namespace CommonContour {
 		for (Graph::Node* n : node_path) {
 			out_poly.push_back(n->point);
 		}
-		//poly_vec.push_back(out_poly);
-		//return poly_vec;
+		poly_vec.push_back(out_poly);
+		return poly_vec;
 		
 
 		//Graph test_graph;
@@ -414,7 +473,7 @@ namespace CommonContour {
 		//std::cout << (graph.nodes.begin() + 5)->get()->edges.front() << "\n";
 
 		//return getWykobiSegmentsFromGraph(test_graph);
-		return getWykobiSegmentsFromGraph(graph);
+		//return getWykobiSegmentsFromGraph(graph);
 		//return poly_vec;
 	}
 

@@ -309,11 +309,12 @@ int main() {
 	std::vector<wykobi::segment<float, 2>> segments;
 
 	//polygons = CommonContour::mergeUnion(CommonContour::mergeUnion(p1, p4).front(), p5);
+	polygons = CommonContour::mergeUnion(p1, p2);
 	//polygons = CommonContour::mergeUnion(p1, p4);
 	//polygons = CommonContour::mergeUnion(p1, p5);
 	//polygons = CommonContour::mergeUnion(p1, p6);
 	//segments = CommonContour::mergeUnion(p1, p6);
-	segments = CommonContour::mergeUnion(p1, p2);
+	//segments = CommonContour::mergeUnion(p1, p2);
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);
