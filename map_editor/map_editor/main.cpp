@@ -292,29 +292,32 @@ int main() {
 	wykobi::polygon<float, 2> p4;
 	wykobi::polygon<float, 2> p5;
 	wykobi::polygon<float, 2> p6;
+	wykobi::polygon<float, 2> p7;
 	
-	//p1 = wykobi::scale<float>(2, 2, p1);
-	//p2 = wykobi::scale<float>(2, 2, p2);
-	//p3 = wykobi::scale<float>(2, 2, p3);
+	p1 = wykobi::scale<float>(2, 2, p1);
+	p2 = wykobi::scale<float>(2, 2, p2);
+	p3 = wykobi::scale<float>(2, 2, p3);
 	
 	p4 = wykobi::translate(wykobi::make_vector(75.f, -50.f), p2);
 	p5 = wykobi::translate(wykobi::make_vector(0.f, 100.f), p4);
 	p6 = wykobi::translate(wykobi::make_vector(100.f, 0.f), p1);
 
-	
 	p1 = wykobi::rotate(180.f, p1, wykobi::centroid(p1));
 	p2 = wykobi::rotate(225.f, p2, wykobi::centroid(p1));
+	p7 = wykobi::rotate(123.f, p3, wykobi::centroid(p3));
 
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
 
 	//polygons = CommonContour::mergeUnion(CommonContour::mergeUnion(p1, p4).front(), p5);
-	polygons = CommonContour::mergeUnion(p1, p2);
+	//polygons = CommonContour::mergeUnion(p1, p2);
 	//polygons = CommonContour::mergeUnion(p1, p4);
 	//polygons = CommonContour::mergeUnion(p1, p5);
 	//polygons = CommonContour::mergeUnion(p1, p6);
-	//segments = CommonContour::mergeUnion(p1, p6);
-	//segments = CommonContour::mergeUnion(p1, p2);
+	//polygons = CommonContour::mergeUnion(p1, p3);
+	polygons = CommonContour::mergeUnion(p3, p7);
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::mergeUnion(p1, p4).front(), p5));
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);
