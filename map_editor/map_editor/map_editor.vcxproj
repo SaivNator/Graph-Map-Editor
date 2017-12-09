@@ -115,7 +115,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Graph.cpp" />
+    <ClCompile Include="CommonContour.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MapEditor.cpp" />
     <ClCompile Include="Math.cpp" />
@@ -123,7 +123,6 @@
   <ItemGroup>
     <ClInclude Include="CommonContour.hpp" />
     <ClInclude Include="Global.hpp" />
-    <ClInclude Include="Graph.hpp" />
     <ClInclude Include="MapEditor.hpp" />
     <ClInclude Include="MapObjects.hpp" />
     <ClInclude Include="Math.hpp" />

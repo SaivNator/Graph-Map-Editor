@@ -13,14 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\broken">
-      <UniqueIdentifier>{a5a50237-69cf-4128-bd3d-d5e4490e95a4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\broken">
-      <UniqueIdentifier>{2e3236b7-8cee-49e7-b71c-1bccb0421ff7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\homemade clipper">
       <UniqueIdentifier>{292ce84c-7ae5-48e5-98c6-40b9f4a938f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\homemade clipper">
+      <UniqueIdentifier>{4acad408-cae2-45d9-91b3-390465292e31}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -33,8 +30,8 @@
     <ClCompile Include="Math.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Graph.cpp">
-      <Filter>Source Files\broken</Filter>
+    <ClCompile Include="CommonContour.cpp">
+      <Filter>Source Files\homemade clipper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -49,9 +46,6 @@
     </ClInclude>
     <ClInclude Include="Math.hpp">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Graph.hpp">
-      <Filter>Header Files\broken</Filter>
     </ClInclude>
     <ClInclude Include="CommonContour.hpp">
       <Filter>Header Files\homemade clipper</Filter>

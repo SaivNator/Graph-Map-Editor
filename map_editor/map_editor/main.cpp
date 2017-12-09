@@ -279,8 +279,6 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-
-
 	wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(100, 100, 200, 200));
 	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(150, 150, 300, 100, 300, 200));
 	wykobi::polygon<float, 2> p3;
@@ -309,17 +307,18 @@ int main() {
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
 
-	//polygons = CommonContour::mergeUnion(CommonContour::mergeUnion(p1, p4).front(), p5);
-	//polygons = CommonContour::mergeUnion(p1, p2);
-	//polygons = CommonContour::mergeUnion(p1, p4);
-	//polygons = CommonContour::mergeUnion(p1, p5);
-	//polygons = CommonContour::mergeUnion(p1, p6);
-	//polygons = CommonContour::mergeUnion(p1, p3);
-	//polygons = CommonContour::mergeUnion(p3, p7);
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::mergeUnion(p1, p4).front(), p5));
-	segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
+	//polygons = CommonContour::clipUnion(CommonContour::clipUnion(p1, p4).front(), p5);
+	//polygons = CommonContour::clipUnion(p1, p2);
+	//polygons = CommonContour::clipUnion(p1, p4);
+	//polygons = CommonContour::clipUnion(p1, p5);
+	//polygons = CommonContour::clipUnion(p1, p6);
+	//polygons = CommonContour::clipUnion(p1, p3);
+	//polygons = CommonContour::clipUnion(p3, p7);
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5));
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
+	segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p1, p2));
 
-	//for (auto path : CommonContour::findHull(CommonContour::makeGraphFromPolygons(CommonContour::mergeUnion(p1, p4).front(), p5))) {
+	//for (auto path : CommonContour::findHull(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5))) {
 	//	for (auto n : path) {
 	//		std::cout << Math::Debug::toString(n->point) << "->";
 	//	}
@@ -331,7 +330,7 @@ int main() {
 	//fuck_view.zoom(0.17f);
 
 	std::cout << "Polygons: " << polygons.size() << "\n";
-	for (int i = 0; i < polygons.size(); i++) {
+	for (std::size_t i = 0; i < polygons.size(); ++i) {
 		std::cout << i << ": " << Math::Debug::toString(polygons[i]) << "\n";
 	}
 
@@ -347,7 +346,7 @@ int main() {
 	float old_state = 0.f;
 
 	std::vector<sf::Color> poly_color_vec(polygons.size());
-	for (int i = 0; i < polygons.size(); i++) {
+	for (std::size_t i = 0; i < polygons.size(); ++i) {
 		sf::Color c = sf::Color(std::rand() % 256, std::rand() % 256, std::rand() % 256);
 		poly_color_vec[i] = c;
 	}
@@ -385,22 +384,22 @@ int main() {
 
 		int count = 0;
 		for (auto poly : polygons) {
-			//auto tris = Math::triangulatePolygon(poly);
-			//for (auto tri : tris) {	
-			//	for (int i = 0; i < 3; i++) {
-			//		auto vertex = Math::wykobiPointToSfVertex(tri[i]);
-			//		vertex.color = poly_color_vec[count];
-			//		triangleVertexArray.append(vertex);
-			//	}
-			//}
-			for (int i = 0; i < poly.size(); i++) {
+			auto tris = Math::triangulatePolygon(poly);
+			for (auto tri : tris) {	
+				for (std::size_t i = 0; i < 3; ++i) {
+					auto vertex = Math::wykobiPointToSfVertex(tri[i]);
+					vertex.color = poly_color_vec[count];
+					triangleVertexArray.append(vertex);
+				}
+			}
+			for (std::size_t i = 0; i < poly.size(); ++i) {
 				wykobi::segment<float, 2> seg = wykobi::edge<float>(poly, i);
 				sf::Vertex vertex1 = Math::wykobiPointToSfVertex(seg[0]);
 				sf::Vertex vertex2 = Math::wykobiPointToSfVertex(seg[1]);
 				lineVertexArray.append(vertex1);
 				lineVertexArray.append(vertex2);
 			}
-			for (int i = 0; i < poly.size(); i++) {
+			for (std::size_t i = 0; i < poly.size(); ++i) {
 				sf::Text t;
 				std::ostringstream s;
 				t.setFont(arial);
@@ -422,7 +421,7 @@ int main() {
 			//count++;
 		}
 		for (auto seg : segments) {
-			for (int i = 0; i < seg.size(); i++) {
+			for (std::size_t i = 0; i < seg.size(); ++i) {
 				wykobi::point2d<float> p = seg[i];
 				sf::Vertex vertex = Math::wykobiPointToSfVertex(p);
 				vertex.color = sf::Color::Green;
