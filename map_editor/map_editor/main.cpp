@@ -315,9 +315,16 @@ int main() {
 	//polygons = CommonContour::mergeUnion(p1, p5);
 	//polygons = CommonContour::mergeUnion(p1, p6);
 	//polygons = CommonContour::mergeUnion(p1, p3);
-	polygons = CommonContour::mergeUnion(p3, p7);
+	//polygons = CommonContour::mergeUnion(p3, p7);
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::mergeUnion(p1, p4).front(), p5));
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
+	segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
+
+	//for (auto path : CommonContour::findHull(CommonContour::makeGraphFromPolygons(CommonContour::mergeUnion(p1, p4).front(), p5))) {
+	//	for (auto n : path) {
+	//		std::cout << Math::Debug::toString(n->point) << "->";
+	//	}
+	//	std::cout << "\n";
+	//}
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);

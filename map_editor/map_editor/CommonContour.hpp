@@ -22,6 +22,8 @@ namespace CommonContour {
 			std::vector<Node*> edges;
 			wykobi::point2d<float> point;
 
+			bool visited = false;
+
 			void addEdge(Node* e) {
 				if (std::find(edges.begin(), edges.end(), e) == edges.end()) {
 					edges.push_back(e);
@@ -38,6 +40,13 @@ namespace CommonContour {
 	};
 
 	//Forward declaration
+	std::vector<std::vector<Graph::Node*>> findHull(Graph & graph);
+	std::vector<Graph::Node*> traverseUnion(Graph & graph);
+	std::vector<wykobi::segment<float, 2>> getWykobiSegmentsFromGraph(Graph & graph);
+	wykobi::polygon<float, 2> pathToWykobiPolygon(std::vector<Graph::Node*> & path);
+	std::vector<Graph::Node*> insertNodesOnPath(std::vector<Graph::Node*> & path, std::vector<std::vector<Graph::Node*>> & nodes);
+	Graph makeGraphFromPolygons(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2);
+	std::vector<wykobi::polygon<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2);
 	Graph::Node* getClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node);
 	Graph::Node* getCounterClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node);
 
@@ -68,6 +77,58 @@ namespace CommonContour {
 			}
 		}
 		return out_path;
+	}
+
+	/*
+	Find hull in graph
+	*/
+	std::vector<std::vector<Graph::Node*>> findHull(Graph & graph) {
+		//find all nodes with more then one edge
+		std::vector<Graph::Node*> outer_nodes = traverseUnion(graph);
+		std::vector<Graph::Node*> pending_nodes;
+		for (std::unique_ptr<Graph::Node> & n : graph.nodes) {
+			if (n->edges.size() > 1 && std::find(outer_nodes.begin(), outer_nodes.end(), n.get()) == outer_nodes.end()) {
+				pending_nodes.push_back(n.get());
+			}
+		}
+
+
+		std::vector<std::vector<Graph::Node*>> hull_vec;
+
+		//for each edge of start node, go most clockwise until start node is reached (then we found hull), or until an already visited node is reached (then no hull)
+		//Graph::Node* start_node;
+
+		for (Graph::Node* start_node : pending_nodes) {
+			if (start_node->visited) continue;
+			for (Graph::Node* current_branch : start_node->edges) {
+				std::vector<Graph::Node*> current_path;
+				Graph::Node* last_node = start_node;
+				Graph::Node* current_node = current_branch;
+				current_path.push_back(start_node);
+				while (true) {
+					current_path.push_back(current_node);
+					current_node->visited = true;
+					Graph::Node* next_node = getClockwiseMost(last_node, current_node);
+
+					if (next_node->visited) {
+						for (Graph::Node* n : current_path) {
+							n->visited = false;
+						}
+						break;
+					}
+					else if (next_node == start_node) {
+						for (Graph::Node* n : current_path) {
+							
+						}
+						hull_vec.push_back(current_path);
+						break;
+					}
+					last_node = current_node;
+					current_node = next_node;
+				}
+			}
+		}
+		return hull_vec;
 	}
 
 	/*
@@ -130,7 +191,6 @@ namespace CommonContour {
 		//insert intersections
 		poly1_path = insertNodesOnPath(poly1_path, poly1_intersections);
 		poly2_path = insertNodesOnPath(poly2_path, poly2_intersections);
-		
 		//insert potential nodes that are "on" existing edges
 		std::vector<std::vector<Graph::Node*>> poly1_on_edge(poly1_path.size());
 		std::vector<std::vector<Graph::Node*>> poly2_on_edge(poly2_path.size());
@@ -156,17 +216,14 @@ namespace CommonContour {
 				}
 			}
 		}
-
 		//insert points on edges
 		poly1_path = insertNodesOnPath(poly1_path, poly1_on_edge);
 		poly2_path = insertNodesOnPath(poly2_path, poly2_on_edge);
-
 		//add edges to graph
 		std::vector<Graph::Node*>::iterator it_1 = poly1_path.begin();
 		while (it_1 != poly1_path.end()) {
 			Graph::Node* outer_node_a = (*it_1);
 			Graph::Node* outer_node_b = (std::next(it_1) != poly1_path.end()) ? (*std::next(it_1)) : (*poly1_path.begin());
-			//outer_node_a->edges.push_back(outer_node_b);
 			outer_node_a->addEdge(outer_node_b);
 			++it_1;
 		}
@@ -174,7 +231,6 @@ namespace CommonContour {
 		while (it_1 != poly2_path.end()) {
 			Graph::Node* outer_node_a = (*it_1);
 			Graph::Node* outer_node_b = (std::next(it_1) != poly2_path.end()) ? (*std::next(it_1)) : (*poly2_path.begin());
-			//outer_node_a->edges.push_back(outer_node_b);
 			outer_node_a->addEdge(outer_node_b);
 			++it_1;
 		}
@@ -191,6 +247,49 @@ namespace CommonContour {
 			}
 		}
 		return out_vec;
+	}
+	wykobi::polygon<float, 2> pathToWykobiPolygon(std::vector<Graph::Node*> & path) {
+		wykobi::polygon<float, 2> poly;
+		poly.reserve(path.size());
+		for (Graph::Node* n : path) {
+			poly.push_back(n->point);
+		}
+		return poly;
+	}
+
+	std::vector<Graph::Node*> traverseUnion(Graph & graph) {
+		std::vector<Graph::Node*> node_path;
+		Graph::Node* current_node = nullptr;
+		Graph::Node* next_node = nullptr;
+		Graph::Node* start_node = nullptr;
+		Graph::Node* prev_node = nullptr;
+		wykobi::point2d<float> edge_point = wykobi::make_point<float>(wykobi::infinity<float>(), wykobi::infinity<float>());
+		float low_dist = wykobi::infinity<float>();
+		for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
+			Graph::Node* n = graph.nodes[i].get();
+			if (n->point.x < edge_point.x) edge_point.x = n->point.x;
+			if (n->point.y < edge_point.y) edge_point.y = n->point.y;
+		}
+		for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
+			Graph::Node* n = graph.nodes[i].get();
+			float test_dist = wykobi::distance<float>(edge_point, n->point);
+			if (test_dist < low_dist) {
+				low_dist = test_dist;
+				start_node = n;
+			}
+		}
+		Graph::Node fake_node;
+		fake_node.point = start_node->point - wykobi::make_vector<float>(1.f, 0.f);
+		current_node = getClockwiseMost(&fake_node, start_node);
+		prev_node = start_node;
+		node_path.push_back(start_node);
+		while (current_node != start_node) {
+			node_path.push_back(current_node);
+			next_node = getClockwiseMost(prev_node, current_node);
+			prev_node = current_node;
+			current_node = next_node;
+		}
+		return node_path;
 	}
 
 	std::vector<wykobi::polygon<float, 2>> mergeUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2) {
@@ -219,73 +318,22 @@ namespace CommonContour {
 		}
 
 		Graph graph = makeGraphFromPolygons(poly1, poly2);
-
-		
-
-		//find most top-left node
-		std::vector<Graph::Node*> node_path;
-		Graph::Node* current_node = nullptr;
-		Graph::Node* next_node = nullptr;
-		Graph::Node* start_node = nullptr;
-		Graph::Node* prev_node = nullptr;
-		wykobi::point2d<float> edge_point = wykobi::make_point<float>(wykobi::infinity<float>(), wykobi::infinity<float>());
-		float low_dist = wykobi::infinity<float>();
-		for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
-			Graph::Node* n = graph.nodes[i].get();
-			if (n->point.x < edge_point.x) edge_point.x = n->point.x;
-			if (n->point.y < edge_point.y) edge_point.y = n->point.y;
-		}
-		for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
-			Graph::Node* n = graph.nodes[i].get();
-			float test_dist = wykobi::distance<float>(edge_point, n->point);
-			if (test_dist < low_dist) {
-				low_dist = test_dist;
-				start_node = n;
+		std::vector<Graph::Node*> node_path = traverseUnion(graph);
+		std::vector<std::vector<Graph::Node*>> hull_vec = findHull(graph);
+		wykobi::polygon<float, 2> out_poly = pathToWykobiPolygon(node_path);
+		std::vector<wykobi::polygon<float, 2>> temp_vec;
+		if (!hull_vec.empty()) {
+			for (auto p : hull_vec) {
+				temp_vec.push_back(pathToWykobiPolygon(p));
 			}
+			poly_vec = Math::Clipper::removePolygonHull(out_poly, temp_vec);
+			return poly_vec;
 		}
-		//traverse graph
-		Graph::Node fake_node;
-		fake_node.point = start_node->point - wykobi::make_vector<float>(1.f, 0.f);
-		current_node = getClockwiseMost(&fake_node, start_node);
-		//current_node = start_node->edges.front();
-		//std::cout << Math::Debug::toString(fake_node.point) << "->" << Math::Debug::toString(start_node->point) << "\n";
-		//std::cout << Math::Debug::toString(start_node->point) << "	" << start_node << "\n";
-		prev_node = start_node;
-		node_path.push_back(start_node);
-		while (current_node != start_node) {
-			//std::cout << Math::Debug::toString(current_node->point) << "	" << current_node << "\n";
-			node_path.push_back(current_node);
-			next_node = getClockwiseMost(prev_node, current_node);
-			prev_node = current_node;
-			current_node = next_node;
+		else {
+			poly_vec.push_back(out_poly);
+			return poly_vec;
 		}
-		wykobi::polygon<float, 2> out_poly;
-		out_poly.reserve(node_path.size());
-		for (Graph::Node* n : node_path) {
-			out_poly.push_back(n->point);
-		}
-		poly_vec.push_back(out_poly);
-		return poly_vec;
-		
-
-		//Graph test_graph;
-		//prev_node = nullptr;
-		//for (Graph::Node* n : node_path) {
-		//	Graph::Node* t = test_graph.makeNode(n->point);
-		//	if (prev_node != nullptr) {
-		//		prev_node->edges.push_back(t);
-		//	}
-		//	prev_node = t;
-		//}
-		//test_graph.nodes.back()->edges.push_back(test_graph.nodes.front().get());
-		//std::cout << graph.nodes.front().get() << "\n";
-		//std::cout << (graph.nodes.begin() + 5)->get()->edges.front() << "\n";
-
-		//return getWykobiSegmentsFromGraph(test_graph);
-		//return getWykobiSegmentsFromGraph(graph);
-		//return poly_vec;
 	}
-
 }
 
 CommonContour::Graph::Node* CommonContour::getClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node) {
