@@ -314,9 +314,17 @@ int main() {
 	//polygons = CommonContour::clipUnion(p1, p6);
 	//polygons = CommonContour::clipUnion(p1, p3);
 	//polygons = CommonContour::clipUnion(p3, p7);
+	polygons = CommonContour::clipDifference(p1, p2);
+	//polygons = CommonContour::clipDifference(p3, p7);
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
-	segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p1, p2));
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p1, p2));
+
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
+
+	//CommonContour::Graph graph = CommonContour::makeGraphFromPolygons(p3, p7);
+	//CommonContour::clipDifference(graph);
+	//segments = CommonContour::getWykobiSegmentsFromGraph(graph);
 
 	//for (auto path : CommonContour::findHull(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5))) {
 	//	for (auto n : path) {

@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <vector>
+#include <list>
+#include <unordered_map>
 #include <memory>
 #include <algorithm>
 
@@ -44,6 +46,10 @@ namespace CommonContour {
 			}
 		};
 		std::vector<std::unique_ptr<Node>> nodes;
+
+		std::vector<Graph::Node*> subject_path;
+		std::vector<Graph::Node*> clip_path;
+
 		Node* makeNode(wykobi::point2d<float> & p) {
 			Node n;
 			n.point = p;
@@ -60,9 +66,16 @@ namespace CommonContour {
 			auto it = std::find_if(nodes.begin(), nodes.end(), [&](std::unique_ptr<Node> & ptr) {return ptr.get() == n;});
 			nodes.erase(it);
 		}
-		void resetVisited() {
+		void clearVisited() {
 			for (auto & n : nodes) {
 				n->visited = false;
+			}
+		}
+		void clearEdges() {
+			for (auto & n : nodes) {
+				for (Graph::Node* e : n->edges) {
+					n->removeEdge(e);
+				}
 			}
 		}
 	};
@@ -81,11 +94,6 @@ namespace CommonContour {
 	Traverse outside of graph
 	*/
 	std::vector<Graph::Node*> traverseUnion(Graph & graph);
-
-	/*
-	Remove nodes in path from graph
-	*/
-	void removePathFromGraph(Graph & graph, std::vector<Graph::Node*> subject_path, std::vector<Graph::Node*> clip_path);
 	
 	/*
 	Return vector of edges as segments from graph
@@ -101,21 +109,31 @@ namespace CommonContour {
 	Return path with nodes inserted
 	*/
 	std::vector<Graph::Node*> insertNodesOnPath(std::vector<Graph::Node*> & path, std::vector<std::vector<Graph::Node*>> & nodes);
-	
+
+	/*
+	Insert path to graph
+	*/
+	void insertPathToGraph(std::vector<Graph::Node*> & path);
+
 	/*
 	Return graph constructed from poly1 and poly2
 	*/
-	Graph makeGraphFromPolygons(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2);
-	
+	Graph makeGraphFromPolygons(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly);
+
+	/*
+	Clip away clip_path
+	*/
+	std::vector<std::vector<Graph::Node*>> clipDifference(Graph & graph);
+
 	/*
 	Clip diffrence
 	*/
-	std::vector<wykobi::polygon<float, 2>> clipDifference(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2);
+	std::vector<wykobi::polygon<float, 2>> clipDifference(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly);
 	
 	/*
 	Clip union
 	*/
-	std::vector<wykobi::polygon<float, 2>> clipUnion(wykobi::polygon<float, 2> poly1, wykobi::polygon<float, 2> poly2);
+	std::vector<wykobi::polygon<float, 2>> clipUnion(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly);
 	
 	/*
 	Get most clockwise node
