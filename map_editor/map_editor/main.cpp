@@ -291,6 +291,8 @@ int main() {
 	wykobi::polygon<float, 2> p5;
 	wykobi::polygon<float, 2> p6;
 	wykobi::polygon<float, 2> p7;
+	wykobi::polygon<float, 2> p8;
+	wykobi::polygon<float, 2> p9;
 	
 	p1 = wykobi::scale<float>(2, 2, p1);
 	p2 = wykobi::scale<float>(2, 2, p2);
@@ -299,6 +301,8 @@ int main() {
 	p4 = wykobi::translate(wykobi::make_vector(75.f, -50.f), p2);
 	p5 = wykobi::translate(wykobi::make_vector(0.f, 100.f), p4);
 	p6 = wykobi::translate(wykobi::make_vector(100.f, 0.f), p1);
+	p8 = wykobi::translate(wykobi::make_vector(300.f, 0.f), p1);
+	p9 = wykobi::translate((p1[1] - p1[0]), p1);
 
 	p1 = wykobi::rotate(180.f, p1, wykobi::centroid(p1));
 	p2 = wykobi::rotate(225.f, p2, wykobi::centroid(p1));
@@ -307,6 +311,8 @@ int main() {
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
 
+	polygons.push_back(p1); polygons.push_back(p9);
+
 	//polygons = CommonContour::clipUnion(CommonContour::clipUnion(p1, p4).front(), p5);
 	//polygons = CommonContour::clipUnion(p1, p2);
 	//polygons = CommonContour::clipUnion(p1, p4);
@@ -314,15 +320,28 @@ int main() {
 	//polygons = CommonContour::clipUnion(p1, p6);
 	//polygons = CommonContour::clipUnion(p1, p3);
 	//polygons = CommonContour::clipUnion(p3, p7);
-	polygons = CommonContour::clipDifference(p1, p2);
+	//polygons = CommonContour::clipUnion(p1, p8);
+	//polygons = CommonContour::clipUnion(p1, p9);
+	//polygons = CommonContour::clipDifference(p1, p2);
 	//polygons = CommonContour::clipDifference(p3, p7);
+	//polygons = CommonContour::clipDifference(p1, p8);
+	polygons = CommonContour::clipDifference(p1, p9);
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p1, p2));
-
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
 
-	//CommonContour::Graph graph = CommonContour::makeGraphFromPolygons(p3, p7);
+	//CommonContour::Graph graph(p1, p2);
+	//CommonContour::Graph g2 = graph;
+	//std::cout << graph.nodes.size() << "\n";
+	//std::cout << g2.nodes.size() << "\n";
+	//std::cout << graph.subject_path.size() << "\n";
+	//std::cout << g2.subject_path.size() << "\n";
+	//std::cout << graph.clip_path.size() << "\n";
+	//std::cout << g2.clip_path.size() << "\n";
+	//segments = CommonContour::getWykobiSegmentsFromGraph(g2);
+	
+	
 	//CommonContour::clipDifference(graph);
 	//segments = CommonContour::getWykobiSegmentsFromGraph(graph);
 

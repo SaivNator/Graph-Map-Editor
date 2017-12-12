@@ -26,58 +26,24 @@ namespace CommonContour {
 		struct Node {
 			//out_edges
 			std::vector<Node*> edges;
-
 			std::vector<Node*> in_edges;
-
 			wykobi::point2d<float> point;
 			bool visited = false;
-			void addEdge(Node* e) {
-				if (std::find(edges.begin(), edges.end(), e) == edges.end()) {
-					edges.push_back(e);
-					e->in_edges.push_back(this);
-				}
-			}
-			void removeEdge(Node* e) {
-				auto it = std::find(edges.begin(), edges.end(), e);
-				if (it != edges.end()) {
-					edges.erase(it);
-					e->in_edges.erase(std::find(e->in_edges.begin(), e->in_edges.end(), this));
-				}
-			}
+			void addEdge(Node* e);
+			void removeEdge(Node* e);
 		};
 		std::vector<std::unique_ptr<Node>> nodes;
-
 		std::vector<Graph::Node*> subject_path;
 		std::vector<Graph::Node*> clip_path;
 
-		Node* makeNode(wykobi::point2d<float> & p) {
-			Node n;
-			n.point = p;
-			nodes.push_back(std::unique_ptr<Node>(new Node(n)));
-			return nodes.back().get();
-		}
-		void removeNode(Node* n) {
-			for (Node* e : n->edges) {
-				n->removeEdge(e);
-			}
-			for (Node* i_e : n->in_edges) {
-				i_e->removeEdge(n);
-			}
-			auto it = std::find_if(nodes.begin(), nodes.end(), [&](std::unique_ptr<Node> & ptr) {return ptr.get() == n;});
-			nodes.erase(it);
-		}
-		void clearVisited() {
-			for (auto & n : nodes) {
-				n->visited = false;
-			}
-		}
-		void clearEdges() {
-			for (auto & n : nodes) {
-				for (Graph::Node* e : n->edges) {
-					n->removeEdge(e);
-				}
-			}
-		}
+		Graph();
+		Graph(const Graph & graph);	//copy constuctor
+		Graph(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_polygon);	//make graph from a subject_poly and a clip_poly
+		
+		Node* makeNode(wykobi::point2d<float> & p);
+		void removeNode(Node* n);
+		void clearVisited();
+		void clearEdges();
 	};
 
 	/*
@@ -116,19 +82,14 @@ namespace CommonContour {
 	void insertPathToGraph(std::vector<Graph::Node*> & path);
 
 	/*
-	Return graph constructed from poly1 and poly2
-	*/
-	Graph makeGraphFromPolygons(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly);
-
-	/*
 	Clip away clip_path
 	*/
-	std::vector<std::vector<Graph::Node*>> clipDifference(Graph & graph);
+	std::vector<std::vector<Graph::Node*>> clipDifference(Graph graph);
 
 	/*
 	Clip diffrence
 	*/
-	std::vector<wykobi::polygon<float, 2>> clipDifference(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly);
+	std::vector<wykobi::polygon<float, 2>> clipDifference(wykobi::polygon<float, 2> & subject_poly, wykobi::polygon<float, 2> & clip_poly);
 	
 	/*
 	Clip union

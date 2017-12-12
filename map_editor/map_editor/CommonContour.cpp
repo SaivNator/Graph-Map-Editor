@@ -4,6 +4,85 @@
 
 using namespace CommonContour;
 
+void CommonContour::Graph::clearEdges() {
+	for (auto & n : nodes) {
+		for (Graph::Node* e : n->edges) {
+			n->removeEdge(e);
+		}
+	}
+}
+
+void CommonContour::Graph::clearVisited() {
+	for (auto & n : nodes) {
+		n->visited = false;
+	}
+}
+
+void CommonContour::Graph::removeNode(Node* n) {
+	for (Node* e : n->edges) {
+		n->removeEdge(e);
+	}
+	for (Node* i_e : n->in_edges) {
+		i_e->removeEdge(n);
+	}
+	auto it = std::find_if(nodes.begin(), nodes.end(), [&](std::unique_ptr<Node> & ptr) {return ptr.get() == n; });
+	nodes.erase(it);
+}
+
+Graph::Node* CommonContour::Graph::makeNode(wykobi::point2d<float> & p) {
+	Node n;
+	n.point = p;
+	nodes.push_back(std::unique_ptr<Node>(new Node(n)));
+	return nodes.back().get();
+}
+
+CommonContour::Graph::Graph() {
+
+}
+CommonContour::Graph::Graph(const Graph & graph) {
+	//copy nodes
+	std::unordered_map<Node*, Node*> node_map;
+	for (auto & ptr : graph.nodes) {
+		Node* origin_node = ptr.get();
+		Node* clone_node = this->makeNode(origin_node->point);
+		node_map.emplace(origin_node, clone_node);
+	}
+	//copy edges
+	for (auto & pair : node_map) {
+		Node* origin_node = pair.first;
+		Node* clone_node = pair.second;
+		for (Node* origin_edge : origin_node->edges) {
+			Node* clone_edge = node_map.find(origin_edge)->second;
+			clone_node->addEdge(clone_edge);
+		}
+	}
+	//copy paths
+	for (Node* origin_node : graph.subject_path) {
+		Node* clone_node = node_map.find(origin_node)->second;
+		this->subject_path.push_back(clone_node);
+	}
+	for (Node* origin_node : graph.clip_path) {
+		Node* clone_node = node_map.find(origin_node)->second;
+		this->clip_path.push_back(clone_node);
+	}
+}
+
+void CommonContour::Graph::Node::removeEdge(Node* e) {
+	auto it = std::find(edges.begin(), edges.end(), e);
+	if (it != edges.end()) {
+		edges.erase(it);
+		e->in_edges.erase(std::find(e->in_edges.begin(), e->in_edges.end(), this));
+	}
+}
+
+void CommonContour::Graph::Node::addEdge(Node* e) {
+	if (std::find(edges.begin(), edges.end(), e) == edges.end()) {
+		edges.push_back(e);
+		e->in_edges.push_back(this);
+	}
+}
+
+
 void CommonContour::insertPathToGraph(std::vector<Graph::Node*> & path) {
 	std::vector<Graph::Node*>::iterator it = path.begin();
 	while (it != path.end()) {
@@ -14,29 +93,31 @@ void CommonContour::insertPathToGraph(std::vector<Graph::Node*> & path) {
 	}
 }
 
-
-
-std::vector<wykobi::polygon<float, 2>> CommonContour::clipDifference(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly) {
+std::vector<wykobi::polygon<float, 2>> CommonContour::clipDifference(wykobi::polygon<float, 2> & subject_poly, wykobi::polygon<float, 2> & clip_poly) {
 	std::vector<wykobi::polygon<float, 2>> out_vec;
-	Graph graph = makeGraphFromPolygons(subject_poly, clip_poly);
-
+	if (Math::isPolygonInsidePolygon(subject_poly, clip_poly)) {
+		return out_vec;
+	}
+	else if (Math::isPolygonInsidePolygon(clip_poly, subject_poly)) {
+		return Math::Clipper::removePolygonHull(subject_poly, clip_poly);
+	}
+	else if (!Math::isPolygonsOverlapping(subject_poly, clip_poly)) {
+		out_vec.push_back(subject_poly);
+		return out_vec;
+	}
+	Graph graph(subject_poly, clip_poly);
 	std::vector<std::vector<Graph::Node*>> path_vec = clipDifference(graph);
-
 	for (auto & p : path_vec) {
 		out_vec.push_back(pathToWykobiPolygon(p));
 	}
-	
 	return out_vec;
 }
 
-std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph & graph) {
-
+std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph graph) {
 	std::vector<Graph::Node*> & subject_path = graph.subject_path;
 	std::vector<Graph::Node*> & clip_path = graph.clip_path;
-
 	wykobi::polygon<float, 2> subject_path_poly = pathToWykobiPolygon(subject_path);
 	wykobi::polygon<float, 2> clip_path_poly = pathToWykobiPolygon(clip_path);
-
 	//remove nodes from subject_path that are inside clip_path, but not part of clip_path
 	auto it = subject_path.begin();
 	while (it != subject_path.end()) {
@@ -49,7 +130,6 @@ std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph & gra
 			++it;
 		}
 	}
-
 	//remove edges from clip_path that are part of clip_path, but are not in the order of the clip_path
 	//it = clip_path.begin();
 	//while (it != clip_path.end()) {
@@ -66,7 +146,6 @@ std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph & gra
 	//	}
 	//	++it;
 	//}
-
 	//remove nodes from clip_path that are not inside subject_path, and are not part of subject_path
 	it = clip_path.begin();
 	while (it != clip_path.end()) {
@@ -79,9 +158,7 @@ std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph & gra
 			++it;
 		}
 	}
-	
 	//(at this point, subject_path and clip_path are both invalid)
-	
 	//create new independent paths
 	std::vector<std::vector<Graph::Node*>> path_vec;
 	while (true) {
@@ -94,12 +171,9 @@ std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph & gra
 			}
 		}
 		if (start_node == nullptr) break;
-		
 		start_node->visited = true;
 		std::vector<Graph::Node*> search_path;
-
 		search_path.push_back(start_node);
-
 		//search until in_edges.size() > 1 then go in_edges back the other "way"
 		Graph::Node* current_node = start_node->edges.front();
 		Graph::Node* last_node = start_node;
@@ -119,29 +193,11 @@ std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph & gra
 		}
 		path_vec.push_back(search_path);
 	}
-
 	//clear all edges and reapply according to paths
 	graph.clearEdges();
 	for (auto & path : path_vec) {
 		insertPathToGraph(path);
 	}
-
-	//reverse the direction of the edges that are left in clip_path
-	//std::vector<std::pair<Graph::Node*, Graph::Node*>> edges_to_reverse;
-	//for (Graph::Node* n : clip_path) {
-	//	for (Graph::Node* e : n->edges) {
-	//		if (std::find(clip_path.begin(), clip_path.end(), e) != clip_path.end()) {
-	//			edges_to_reverse.push_back(std::pair<Graph::Node*, Graph::Node*>(n, e));
-	//		}
-	//	}
-	//}
-	//for (std::pair<Graph::Node*, Graph::Node*> & pair : edges_to_reverse) {
-	//	Graph::Node* n = pair.first;
-	//	Graph::Node* e = pair.second;
-	//
-	//	n->removeEdge(e);
-	//	e->addEdge(n);
-	//}
 	return path_vec;
 }
 
@@ -212,7 +268,8 @@ std::vector<std::vector<Graph::Node*>> CommonContour::findHull(Graph & graph) {
 	return hull_vec;
 }
 
-Graph CommonContour::makeGraphFromPolygons(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly) {
+//Graph CommonContour::makeGraphFromPolygons(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly) {
+CommonContour::Graph::Graph(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_poly) {
 	//make sure polys has same orientation
 	if (wykobi::polygon_orientation(subject_poly) != wykobi::CounterClockwise) {
 		subject_poly.reverse();
@@ -220,11 +277,10 @@ Graph CommonContour::makeGraphFromPolygons(wykobi::polygon<float, 2> subject_pol
 	if (wykobi::polygon_orientation(clip_poly) != wykobi::CounterClockwise) {
 		clip_poly.reverse();
 	}
-	Graph graph;
 	std::vector<Graph::Node*> poly1_path;
 	std::vector<Graph::Node*> poly2_path;
 	for (std::size_t i = 0; i < subject_poly.size(); ++i) {
-		poly1_path.push_back(graph.makeNode(subject_poly[i]));
+		poly1_path.push_back(this->makeNode(subject_poly[i]));
 	}
 	for (std::size_t i = 0; i < clip_poly.size(); ++i) {
 		auto it = std::find_if(poly1_path.begin(), poly1_path.end(), [&](Graph::Node* n1) { return n1->point == clip_poly[i]; });
@@ -232,7 +288,7 @@ Graph CommonContour::makeGraphFromPolygons(wykobi::polygon<float, 2> subject_pol
 			poly2_path.push_back((*it));
 		}
 		else {
-			poly2_path.push_back(graph.makeNode(clip_poly[i]));
+			poly2_path.push_back(this->makeNode(clip_poly[i]));
 		}
 	}
 	std::vector<std::vector<Graph::Node*>> poly1_intersections(poly1_path.size());
@@ -259,7 +315,7 @@ Graph CommonContour::makeGraphFromPolygons(wykobi::polygon<float, 2> subject_pol
 				}
 				else {
 					//add to intersecton vectors
-					Graph::Node* n = graph.makeNode(intersection);
+					Graph::Node* n = this->makeNode(intersection);
 					poly1_intersections[i].push_back(n);
 					poly2_intersections[j].push_back(n);
 				}
@@ -300,25 +356,11 @@ Graph CommonContour::makeGraphFromPolygons(wykobi::polygon<float, 2> subject_pol
 	//add edges to graph
 	insertPathToGraph(poly1_path);
 	insertPathToGraph(poly2_path);
-	//std::vector<Graph::Node*>::iterator it_1 = poly1_path.begin();
-	//while (it_1 != poly1_path.end()) {
-	//	Graph::Node* outer_node_a = (*it_1);
-	//	Graph::Node* outer_node_b = (std::next(it_1) != poly1_path.end()) ? (*std::next(it_1)) : (*poly1_path.begin());
-	//	outer_node_a->addEdge(outer_node_b);
-	//	++it_1;
-	//}
-	//it_1 = poly2_path.begin();
-	//while (it_1 != poly2_path.end()) {
-	//	Graph::Node* outer_node_a = (*it_1);
-	//	Graph::Node* outer_node_b = (std::next(it_1) != poly2_path.end()) ? (*std::next(it_1)) : (*poly2_path.begin());
-	//	outer_node_a->addEdge(outer_node_b);
-	//	++it_1;
-	//}
 
-	graph.subject_path = poly1_path;
-	graph.clip_path = poly2_path;
+	this->subject_path = poly1_path;
+	this->clip_path = poly2_path;
 
-	return graph;
+	//std::cout << &graph << "\n";
 }
 
 std::vector<wykobi::segment<float, 2>> CommonContour::getWykobiSegmentsFromGraph(Graph & graph) {
@@ -399,7 +441,7 @@ std::vector<wykobi::polygon<float, 2>> CommonContour::clipUnion(wykobi::polygon<
 	if (wykobi::polygon_orientation(clip_poly) != wykobi::CounterClockwise) {
 		clip_poly.reverse();
 	}
-	Graph graph = makeGraphFromPolygons(subject_poly, clip_poly);
+	Graph graph(subject_poly, clip_poly);
 	std::vector<Graph::Node*> node_path = traverseUnion(graph);
 	std::vector<std::vector<Graph::Node*>> hull_vec = findHull(graph);
 	wykobi::polygon<float, 2> out_poly = pathToWykobiPolygon(node_path);
