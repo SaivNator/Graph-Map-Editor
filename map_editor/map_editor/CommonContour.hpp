@@ -18,32 +18,32 @@
 #include "Math.hpp"
 
 namespace CommonContour {
-
 	/*
 	Graph container
 	*/
 	struct Graph {
 		struct Node {
-			//out_edges
-			std::vector<Node*> edges;
-			std::vector<Node*> in_edges;
-			wykobi::point2d<float> point;
-			bool visited = false;
-			void addEdge(Node* e);
-			void removeEdge(Node* e);
+			std::vector<Node*> edges;				//out edges
+			std::vector<Node*> in_edges;			//in edges
+			wykobi::point2d<float> point;			//point
+			bool is_subject_path = false;			//is node part of subject_path
+			bool is_clip_path = false;				//is node part of clip_path
+			bool visited = false;					//visited
+			void addEdge(Node* e);					//add edge to node
+			void removeEdge(Node* e);				//remove edge from node
 		};
-		std::vector<std::unique_ptr<Node>> nodes;
-		std::vector<Graph::Node*> subject_path;
-		std::vector<Graph::Node*> clip_path;
+		std::vector<std::unique_ptr<Node>> nodes;	//node container
+		std::vector<Graph::Node*> subject_path;		//subject path
+		std::vector<Graph::Node*> clip_path;		//clip path
 
 		Graph();
-		Graph(const Graph & graph);	//copy constuctor
+		Graph(const Graph & graph);					//copy constuctor
 		Graph(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_polygon);	//make graph from a subject_poly and a clip_poly
 		
-		Node* makeNode(wykobi::point2d<float> & p);
-		void removeNode(Node* n);
-		void clearVisited();
-		void clearEdges();
+		Node* makeNode(wykobi::point2d<float> & p);	//make node in graph
+		void removeNode(Node* n);					//delete node (and all related out/in edges)
+		void clearVisited();						//set all visited vars to false
+		void clearEdges();							//remove all edges from nodes
 	};
 
 	/*
@@ -82,9 +82,14 @@ namespace CommonContour {
 	void insertPathToGraph(std::vector<Graph::Node*> & path);
 
 	/*
-	Clip away clip_path
+	Clip away clip_path and return paths of remaining polygons
 	*/
 	std::vector<std::vector<Graph::Node*>> clipDifference(Graph graph);
+	
+	/*
+	Clip intersection
+	*/
+	std::vector<wykobi::polygon<float, 2>> clipIntersection(wykobi::polygon<float, 2> & subject_poly, wykobi::polygon<float, 2> & clip_poly);
 
 	/*
 	Clip diffrence

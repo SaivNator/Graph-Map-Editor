@@ -323,11 +323,11 @@ int main() {
 	//polygons = CommonContour::clipUnion(p1, p8);
 	//polygons = CommonContour::clipUnion(p1, p9);
 	//polygons = CommonContour::clipDifference(p1, p2);
-	//polygons = CommonContour::clipDifference(p3, p7);
+	polygons = CommonContour::clipDifference(p3, p7);
 	//polygons = CommonContour::clipDifference(p1, p8);
-	polygons = CommonContour::clipDifference(p1, p9);
+	//polygons = CommonContour::clipDifference(p1, p9);
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5));
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
+	segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p3, p7));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p1, p2));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
 
@@ -357,14 +357,13 @@ int main() {
 	//fuck_view.zoom(0.17f);
 
 	std::cout << "Polygons: " << polygons.size() << "\n";
-	for (std::size_t i = 0; i < polygons.size(); ++i) {
-		std::cout << i << ": " << Math::Debug::toString(polygons[i]) << "\n";
-	}
-
-	std::cout << "Segments:\n";
-	for (auto seg : segments) {
-		std::cout << Math::Debug::toString(seg) << "\n";
-	}
+	//for (std::size_t i = 0; i < polygons.size(); ++i) {
+	//	std::cout << i << ": " << Math::Debug::toString(polygons[i]) << "\n";
+	//}
+	std::cout << "Segments: " << segments.size() << "\n";
+	//for (auto seg : segments) {
+	//	std::cout << Math::Debug::toString(seg) << "\n";
+	//}
 
 	wykobi::point2d<float> middle_of_screen = wykobi::make_point<float>(fuck_view.getCenter().x, fuck_view.getCenter().y);
 	float test_angle = 90.f;
