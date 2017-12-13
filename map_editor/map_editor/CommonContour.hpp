@@ -37,7 +37,7 @@ namespace CommonContour {
 		std::vector<Graph::Node*> clip_path;		//clip path
 
 		Graph();
-		Graph(const Graph & graph);					//copy constuctor
+		Graph(const Graph & graph);					//copy constuctor	GIVES ME WIERD RESULTS :'(
 		Graph(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_polygon);	//make graph from a subject_poly and a clip_poly
 		
 		Node* makeNode(wykobi::point2d<float> & p);	//make node in graph
@@ -84,7 +84,7 @@ namespace CommonContour {
 	/*
 	Clip away clip_path and return paths of remaining polygons
 	*/
-	std::vector<std::vector<Graph::Node*>> clipDifference(Graph graph);
+	std::vector<std::vector<Graph::Node*>> clipDifference(Graph & graph);
 	
 	/*
 	Clip intersection

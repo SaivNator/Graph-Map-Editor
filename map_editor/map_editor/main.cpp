@@ -293,6 +293,7 @@ int main() {
 	wykobi::polygon<float, 2> p7;
 	wykobi::polygon<float, 2> p8;
 	wykobi::polygon<float, 2> p9;
+	wykobi::polygon<float, 2> p10;
 	
 	p1 = wykobi::scale<float>(2, 2, p1);
 	p2 = wykobi::scale<float>(2, 2, p2);
@@ -303,6 +304,7 @@ int main() {
 	p6 = wykobi::translate(wykobi::make_vector(100.f, 0.f), p1);
 	p8 = wykobi::translate(wykobi::make_vector(300.f, 0.f), p1);
 	p9 = wykobi::translate((p1[1] - p1[0]), p1);
+	p10 = wykobi::make_polygon(wykobi::make_circle<float>(wykobi::centroid(p1), 110), 20);
 
 	p1 = wykobi::rotate(180.f, p1, wykobi::centroid(p1));
 	p2 = wykobi::rotate(225.f, p2, wykobi::centroid(p1));
@@ -311,7 +313,7 @@ int main() {
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
 
-	polygons.push_back(p1); polygons.push_back(p9);
+	//polygons.push_back(p1); polygons.push_back(p9);
 
 	//polygons = CommonContour::clipUnion(CommonContour::clipUnion(p1, p4).front(), p5);
 	//polygons = CommonContour::clipUnion(p1, p2);
@@ -323,13 +325,15 @@ int main() {
 	//polygons = CommonContour::clipUnion(p1, p8);
 	//polygons = CommonContour::clipUnion(p1, p9);
 	//polygons = CommonContour::clipDifference(p1, p2);
-	polygons = CommonContour::clipDifference(p3, p7);
+	//polygons = CommonContour::clipDifference(p3, p7);
 	//polygons = CommonContour::clipDifference(p1, p8);
 	//polygons = CommonContour::clipDifference(p1, p9);
+	polygons = CommonContour::clipDifference(p1, p10);
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5));
-	segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p3, p7));
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p3, p7));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p1, p2));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p10));
 
 	//CommonContour::Graph graph(p1, p2);
 	//CommonContour::Graph g2 = graph;
@@ -457,9 +461,9 @@ int main() {
 				sf::CircleShape c;
 				c.setPosition(Math::wykobiPointToSfVector(p - wykobi::make_vector<float>(radius, radius)));
 				c.setRadius(radius);
+				c.setFillColor(sf::Color(255, 255, 255, 255/4));
 				points.push_back(c);
 			}
-
 			sf::Text dir;
 			dir.setFont(arial);
 			dir.setCharacterSize(10);

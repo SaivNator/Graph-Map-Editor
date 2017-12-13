@@ -4,6 +4,13 @@
 
 using namespace CommonContour;
 
+std::vector<wykobi::polygon<float, 2>> CommonContour::clipIntersection(wykobi::polygon<float, 2> & subject_poly, wykobi::polygon<float, 2> & clip_poly) {
+
+
+
+
+}
+
 void CommonContour::Graph::clearEdges() {
 	for (auto & n : nodes) {
 		for (Graph::Node* e : n->edges) {
@@ -42,17 +49,21 @@ CommonContour::Graph::Graph() {
 CommonContour::Graph::Graph(const Graph & graph) {
 	//copy nodes
 	std::unordered_map<Node*, Node*> node_map;
+	//node_map.reserve(graph.nodes.size());
 	for (auto & ptr : graph.nodes) {
 		Node* origin_node = ptr.get();
 		Node* clone_node = this->makeNode(origin_node->point);
 		clone_node->is_subject_path = origin_node->is_subject_path;
 		clone_node->is_clip_path = origin_node->is_clip_path;
-		node_map.emplace(origin_node, clone_node);
+		node_map.emplace(std::pair<Node*, Node*>(origin_node, clone_node));
 	}
 	//copy edges
-	for (auto & pair : node_map) {
-		Node* origin_node = pair.first;
-		Node* clone_node = pair.second;
+	//for (auto & pair : node_map) {
+	for (auto & ptr : graph.nodes) {
+		//Node* origin_node = pair.first;
+		Node* origin_node = ptr.get();
+		//Node* clone_node = pair.second;
+		Node* clone_node = node_map.find(origin_node)->second;
 		for (Node* origin_edge : origin_node->edges) {
 			Node* clone_edge = node_map.find(origin_edge)->second;
 			clone_node->addEdge(clone_edge);
@@ -115,7 +126,7 @@ std::vector<wykobi::polygon<float, 2>> CommonContour::clipDifference(wykobi::pol
 	return out_vec;
 }
 
-std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph graph) {
+std::vector<std::vector<Graph::Node*>> CommonContour::clipDifference(Graph & graph) {
 	std::vector<Graph::Node*> & subject_path = graph.subject_path;
 	std::vector<Graph::Node*> & clip_path = graph.clip_path;
 	wykobi::polygon<float, 2> subject_path_poly = pathToWykobiPolygon(subject_path);
