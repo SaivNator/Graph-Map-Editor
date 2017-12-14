@@ -85,6 +85,11 @@ namespace CommonContour {
 	Clip away clip_path and return paths of remaining polygons
 	*/
 	std::vector<std::vector<Graph::Node*>> clipDifference(Graph & graph);
+
+	/*
+	Return paths from intersections
+	*/
+	std::vector<std::vector<Graph::Node*>> clipIntersection(Graph & graph);
 	
 	/*
 	Clip intersection

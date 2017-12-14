@@ -324,26 +324,29 @@ int main() {
 	//polygons = CommonContour::clipUnion(p3, p7);
 	//polygons = CommonContour::clipUnion(p1, p8);
 	//polygons = CommonContour::clipUnion(p1, p9);
+	
 	//polygons = CommonContour::clipDifference(p1, p2);
 	//polygons = CommonContour::clipDifference(p3, p7);
 	//polygons = CommonContour::clipDifference(p1, p8);
 	//polygons = CommonContour::clipDifference(p1, p9);
-	polygons = CommonContour::clipDifference(p1, p10);
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5));
+	//polygons = CommonContour::clipDifference(p1, p10);
+
+	//polygons = CommonContour::clipIntersection(p1, p2);
+	//polygons = CommonContour::clipIntersection(p3, p7);
+	//polygons = CommonContour::clipIntersection(p1, p8);
+	//polygons = CommonContour::clipIntersection(p1, p9);
+	polygons = CommonContour::clipIntersection(p1, p10);
+
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p2));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p3, p7));
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p1, p2));
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::makeGraphFromPolygons(p3, p7));
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p8));
+	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p9));
 	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p10));
 
-	//CommonContour::Graph graph(p1, p2);
-	//CommonContour::Graph g2 = graph;
-	//std::cout << graph.nodes.size() << "\n";
-	//std::cout << g2.nodes.size() << "\n";
-	//std::cout << graph.subject_path.size() << "\n";
-	//std::cout << g2.subject_path.size() << "\n";
-	//std::cout << graph.clip_path.size() << "\n";
-	//std::cout << g2.clip_path.size() << "\n";
-	//segments = CommonContour::getWykobiSegmentsFromGraph(g2);
+	
+	//CommonContour::Graph graph(p1, p7);
+	//CommonContour::clipIntersection(graph);
+	//segments = CommonContour::getWykobiSegmentsFromGraph(graph);
 	
 	
 	//CommonContour::clipDifference(graph);

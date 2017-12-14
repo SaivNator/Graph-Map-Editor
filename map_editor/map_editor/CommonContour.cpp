@@ -4,10 +4,105 @@
 
 using namespace CommonContour;
 
+std::vector<std::vector<Graph::Node*>> CommonContour::clipIntersection(Graph & graph) {
+	std::vector<std::vector<Graph::Node*>> out_vec;
+	std::vector<Graph::Node*> & subject_path = graph.subject_path;
+	std::vector<Graph::Node*> & clip_path = graph.clip_path;
+	wykobi::polygon<float, 2> subject_path_poly = pathToWykobiPolygon(subject_path);
+	wykobi::polygon<float, 2> clip_path_poly = pathToWykobiPolygon(clip_path);
+	//remove nodes in subject_path that are not part of clip_path and are not inside clip_polygon
+	auto it = subject_path.begin();
+	while (it != subject_path.end()) {
+		Graph::Node* n = (*it);
+		if (!n->is_clip_path && !wykobi::point_in_polygon(n->point, clip_path_poly)) {
+			it = subject_path.erase(it);
+			graph.removeNode(n);
+		}
+		else {
+			++it;
+		}
+	}
+	//remove nodes in clip_path that are not part of subject_path and are not inside subject_polygon
+	it = clip_path.begin();
+	while (it != clip_path.end()) {
+		Graph::Node* n = (*it);
+		if (!n->is_subject_path && !wykobi::point_in_polygon(n->point, subject_path_poly)) {
+			it = clip_path.erase(it);
+			graph.removeNode(n);
+		}
+		else {
+			++it;
+		}
+	}
+
+	//from nodes that has >1 out_edges and 1 in_edge, remove all "outer edges(most counterclockwise or some shit)"
+	std::list<Graph::Node*> pending_nodes;
+	for (auto & ptr : graph.nodes) {
+		if (ptr->edges.size() > 1) {
+			pending_nodes.push_back(ptr.get());
+		}
+	}
+	while (!pending_nodes.empty()) {
+		Graph::Node* current_node = pending_nodes.front();
+		pending_nodes.pop_front();
+		if (current_node->in_edges.size() > 1) {
+			pending_nodes.push_back(current_node);
+		}
+		else {
+			while (current_node->edges.size() > 1) {
+				Graph::Node* e = getClockwiseMost(current_node->in_edges.front(), current_node);
+				current_node->removeEdge(e);
+			}
+		}
+	}
+
+	//at this point all nodes should only have 1 out edge, and one in edge
+	//traverse all seperate paths (mark visited and stuff)
+	while (true) {
+		Graph::Node* start_node = nullptr;
+		for (auto & ptr : graph.nodes) {
+			if (!ptr->visited) {
+				start_node = ptr.get();
+				break;
+			}
+		}
+		if (start_node == nullptr) break;
+		std::vector<Graph::Node*> current_path;
+		Graph::Node* current_node = start_node->edges.front();
+		start_node->visited = true;
+		current_path.push_back(start_node);
+		while (current_node != start_node) {
+			current_path.push_back(current_node);
+			current_node->visited = true;
+			current_node = current_node->edges.front();
+		}
+		out_vec.push_back(current_path);
+	}
+	return out_vec;
+}
+
 std::vector<wykobi::polygon<float, 2>> CommonContour::clipIntersection(wykobi::polygon<float, 2> & subject_poly, wykobi::polygon<float, 2> & clip_poly) {
+	std::vector<wykobi::polygon<float, 2>> out_vec;
+	
+	if (Math::isPolygonInsidePolygon(subject_poly, clip_poly)) {
+		out_vec.push_back(subject_poly);
+		return out_vec;
+	}
+	else if (Math::isPolygonInsidePolygon(clip_poly, subject_poly)) {
+		out_vec.push_back(clip_poly);
+		return out_vec;
+	}
+	else if (!Math::isPolygonsOverlapping(subject_poly, clip_poly)) {
+		return out_vec;
+	}
 
+	Graph graph(subject_poly, clip_poly);
+	std::vector<std::vector<Graph::Node*>> path_vec = clipIntersection(graph);
+	for (auto & p : path_vec) {
+		out_vec.push_back(pathToWykobiPolygon(p));
+	}
 
-
+	return out_vec;
 
 }
 
