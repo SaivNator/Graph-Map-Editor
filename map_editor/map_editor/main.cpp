@@ -279,85 +279,68 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(100, 100, 200, 200));
-	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(150, 150, 300, 100, 300, 200));
-	wykobi::polygon<float, 2> p3;
-	{
-		wykobi::polygon<float, 2> s1 = wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 50), 10);
-		wykobi::polygon<float, 2> s2 = wykobi::make_polygon<float>(wykobi::make_circle<float>(175, 175, 75), 5);
-		p3 = Math::Clipper::mergePolygons(s1, s2)[0];
-	}
-	wykobi::polygon<float, 2> p4;
-	wykobi::polygon<float, 2> p5;
-	wykobi::polygon<float, 2> p6;
-	wykobi::polygon<float, 2> p7;
-	wykobi::polygon<float, 2> p8;
-	wykobi::polygon<float, 2> p9;
-	wykobi::polygon<float, 2> p10;
-	
-	p1 = wykobi::scale<float>(2, 2, p1);
-	p2 = wykobi::scale<float>(2, 2, p2);
-	p3 = wykobi::scale<float>(2, 2, p3);
-	
-	p4 = wykobi::translate(wykobi::make_vector(75.f, -50.f), p2);
-	p5 = wykobi::translate(wykobi::make_vector(0.f, 100.f), p4);
-	p6 = wykobi::translate(wykobi::make_vector(100.f, 0.f), p1);
-	p8 = wykobi::translate(wykobi::make_vector(300.f, 0.f), p1);
-	p9 = wykobi::translate((p1[1] - p1[0]), p1);
-	p10 = wykobi::make_polygon(wykobi::make_circle<float>(wykobi::centroid(p1), 110), 20);
 
-	p1 = wykobi::rotate(180.f, p1, wykobi::centroid(p1));
-	p2 = wykobi::rotate(225.f, p2, wykobi::centroid(p1));
-	p7 = wykobi::rotate(123.f, p3, wykobi::centroid(p3));
+	//Signle triangle 
+	wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(0, 0, 100, 0, 100, 100));
+	//Single square
+	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(0, 0, 100, 100));
+	//Signle circle
+	wykobi::polygon<float, 2> p3 = wykobi::make_polygon<float>(wykobi::make_circle<float>(50, 50, 50), 10);
+	//U shape
+	wykobi::polygon<float, 2> p4;
+	{
+		std::vector<float> shape = { 0, 0, 100, 0, 100, 100, 90, 100, 90, 10, 10, 10, 10, 100, 0, 100 };
+		for (std::size_t i = 0; i < shape.size(); i += 2) {
+			p4.push_back(wykobi::make_point<float>(shape[i], shape[i + 1]));
+		}
+	}
+
 
 	std::vector<wykobi::polygon<float, 2>> polygons;
 	std::vector<wykobi::segment<float, 2>> segments;
 
-	//polygons.push_back(p1); polygons.push_back(p9);
 
-	//polygons = CommonContour::clipUnion(CommonContour::clipUnion(p1, p4).front(), p5);
-	//polygons = CommonContour::clipUnion(p1, p2);
-	//polygons = CommonContour::clipUnion(p1, p4);
-	//polygons = CommonContour::clipUnion(p1, p5);
-	//polygons = CommonContour::clipUnion(p1, p6);
-	//polygons = CommonContour::clipUnion(p1, p3);
-	//polygons = CommonContour::clipUnion(p3, p7);
-	//polygons = CommonContour::clipUnion(p1, p8);
-	//polygons = CommonContour::clipUnion(p1, p9);
+
+	//test 1
+	{
+		std::vector<wykobi::polygon<float, 2>> polys;
+		std::vector<wykobi::segment<float, 2>> segs;
+		wykobi::vector2d<float> v1 = wykobi::make_vector<float>(100, 100);
+		polys = CommonContour::clipIntersection(wykobi::translate(v1, p1), wykobi::translate(v1, p2));
+		polygons.insert(polygons.end(), polys.begin(), polys.end());
+	}
+
+	//test 2
+	{
+		std::vector<wykobi::polygon<float, 2>> polys;
+		std::vector<wykobi::segment<float, 2>> segs;
+		wykobi::vector2d<float> v1 = wykobi::make_vector<float>(300, 100);
+		polys = CommonContour::clipIntersection(wykobi::translate(v1, p1), wykobi::translate(v1, p3));
+		polygons.insert(polygons.end(), polys.begin(), polys.end());
+	}
+
+	//test 3
+	{
+		std::vector<wykobi::polygon<float, 2>> polys;
+		std::vector<wykobi::segment<float, 2>> segs;
+		wykobi::vector2d<float> v1 = wykobi::make_vector<float>(100, 300);
+		polys = CommonContour::clipIntersection(wykobi::translate(v1, p1), wykobi::translate(v1, p4));
+		polygons.insert(polygons.end(), polys.begin(), polys.end());
+	}
+
+	//test 4
+	{
+		std::vector<wykobi::polygon<float, 2>> polys;
+		std::vector<wykobi::segment<float, 2>> segs;
+		wykobi::vector2d<float> v1 = wykobi::make_vector<float>(300, 300);
+		wykobi::vector2d<float> v2 = v1 + wykobi::make_vector(0.f, 20.f);
+		wykobi::polygon<float, 2> tri = p1;
+		wykobi::polygon<float, 2> hpol = p4;
+		polys = CommonContour::clipIntersection(wykobi::translate<float>(v2, tri), wykobi::translate<float>(v1, hpol));
+		polygons.insert(polygons.end(), polys.begin(), polys.end());
+	}
 	
-	//polygons = CommonContour::clipDifference(p1, p2);
-	//polygons = CommonContour::clipDifference(p3, p7);
-	//polygons = CommonContour::clipDifference(p1, p8);
-	//polygons = CommonContour::clipDifference(p1, p9);
-	//polygons = CommonContour::clipDifference(p1, p10);
-
-	//polygons = CommonContour::clipIntersection(p1, p2);
-	//polygons = CommonContour::clipIntersection(p3, p7);
-	//polygons = CommonContour::clipIntersection(p1, p8);
-	//polygons = CommonContour::clipIntersection(p1, p9);
-	polygons = CommonContour::clipIntersection(p1, p10);
-
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p2));
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p3, p7));
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p8));
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p9));
-	//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p10));
-
 	
-	//CommonContour::Graph graph(p1, p7);
-	//CommonContour::clipIntersection(graph);
-	//segments = CommonContour::getWykobiSegmentsFromGraph(graph);
-	
-	
-	//CommonContour::clipDifference(graph);
-	//segments = CommonContour::getWykobiSegmentsFromGraph(graph);
-
-	//for (auto path : CommonContour::findHull(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5))) {
-	//	for (auto n : path) {
-	//		std::cout << Math::Debug::toString(n->point) << "->";
-	//	}
-	//	std::cout << "\n";
-	//}
 
 	sf::View fuck_view = window.getDefaultView();
 	//fuck_view.move(-fuck_view.getCenter().x / 2, -fuck_view.getCenter().y / 2);
@@ -500,6 +483,71 @@ int main() {
 }
 
 #endif
+
+//wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(100, 100, 200, 200));
+//wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(150, 150, 300, 100, 300, 200));
+//wykobi::polygon<float, 2> p3;
+//{
+//	wykobi::polygon<float, 2> s1 = wykobi::make_polygon<float>(wykobi::make_circle<float>(100, 100, 50), 10);
+//	wykobi::polygon<float, 2> s2 = wykobi::make_polygon<float>(wykobi::make_circle<float>(175, 175, 75), 5);
+//	p3 = Math::Clipper::mergePolygons(s1, s2)[0];
+//}
+//wykobi::polygon<float, 2> p4;
+//wykobi::polygon<float, 2> p5;
+//wykobi::polygon<float, 2> p6;
+//wykobi::polygon<float, 2> p7;
+//wykobi::polygon<float, 2> p8;
+//wykobi::polygon<float, 2> p9;
+//wykobi::polygon<float, 2> p10;
+//p1 = wykobi::scale<float>(2, 2, p1);
+//p2 = wykobi::scale<float>(2, 2, p2);
+//p3 = wykobi::scale<float>(2, 2, p3);
+//p4 = wykobi::translate(wykobi::make_vector(75.f, -50.f), p2);
+//p5 = wykobi::translate(wykobi::make_vector(0.f, 100.f), p4);
+//p6 = wykobi::translate(wykobi::make_vector(100.f, 0.f), p1);
+//p8 = wykobi::translate(wykobi::make_vector(300.f, 0.f), p1);
+//p9 = wykobi::translate((p1[1] - p1[0]), p1);
+//p10 = wykobi::make_polygon(wykobi::make_circle<float>(wykobi::centroid(p1), 110), 20);
+//p1 = wykobi::rotate(180.f, p1, wykobi::centroid(p1));
+//p2 = wykobi::rotate(225.f, p2, wykobi::centroid(p1));
+//p7 = wykobi::rotate(123.f, p3, wykobi::centroid(p3));
+//polygons.push_back(p1); polygons.push_back(p9);
+//polygons = CommonContour::clipUnion(CommonContour::clipUnion(p1, p4).front(), p5);
+//polygons = CommonContour::clipUnion(p1, p2);
+//polygons = CommonContour::clipUnion(p1, p4);
+//polygons = CommonContour::clipUnion(p1, p5);
+//polygons = CommonContour::clipUnion(p1, p6);
+//polygons = CommonContour::clipUnion(p1, p3);
+//polygons = CommonContour::clipUnion(p3, p7);
+//polygons = CommonContour::clipUnion(p1, p8);
+//polygons = CommonContour::clipUnion(p1, p9);
+//polygons = CommonContour::clipDifference(p1, p2);
+//polygons = CommonContour::clipDifference(p3, p7);
+//polygons = CommonContour::clipDifference(p1, p8);
+//polygons = CommonContour::clipDifference(p1, p9);
+//polygons = CommonContour::clipDifference(p1, p10);
+//polygons = CommonContour::clipIntersection(p1, p2);
+//polygons = CommonContour::clipIntersection(p3, p7);
+//polygons = CommonContour::clipIntersection(p1, p8);
+//polygons = CommonContour::clipIntersection(p1, p9);
+//polygons = CommonContour::clipIntersection(p1, p10);
+//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p2));
+//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p3, p7));
+//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p8));
+//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p9));
+//segments = CommonContour::getWykobiSegmentsFromGraph(CommonContour::Graph(p1, p10));
+//CommonContour::Graph graph(p1, p7);
+//CommonContour::clipIntersection(graph);
+//segments = CommonContour::getWykobiSegmentsFromGraph(graph);
+//CommonContour::clipDifference(graph);
+//segments = CommonContour::getWykobiSegmentsFromGraph(graph);
+//for (auto path : CommonContour::findHull(CommonContour::makeGraphFromPolygons(CommonContour::clipUnion(p1, p4).front(), p5))) {
+//	for (auto n : path) {
+//		std::cout << Math::Debug::toString(n->point) << "->";
+//	}
+//	std::cout << "\n";
+//}
+
 
 
 //wykobi::polygon<float, 2> poly_1 = wykobi::make_polygon<float>({
