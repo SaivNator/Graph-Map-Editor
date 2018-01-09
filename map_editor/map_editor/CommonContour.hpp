@@ -48,6 +48,7 @@ namespace CommonContour {
 
 	/*
 	Perpendicular or someshit?!?!?
+	http://mathworld.wolfram.com/PerpendicularVector.html
 	*/
 	wykobi::vector2d<float> perp(wykobi::vector2d<float> & vector);
 
