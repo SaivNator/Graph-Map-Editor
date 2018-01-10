@@ -35,5 +35,11 @@
     <ClInclude Include="MapChunk.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MapGroundType.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

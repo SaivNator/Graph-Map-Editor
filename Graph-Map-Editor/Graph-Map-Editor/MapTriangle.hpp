@@ -5,18 +5,41 @@
 #define MapTriangle_HEADER
 
 #include <array>
+#include <vector>
 #include <memory>
 
 #include "MapPoint.hpp"
 #include "MapGroundType.hpp"
 
 class MapTriangle {
-	const std::array<std::weak_ptr<MapPoint>, 3> m_points;
-	const MapGroundType* m_mapGroundType;
+	const std::array<MapPoint*, 3> m_points;
+	MapGroundType & m_mapGroundType;
+	std::vector<MapTriangle*> m_relations;
 public:
-	MapTriangle(std::array<std::weak_ptr<MapPoint>, 3> points);
+	/*
+	Constructor
+	*/
+	MapTriangle(std::array<MapPoint*, 3> points, MapGroundType & type);
+
+	/*
+	[] operator
+	*/
 	std::weak_ptr<MapPoint> operator[](std::size_t i);
-	MapGroundType* getType();
+
+	/*
+	Get size
+	*/
+	std::size_t size();
+	
+	/*
+	Append verticies to MapGroundType
+	*/
+	void render();
+
+	/*
+	Get type
+	*/
+	MapGroundType & getType();
 };
 
 #endif // !MapTriangle_HEADER

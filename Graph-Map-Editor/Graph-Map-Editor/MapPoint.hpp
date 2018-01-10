@@ -8,10 +8,26 @@
 
 #include "MapTriangle.hpp"
 
-struct MapPoint
+class MapPoint
 {
+	std::vector<MapTriangle*> m_triangles;
+public:
 	float x, y;
-	std::vector<MapTriangle*> triangles
+	
+	/*
+	Constructor
+	*/
+	MapPoint(float x, float y);
+
+	/*
+	Add triangle to point
+	*/
+	void addTriangle(MapTriangle* triangle);
+
+	/*
+	Remove triangle from point
+	*/
+	void removeTriangle(MapTriangle* triangle);
 };
 
 #endif // !MapPoint_HEADER

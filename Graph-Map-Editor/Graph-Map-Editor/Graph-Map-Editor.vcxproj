@@ -140,7 +140,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileDialog.hpp" />
+    <ClInclude Include="Map.hpp" />
     <ClInclude Include="MapChunk.hpp" />
+    <ClInclude Include="MapGroundType.hpp" />
     <ClInclude Include="MapPoint.hpp" />
     <ClInclude Include="MapTriangle.hpp" />
   </ItemGroup>
