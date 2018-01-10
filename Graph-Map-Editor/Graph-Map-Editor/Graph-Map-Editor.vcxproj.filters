@@ -26,5 +26,14 @@
     <ClInclude Include="FileDialog.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MapPoint.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapTriangle.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapChunk.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
