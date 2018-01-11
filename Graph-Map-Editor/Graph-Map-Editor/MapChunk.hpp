@@ -12,6 +12,9 @@
 #include "MapPoint.hpp"
 #include "MapTriangle.hpp"
 
+class MapPoint;
+class MapTriangle;
+
 class MapChunk {
 	const wykobi::point2d<int> m_pos;
 	const wykobi::vector2d<float> & m_size;

@@ -137,6 +137,11 @@
   <ItemGroup>
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="MapChunk.cpp" />
+    <ClCompile Include="MapGroundType.cpp" />
+    <ClCompile Include="MapPoint.cpp" />
+    <ClCompile Include="MapTriangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileDialog.hpp" />

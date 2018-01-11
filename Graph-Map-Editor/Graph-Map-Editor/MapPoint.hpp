@@ -6,7 +6,11 @@
 
 #include <vector>
 
+#include <wykobi.hpp>
+
 #include "MapTriangle.hpp"
+
+class MapTriangle;
 
 class MapPoint {
 	const wykobi::point2d<float> m_pos;

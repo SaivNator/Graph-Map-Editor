@@ -12,6 +12,10 @@
 #include "MapChunk.hpp"
 #include "MapGroundType.hpp"
 
+class MapPoint;
+class MapChunk;
+class MapGroundType;
+
 class MapTriangle {
 	const std::array<MapPoint*, 3> m_points;
 	MapChunk & m_chunk;
@@ -31,7 +35,7 @@ public:
 	/*
 	Get size
 	*/
-	constexpr std::size_t size();
+	std::size_t size();
 	
 	/*
 	Append verticies to MapGroundType

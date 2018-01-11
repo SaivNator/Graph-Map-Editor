@@ -7,6 +7,8 @@
 
 #include "MapTriangle.hpp"
 
+class MapTriangle;
+
 class MapGroundType : public sf::Drawable {
 	const std::shared_ptr<sf::Texture> m_texture;
 	sf::VertexArray m_vertex_array = sf::VertexArray(sf::Triangles);
