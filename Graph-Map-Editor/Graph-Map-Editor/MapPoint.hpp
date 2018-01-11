@@ -8,16 +8,19 @@
 
 #include "MapTriangle.hpp"
 
-class MapPoint
-{
+class MapPoint {
+	const wykobi::point2d<float> m_pos;
 	std::vector<MapTriangle*> m_triangles;
 public:
-	float x, y;
-	
 	/*
 	Constructor
 	*/
-	MapPoint(float x, float y);
+	MapPoint(wykobi::point2d<float> pos);
+
+	/*
+	Get pos
+	*/
+	wykobi::point2d<float> getPos();
 
 	/*
 	Add triangle to point

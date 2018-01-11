@@ -7,12 +7,14 @@
 #include <vector>
 #include <memory>
 
+#include <wykobi.hpp>
+
 #include "MapPoint.hpp"
 #include "MapTriangle.hpp"
 
 class MapChunk {
-	const int m_x, m_y;
-	const float & m_width, m_height;
+	const wykobi::point2d<int> m_pos;
+	const wykobi::vector2d<float> & m_size;
 	std::vector<std::unique_ptr<MapPoint>> m_points;		//points inside chunk
 	std::vector<std::shared_ptr<MapPoint>> m_edge_points;	//points shared by other chunks
 	std::vector<std::unique_ptr<MapTriangle>> m_triangles;	//triangles inside chunk
@@ -21,7 +23,7 @@ public:
 	/*
 	Constructor
 	*/
-	MapChunk(int x, int y, const float & width, const float & height);
+	MapChunk(const wykobi::point2d<int> pos, const wykobi::vector2d<float> & size);
 	
 	/*
 	Append MapTriangles in chunk to MapGroundType
@@ -29,16 +31,21 @@ public:
 	void render();
 
 	/*
+	Get chunk pos
+	*/
+	wykobi::point2d<int> getPos();
+
+	/*
 	Make point and return pointer
 	if point is outside chunk return nullptr
 	*/
-	MapPoint* makePoint(float x, float y);
+	MapPoint* makePoint(wykobi::point2d<float> pos);
 
 	/*
 	Make edge point and return pointer
 	if point is not on chunk edge, or outside chunk return nullptr
 	*/
-	MapPoint* makeEdgePoint(float x, float y);
+	MapPoint* makeEdgePoint(wykobi::point2d<float> pos);
 
 	/*
 	Make triangle inside chunk
@@ -46,7 +53,7 @@ public:
 	void makeTriangle(MapPoint* p0, MapPoint* p1, MapPoint* p2, MapGroundType & type);
 
 	/*
-	Clear MapTriangles that chunk is owning, also clear unused points
+	Clear MapTriangles that chunk is owning, also clear m_points and edge_points that are only owned by this chunk
 	*/
 	void clear();
 };

@@ -9,22 +9,24 @@
 #include <memory>
 
 #include "MapPoint.hpp"
+#include "MapChunk.hpp"
 #include "MapGroundType.hpp"
 
 class MapTriangle {
 	const std::array<MapPoint*, 3> m_points;
-	MapGroundType & m_mapGroundType;
+	MapChunk & m_chunk;
+	MapGroundType & m_type;
 	std::vector<MapTriangle*> m_relations;
 public:
 	/*
 	Constructor
 	*/
-	MapTriangle(std::array<MapPoint*, 3> points, MapGroundType & type);
+	MapTriangle(std::array<MapPoint*, 3> points, MapChunk & chunk, MapGroundType & type);
 
 	/*
 	[] operator
 	*/
-	std::weak_ptr<MapPoint> operator[](std::size_t i);
+	MapPoint & operator[](std::size_t i);
 
 	/*
 	Get size
@@ -40,6 +42,26 @@ public:
 	Get type
 	*/
 	MapGroundType & getType();
+
+	/*
+	Get chunk
+	*/
+	MapChunk & getChunk();
+
+	/*
+	Get relations
+	*/
+	std::vector<MapTriangle*> & getRelations();
+
+	/*
+	Add relation
+	*/
+	void addRelation(MapTriangle* triangle);
+
+	/*
+	Remove relation
+	*/
+	void removeRelation(MapTriangle* triangle);
 };
 
 #endif // !MapTriangle_HEADER

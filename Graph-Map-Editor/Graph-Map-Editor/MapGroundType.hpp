@@ -8,7 +8,7 @@
 #include "MapTriangle.hpp"
 
 class MapGroundType : public sf::Drawable {
-	std::shared_ptr<sf::Texture> m_texture;
+	const std::shared_ptr<sf::Texture> m_texture;
 	sf::VertexArray m_vertex_array = sf::VertexArray(sf::Triangles);
 
 	/*
@@ -24,13 +24,16 @@ public:
 	/*
 	Clear m_vertex_array
 	*/
-	void clearVertexArray();
+	void clear();
 
 	/*
 	Append triangle to m_vertex_array
 	*/
-	void appendTriangle(MapTriangle* triangle);
+	void appendTriangle(MapTriangle & triangle);
 
+	/*
+	Get texture
+	*/
 	std::shared_ptr<sf::Texture> getTexture();
 };
 
