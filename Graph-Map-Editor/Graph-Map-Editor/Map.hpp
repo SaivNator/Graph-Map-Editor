@@ -19,18 +19,27 @@ class Map {
 
 	std::vector<std::vector<std::unique_ptr<MapChunk>>> m_chunks;
 	std::vector<std::unique_ptr<MapGroundType>> m_types;
-	
 public:
 	/*
 	Constructor
 	*/
-	Map(wykobi::vector2d<float> chunk_size, wykobi::vector2d<int> map_size);
+	Map(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size);
+	
+	/*
+	Check if chunk exist
+	*/
+	bool chunkExist(wykobi::point2d<int> & pos);
 
 	/*
 	Get chunk at pos
-		if pos is outside map then return nullptr
+	INput must be in bounds
 	*/
-	MapChunk* getChunk(wykobi::point2d<int> pos);
+	MapChunk & getChunk(wykobi::point2d<int> & pos);
+
+	/*
+	Get chunks that rect is overlapping
+	*/
+	std::vector<MapChunk*> getChunkInRect(wykobi::rectangle<float> & rect);
 
 	/*
 	Get types

@@ -142,6 +142,7 @@
     <ClCompile Include="MapGroundType.cpp" />
     <ClCompile Include="MapPoint.cpp" />
     <ClCompile Include="MapTriangle.cpp" />
+    <ClCompile Include="ViewPort.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileDialog.hpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="MapGroundType.hpp" />
     <ClInclude Include="MapPoint.hpp" />
     <ClInclude Include="MapTriangle.hpp" />
+    <ClInclude Include="ViewPort.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

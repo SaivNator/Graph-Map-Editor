@@ -2,7 +2,7 @@
 
 #include "MapChunk.hpp"
 
-MapChunk::MapChunk(const wykobi::point2d<int> pos, const wykobi::vector2d<float> & size) :
+MapChunk::MapChunk(const wykobi::point2d<int> & pos, const wykobi::vector2d<float> & size) :
 	m_pos(pos),
 	m_size(size),
 	m_offset(wykobi::make_vector(static_cast<float>(pos.x) * size.x, static_cast<float>(pos.y) * size.y))
@@ -25,6 +25,10 @@ wykobi::vector2d<float> MapChunk::getSize() {
 
 wykobi::vector2d<float> MapChunk::getOffset() {
 	return m_offset;
+}
+
+std::vector<MapChunk*> & MapChunk::getRelations() {
+	return m_relations;
 }
 
 MapPoint* MapChunk::addPoint(MapPoint point) {

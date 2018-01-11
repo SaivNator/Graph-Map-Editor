@@ -27,7 +27,7 @@ public:
 	/*
 	Constructor
 	*/
-	MapChunk(const wykobi::point2d<int> pos, const wykobi::vector2d<float> & size);
+	MapChunk(const wykobi::point2d<int> & pos, const wykobi::vector2d<float> & size);
 	
 	/*
 	Append MapTriangles in chunk to MapGroundType
@@ -48,6 +48,11 @@ public:
 	Get offset
 	*/
 	wykobi::vector2d<float> getOffset();
+
+	/*
+	Get relations
+	*/
+	std::vector<MapChunk*> & getRelations();
 
 	/*
 	Add point to chunk
