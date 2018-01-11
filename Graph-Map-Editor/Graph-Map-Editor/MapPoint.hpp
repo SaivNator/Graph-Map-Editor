@@ -23,6 +23,11 @@ public:
 	wykobi::point2d<float> getPos();
 
 	/*
+	Get triangles
+	*/
+	std::vector<MapTriangle*> & getTriangles();
+
+	/*
 	Add triangle to point
 	*/
 	void addTriangle(MapTriangle* triangle);

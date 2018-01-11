@@ -14,7 +14,7 @@ class MapGroundType : public sf::Drawable {
 	/*
 	SFML draw function
 	*/
-	void draw(sf::RenderTarget & target, sf::Transform states) const;
+	void draw(sf::RenderTarget & target, sf::RenderStates states) const;
 public:
 	/*
 	Constructor

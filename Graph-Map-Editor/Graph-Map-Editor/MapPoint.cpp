@@ -12,6 +12,10 @@ wykobi::point2d<float> MapPoint::getPos() {
 	return m_pos;
 }
 
+std::vector<MapTriangle*> & MapPoint::getTriangles() {
+	return m_triangles;
+}
+
 void MapPoint::addTriangle(MapTriangle* triangle) {
 	if (std::find(m_triangles.begin(), m_triangles.end(), triangle) == m_triangles.end()) {
 		m_triangles.push_back(triangle);

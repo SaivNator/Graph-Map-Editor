@@ -15,8 +15,9 @@
 class MapChunk {
 	const wykobi::point2d<int> m_pos;
 	const wykobi::vector2d<float> & m_size;
+	const wykobi::vector2d<float> m_offset;
 	std::vector<std::unique_ptr<MapPoint>> m_points;		//points inside chunk
-	std::vector<std::shared_ptr<MapPoint>> m_edge_points;	//points shared by other chunks
+	std::vector<std::shared_ptr<MapPoint>> m_shared_points;	//points shared by other chunks
 	std::vector<std::unique_ptr<MapTriangle>> m_triangles;	//triangles inside chunk
 	std::vector<MapChunk*> m_relations;
 public:
@@ -36,21 +37,32 @@ public:
 	wykobi::point2d<int> getPos();
 
 	/*
-	Make point and return pointer
-	if point is outside chunk return nullptr
+	Get chunk size
 	*/
-	MapPoint* makePoint(wykobi::point2d<float> pos);
+	wykobi::vector2d<float> getSize();
 
 	/*
-	Make edge point and return pointer
-	if point is not on chunk edge, or outside chunk return nullptr
+	Get offset
 	*/
-	MapPoint* makeEdgePoint(wykobi::point2d<float> pos);
+	wykobi::vector2d<float> getOffset();
 
 	/*
-	Make triangle inside chunk
+	Add point to chunk
+	return pointer to point
 	*/
-	void makeTriangle(MapPoint* p0, MapPoint* p1, MapPoint* p2, MapGroundType & type);
+	MapPoint* addPoint(MapPoint point);
+
+	/*
+	Add shared point to chunk
+	return pointer to point
+	*/
+	MapPoint* addSharedPoint(std::shared_ptr<MapPoint> ptr);
+
+	/*
+	Add triangle inside chunk
+	return pointer to triangle
+	*/
+	MapTriangle* addTriangle(MapTriangle triangle);
 
 	/*
 	Clear MapTriangles that chunk is owning, also clear m_points and edge_points that are only owned by this chunk

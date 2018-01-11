@@ -31,7 +31,7 @@ public:
 	/*
 	Get size
 	*/
-	std::size_t size();
+	constexpr std::size_t size();
 	
 	/*
 	Append verticies to MapGroundType
