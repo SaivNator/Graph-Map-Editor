@@ -2,9 +2,10 @@
 
 #include "ViewPort.hpp"
 
-ViewPort::ViewPort(Map & map, wykobi::point2d<float> & centre, wykobi::vector2d<float> & size) : 
+ViewPort::ViewPort(Map & map, wykobi::point2d<float> & centre, wykobi::vector2d<float> & size) :
 	m_map(map),
-	m_view({ centre.x, centre.y }, { size.x, size.y })
+	m_view({ centre.x, centre.y }, { size.x, size.y }),
+	m_type_renderer_vec(map.getNumberOfTypes())
 {
 }
 
@@ -24,6 +25,10 @@ wykobi::rectangle<float> ViewPort::getRect() {
 	return wykobi::make_rectangle(p0, p1);
 }
 
+MapGroundTypeRenderer & ViewPort::getMapGroundTypeRenderer(MapGroundType type) {
+	return m_type_renderer_vec[type];
+}
+
 wykobi::point2d<float> ViewPort::viewToMapPos(wykobi::point2d<float> & pos) {
 	sf::Vector2f v = m_view.getInverseTransform().transformPoint({ pos.x, pos.y });
 	return wykobi::make_point(v.x, v.y);
@@ -34,21 +39,22 @@ wykobi::point2d<float> ViewPort::mapToViewPos(wykobi::point2d<float> & pos) {
 	return wykobi::make_point(v.x, v.y);
 }
 
-
 void ViewPort::render() {
-	for (auto it = m_map.getTypes().begin(); it != m_map.getTypes().end(); ++it) {
-		(*it)->clear();
+	for (MapGroundTypeRenderer & t : m_type_renderer_vec) {
+		t.clear();
 	}
 	wykobi::rectangle<float> rect = getRect();
 	for (MapChunk* chunk : m_map.getChunkInRect(rect)) {
-		chunk->render();
+		for (auto it = chunk->getTriangles().begin(); it != chunk->getTriangles().end(); ++it) {
+			m_type_renderer_vec[(*it)->getType()].appendTriangle(*(*it));
+		}
 	}
 }
 
 void ViewPort::draw(sf::RenderTarget & target, sf::RenderStates states) const {
 	target.setView(m_view);
-	for (auto it = m_map.getTypes().begin(); it != m_map.getTypes().end(); ++it) {
-		target.draw(*(*it));
+	for (std::size_t i = 0; i < m_type_renderer_vec.size(); ++i) {
+		target.draw(m_type_renderer_vec[i]);
 	}
 }
 

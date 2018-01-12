@@ -11,12 +11,14 @@
 #include <wykobi.hpp>
 
 #include "MapChunk.hpp"
-#include "MapGroundType.hpp"
 #include "Map.hpp"
+#include "MapGroundType.hpp"
+#include "MapGroundTypeRenderer.hpp"
 
 class ViewPort : public sf::Drawable {
 	Map & m_map;
 	sf::View m_view;
+	std::vector<MapGroundTypeRenderer> m_type_renderer_vec;
 
 	/*
 	SFML draw
@@ -37,6 +39,11 @@ public:
 	Get view rect in world cors
 	*/
 	wykobi::rectangle<float> getRect();
+
+	/*
+	Get MapGroundTypeRenderer
+	*/
+	MapGroundTypeRenderer & getMapGroundTypeRenderer(MapGroundType type);
 
 	/*
 	Convert view pos to map pos

@@ -2,17 +2,13 @@
 
 #include "MapChunk.hpp"
 
-MapChunk::MapChunk(const wykobi::point2d<int> & pos, const wykobi::vector2d<float> & size) :
+MapChunk::MapChunk(const wykobi::point2d<int> & pos, const wykobi::vector2d<float> & size, const std::array<MapPoint*, 4> & corner_points) :
 	m_pos(pos),
 	m_size(size),
-	m_offset(wykobi::make_vector(static_cast<float>(pos.x) * size.x, static_cast<float>(pos.y) * size.y))
+	m_offset(wykobi::make_vector(static_cast<float>(pos.x) * size.x, static_cast<float>(pos.y) * size.y)),
+	m_rect(wykobi::make_rectangle(m_offset, m_offset + m_size)),
+	m_corner_points(corner_points)
 {
-}
-
-void MapChunk::render() {
-	for (auto & ptr : m_triangles) {
-		ptr->render();
-	}
 }
 
 wykobi::point2d<int> MapChunk::getPos() {
@@ -25,6 +21,14 @@ wykobi::vector2d<float> MapChunk::getSize() {
 
 wykobi::vector2d<float> MapChunk::getOffset() {
 	return m_offset;
+}
+
+wykobi::rectangle<float> MapChunk::getRect() {
+	return m_rect;
+}
+
+std::vector<std::unique_ptr<MapTriangle>> & MapChunk::getTriangles() {
+	return m_triangles;
 }
 
 std::vector<MapChunk*> & MapChunk::getRelations() {
@@ -51,8 +55,8 @@ void MapChunk::clear() {
 	m_points.clear();
 	auto it = m_shared_points.begin();
 	while (it != m_shared_points.end()) {
-		if ((*it)->getTriangles().size() < 2) {
-			m_shared_points.erase(it);
+		if ((*it).use_count() < 2) {
+			it = m_shared_points.erase(it);
 		}
 		else {
 			++it;

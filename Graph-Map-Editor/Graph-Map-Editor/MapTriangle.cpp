@@ -17,11 +17,7 @@ std::size_t MapTriangle::size() {
 	return m_points.size();
 }
 
-void MapTriangle::render() {
-	m_type.appendTriangle(*this);
-}
-
-MapGroundType & MapTriangle::getType() {
+MapGroundType MapTriangle::getType() {
 	return m_type;
 }
 

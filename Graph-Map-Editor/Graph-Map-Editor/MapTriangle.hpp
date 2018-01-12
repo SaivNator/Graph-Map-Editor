@@ -14,12 +14,11 @@
 
 class MapPoint;
 class MapChunk;
-class MapGroundType;
 
 class MapTriangle {
 	const std::array<MapPoint*, 3> m_points;
 	MapChunk & m_chunk;
-	MapGroundType & m_type;
+	const MapGroundType m_type;
 	std::vector<MapTriangle*> m_relations;
 public:
 	/*
@@ -36,16 +35,11 @@ public:
 	Get size
 	*/
 	std::size_t size();
-	
-	/*
-	Append verticies to MapGroundType
-	*/
-	void render();
 
 	/*
 	Get type
 	*/
-	MapGroundType & getType();
+	MapGroundType getType();
 
 	/*
 	Get chunk

@@ -2,17 +2,34 @@
 
 #include "Map.hpp"
 
-Map::Map(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size) :
+Map::Map(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size, MapGroundType & number_of_types) :
 	m_chunk_size(chunk_size),
-	m_map_size(map_size)
+	m_map_size(map_size),
+	m_number_of_types(number_of_types)
 {
 	//init m_chunks
+	m_chunk_corner_points.reserve(m_map_size.x + 1);
+	for (int x = 0; x < m_map_size.x + 1; ++x) {
+		m_chunk_corner_points.push_back(std::vector<std::unique_ptr<MapPoint>>());
+		m_chunk_corner_points[x].reserve(m_map_size.y + 1);
+		for (int y = 0; y < m_map_size.y + 1; ++y) {
+			wykobi::point2d<float> p = wykobi::make_point(static_cast<float>(x) * chunk_size.x, static_cast<float>(y) * chunk_size.y);
+			m_chunk_corner_points[x].push_back(std::unique_ptr<MapPoint>(new MapPoint(p)));
+		}
+	}
+
 	m_chunks.reserve(m_map_size.x);
 	for (int x = 0; x < m_map_size.x; ++x) {
 		m_chunks.push_back(std::vector<std::unique_ptr<MapChunk>>());
 		m_chunks[x].reserve(map_size.y);
 		for (int y = 0; y < m_map_size.y; ++y) {
-			m_chunks[x].push_back(std::unique_ptr<MapChunk>(new MapChunk(wykobi::make_point(x, y) , m_chunk_size)));
+			std::array<MapPoint*, 4> corner{
+				m_chunk_corner_points[x][y].get(),
+				m_chunk_corner_points[x + 1][y].get(),
+				m_chunk_corner_points[x + 1][y + 1].get(),
+				m_chunk_corner_points[x][y + 1].get()
+			};
+			m_chunks[x].push_back(std::unique_ptr<MapChunk>(new MapChunk(wykobi::make_point(x, y) , m_chunk_size, corner)));
 		}
 	}
 }
@@ -26,8 +43,8 @@ bool Map::chunkExist(wykobi::point2d<int> & pos) {
 	}
 }
 
-MapChunk & Map::getChunk(wykobi::point2d<int> & pos) {
-	return *m_chunks[pos.x][pos.y];
+MapChunk* Map::getChunk(wykobi::point2d<int> & pos) {
+	return m_chunks[pos.x][pos.y].get();
 }
 
 std::vector<MapChunk*> Map::getChunkInRect(wykobi::rectangle<float> & rect) {
@@ -42,16 +59,16 @@ std::vector<MapChunk*> Map::getChunkInRect(wykobi::rectangle<float> & rect) {
 	if (y1 > m_map_size.y) y1 = m_map_size.y;
 
 	std::vector<MapChunk*> out_vec;
-	for (std::size_t x = x0; x < x1; ++x) {
-		for (std::size_t y = y0; y < y1; ++y) {
+	for (int x = x0; x < x1; ++x) {
+		for (int y = y0; y < y1; ++y) {
 			out_vec.push_back(m_chunks[x][y].get());
 		}
 	}
 	return out_vec;
 }
 
-std::vector<std::unique_ptr<MapGroundType>> & Map::getTypes() {
-	return m_types;
+MapGroundType Map::getNumberOfTypes() {
+	return m_number_of_types;
 }
 
 wykobi::vector2d<float> Map::getChunkSize() {
