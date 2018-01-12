@@ -7,6 +7,7 @@
 #include <iostream>
 #include <array>
 #include <vector>
+#include <set>
 
 #include "MapChunk.hpp"
 #include "Map.hpp"
@@ -35,6 +36,16 @@ class MapEditor {
 	void fillMap(Map & map, MapGroundType type);
 
 	/*
+	Clear all shared points from map
+	*/
+	void clearSharedPointsMap(Map & map);
+
+	/*
+	Make outer chunk path
+	*/
+	Path outerChunkPath(MapChunk & chunk);
+
+	/*
 	Triangulate path of MapPoints
 	*/
 	std::vector<Triangle> triangulatePath(Path path);
@@ -58,7 +69,6 @@ class MapEditor {
 	Make triangle from path and index
 	*/
 	Triangle vertexTriangle(const std::size_t index, const Path & path);
-
 public:
 	/*
 	Constructor

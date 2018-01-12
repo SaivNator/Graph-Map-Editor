@@ -27,6 +27,18 @@ wykobi::rectangle<float> MapChunk::getRect() {
 	return m_rect;
 }
 
+const std::array<MapPoint*, 4> & MapChunk::getCornerPoints() {
+	return m_corner_points;
+}
+
+std::vector<std::shared_ptr<MapPoint>> & MapChunk::getSharedPoints() {
+	return m_shared_points;
+}
+
+std::vector<std::unique_ptr<MapPoint>> & MapChunk::getInternalPoints() {
+	return m_internal_points;
+}
+
 std::vector<std::unique_ptr<MapTriangle>> & MapChunk::getTriangles() {
 	return m_triangles;
 }
@@ -35,9 +47,9 @@ std::vector<MapChunk*> & MapChunk::getRelations() {
 	return m_relations;
 }
 
-MapPoint* MapChunk::addPoint(MapPoint point) {
-	m_points.push_back(std::unique_ptr<MapPoint>(new MapPoint(point)));
-	return m_points.back().get();
+MapPoint* MapChunk::addInternalPoint(MapPoint point) {
+	m_internal_points.push_back(std::unique_ptr<MapPoint>(new MapPoint(point)));
+	return m_internal_points.back().get();
 }
 
 MapPoint* MapChunk::addSharedPoint(std::shared_ptr<MapPoint> ptr) {
@@ -52,7 +64,7 @@ MapTriangle* MapChunk::addTriangle(MapTriangle triangle) {
 
 void MapChunk::clear() {
 	m_triangles.clear();
-	m_points.clear();
+	m_internal_points.clear();
 	auto it = m_shared_points.begin();
 	while (it != m_shared_points.end()) {
 		if ((*it).use_count() < 2) {

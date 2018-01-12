@@ -49,9 +49,65 @@ void MapEditor::applyChunkRelation(Map & map) {
 	}
 }
 
-//void MapEditor::fillChunk(MapChunk & chunk, MapGroundType type) {
-//
-//}
+void MapEditor::fillChunk(MapChunk & chunk, MapGroundType type) {
+	chunk.clear();
+	Path path = outerChunkPath(chunk);
+	std::vector<Triangle> tri_vec = triangulatePath(path);
+	for (Triangle & tri : tri_vec) {
+		chunk.addTriangle(MapTriangle(tri, chunk, type));
+	}
+}
+
+void MapEditor::fillMap(Map & map, MapGroundType type) {
+	clearSharedPointsMap(map);
+	for (int x = 0; x < map.getMapSize().x; ++x) {
+		for (int y = 0; y < map.getMapSize().y; ++y) {
+			wykobi::point2d<int> p = wykobi::make_point(x, y);
+			fillChunk(*map.getChunk(p), type);
+		}
+	}
+}
+
+void MapEditor::clearSharedPointsMap(Map & map) {
+	for (int x = 0; x < map.getMapSize().x; ++x) {
+		for (int y = 0; y < map.getMapSize().y; ++y) {
+			wykobi::point2d<int> p = wykobi::make_point(x, y);
+			map.getChunk(p)->getSharedPoints().clear();
+		}
+	}
+}
+
+Path MapEditor::outerChunkPath(MapChunk & chunk) {
+	Path path;
+	std::set<MapPoint*> shared_points;
+	for (auto & ptr : chunk.getSharedPoints()) {
+		shared_points.emplace(ptr.get());
+	}
+	auto & corner_points = chunk.getCornerPoints();
+	for (std::size_t i = 0; i < 4; ++i) {
+		std::size_t next = (i < 3) ? i + 1 : 0;
+		wykobi::segment<float, 2> seg = wykobi::make_segment(corner_points[i]->getPos(), corner_points[next]->getPos());
+		std::vector<MapPoint*> between;
+		auto it = shared_points.begin();
+		while (it != shared_points.end()) {
+			if (wykobi::point_on_segment((*it)->getPos(), seg)) {
+				between.push_back((*it));
+				it = shared_points.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+		if (between.size() > 1) {
+			std::sort(between.begin(), between.end(), [&](MapPoint* p1, MapPoint* p2)
+			{ return (wykobi::distance(corner_points[i]->getPos(), p1->getPos()) < wykobi::distance(corner_points[i]->getPos(), p2->getPos())); }
+			);
+		}
+		path.push_back(corner_points[i]);
+		path.insert(path.end(), between.begin(), between.end());
+	}
+	return path;
+}
 
 std::vector<Triangle> MapEditor::triangulatePath(Path path) {
 	std::vector<std::array<MapPoint*, 3>> out_vec;

@@ -22,8 +22,8 @@ class MapChunk {
 	const wykobi::vector2d<float> m_offset;
 	const wykobi::rectangle<float> m_rect;
 	const std::array<MapPoint*, 4> m_corner_points;				//corner points
-	std::vector<std::unique_ptr<MapPoint>> m_points;			//points inside chunk
 	std::vector<std::shared_ptr<MapPoint>> m_shared_points;		//points shared by other chunks
+	std::vector<std::unique_ptr<MapPoint>> m_internal_points;	//points inside chunk
 	std::vector<std::unique_ptr<MapTriangle>> m_triangles;		//triangles inside chunk
 	std::vector<MapChunk*> m_relations;
 public:
@@ -53,6 +53,21 @@ public:
 	wykobi::rectangle<float> getRect();
 
 	/*
+	Get corner points
+	*/
+	const std::array<MapPoint*, 4> & getCornerPoints();
+
+	/*
+	Get shared points
+	*/
+	std::vector<std::shared_ptr<MapPoint>> & getSharedPoints();
+
+	/*
+	Get internal points
+	*/
+	std::vector<std::unique_ptr<MapPoint>> & getInternalPoints();
+
+	/*
 	Get triangles
 	*/
 	std::vector<std::unique_ptr<MapTriangle>> & getTriangles();
@@ -63,10 +78,10 @@ public:
 	std::vector<MapChunk*> & getRelations();
 
 	/*
-	Add point to chunk
+	Add internal point to chunk
 	return pointer to point
 	*/
-	MapPoint* addPoint(MapPoint point);
+	MapPoint* addInternalPoint(MapPoint point);
 
 	/*
 	Add shared point to chunk
