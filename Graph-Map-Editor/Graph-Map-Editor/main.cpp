@@ -4,31 +4,20 @@
 #include <vector>
 #include <array>
 
-#include <wykobi.hpp>
-
 #include <SFML\Graphics.hpp>
 
-#include "FileDialog.hpp"
-
+#include "Window.hpp"
 
 int main() {
+	std::shared_ptr<sf::Font> arial(new sf::Font());
+	if (!arial->loadFromFile("../../resources/fonts/arial.ttf")) {
+		std::cout << "Font load failed\n";
+		return EXIT_FAILURE;
+	}
 
-	wykobi::point2d<float> p0 = wykobi::make_point(100.f, 100.f);
+	Window window(sf::VideoMode(500, 500), "Window", arial);
 
-	wykobi::triangle<float, 2> tri;
-
-	std::cout << p0.x << "\t" << p0.y << "\n";
-
-	sf::RenderWindow window;
-
-	window.create(sf::VideoMode(500, 500), "TEST", sf::Style::Resize | sf::Style::Resize | sf::Style::Titlebar | sf::Style::Close);
-
-	FileDialog::OpenFile dialog;
-
-	dialog.create();
-
-	std::cout << dialog.getPath() << "\n";
-
+	window.join();
 
 	return EXIT_SUCCESS;
 }

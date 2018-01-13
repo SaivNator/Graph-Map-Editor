@@ -151,6 +151,7 @@
     <ClInclude Include="Map.hpp" />
     <ClInclude Include="MapChunk.hpp" />
     <ClInclude Include="MapEditor.hpp" />
+    <ClInclude Include="MapFile.hpp" />
     <ClInclude Include="MapGroundType.hpp" />
     <ClInclude Include="MapGroundTypeRenderer.hpp" />
     <ClInclude Include="MapPoint.hpp" />

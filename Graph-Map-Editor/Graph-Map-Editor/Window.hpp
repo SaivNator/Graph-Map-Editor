@@ -6,9 +6,11 @@
 
 #include <iostream>
 #include <thread>
+#include <chrono>
 #include <memory>
 
 #include <SFML\Graphics.hpp>
+#include <wykobi.hpp>
 
 #include "MapEditor.hpp"
 #include "ViewPort.hpp"
@@ -16,6 +18,7 @@
 class Window {
 	sf::RenderWindow m_window;
 	bool m_running;
+	std::chrono::milliseconds m_sleep_duration;
 	std::thread m_window_thread;
 	const std::shared_ptr<sf::Font> m_font;
 
@@ -36,6 +39,14 @@ class Window {
 	Handles window rendering
 	*/
 	void renderHandler();
+
+	/*
+	TEST LOAD FUNCTION
+	*/
+	void testLoad() {
+		m_map_editor.createMap(wykobi::make_vector(256.f, 256.f), wykobi::make_vector(10, 10), 10, 0);
+		//m_view_port = std::unique_ptr<ViewPort>(new ViewPort(*m_map_editor.getMap(), wykobi::make_point(0.f, 0.f), wykobi::make_vector(100.f, 100.f)));
+	}
 public:
 	/*
 	Constructor

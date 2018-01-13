@@ -20,6 +20,11 @@ class MapTriangle {
 	MapChunk & m_chunk;
 	const MapGroundType m_type;
 	std::vector<MapTriangle*> m_relations;
+
+	/*
+	Find triangle relations
+	*/
+	void findRelations();
 public:
 	/*
 	Constructor
@@ -27,14 +32,20 @@ public:
 	MapTriangle(const std::array<MapPoint*, 3> & points, MapChunk & chunk, MapGroundType & type);
 
 	/*
-	Remove pointers pointing to this triangle
+	Remove this from points,
+	Remove two way relations
 	*/
 	void release();
 
 	/*
 	[] operator
 	*/
-	MapPoint & operator[](std::size_t i);
+	wykobi::point2d<float> operator[](std::size_t i);
+
+	/*
+	Get points
+	*/
+	const std::array<MapPoint*, 3> & getPoints();
 
 	/*
 	Get size
@@ -57,12 +68,12 @@ public:
 	std::vector<MapTriangle*> & getRelations();
 
 	/*
-	Add relation
+	Add two way relation between this and triangle
 	*/
 	void addRelation(MapTriangle* triangle);
 
 	/*
-	Remove relation
+	Remove two way relation between this and triangle
 	*/
 	void removeRelation(MapTriangle* triangle);
 };

@@ -83,17 +83,7 @@ public:
 	/*
 	Create new map
 	*/
-	void createMap(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size, MapGroundType number_of_types, MapGroundType default_type);
-
-	/*
-	Load map form file
-	*/
-	void loadMap(std::string & path);
-
-	/*
-	Save map to file
-	*/
-	void saveMap(std::string & path);
+	void createMap(wykobi::vector2d<float> chunk_size, wykobi::vector2d<int> map_size, MapGroundType number_of_types, MapGroundType default_type);
 
 	/*
 	Check if mapeditor has map loaded
@@ -113,13 +103,7 @@ public:
 	/*
 	Insert polygon shape of a type onto map
 	*/
-	void insertPolygon(wykobi::polygon<float, 2> & polygon, MapGroundType & type);
-	
-	/*
-	Make and add type to map
-		return pointer to type
-	*/
-	MapGroundType* makeMapGroundType(std::string & path);
+	void insertPolygon(wykobi::polygon<float, 2> & polygon, MapGroundType type);
 };
 
 #endif // !MapEditor_HEADER

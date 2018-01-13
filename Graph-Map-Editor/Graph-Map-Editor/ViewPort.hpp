@@ -28,7 +28,7 @@ public:
 	/*
 	Constructor
 	*/
-	ViewPort(Map & map, wykobi::point2d<float> & centre, wykobi::vector2d<float> & size);
+	ViewPort(Map & map, wykobi::point2d<float> centre, wykobi::vector2d<float> size);
 
 	/*
 	Get view

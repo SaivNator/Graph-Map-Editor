@@ -5,7 +5,7 @@
 MapEditor::MapEditor() {
 }
 
-void MapEditor::createMap(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size, MapGroundType number_of_types, MapGroundType default_type) {
+void MapEditor::createMap(wykobi::vector2d<float> chunk_size, wykobi::vector2d<int> map_size, MapGroundType number_of_types, MapGroundType default_type) {
 	m_map = std::unique_ptr<Map>(new Map(chunk_size, map_size, number_of_types));
 
 	applyChunkRelation(*m_map);
@@ -52,7 +52,16 @@ void MapEditor::applyChunkRelation(Map & map) {
 void MapEditor::fillChunk(MapChunk & chunk, MapGroundType type) {
 	clearChunk(chunk);
 	Path path = outerChunkPath(chunk);
+	
+	//for (MapPoint* p : path) {
+	//	std::cout << p->getPos().x << "," << p->getPos().y << "->";
+	//}
+	//std::cout << "\n";
+	
 	std::vector<Triangle> tri_vec = triangulatePath(path);
+
+	std::cout << tri_vec.size() << "\n";
+
 	for (Triangle & tri : tri_vec) {
 		chunk.addTriangle(tri, type);
 	}
@@ -186,7 +195,7 @@ bool MapEditor::vertexIsEar(const std::size_t index, const Path & path) {
 		next = index + 1;
 	}
 	wykobi::triangle<float, 2> triangle = wykobi::make_triangle(path[prev]->getPos(), path[index]->getPos(), path[next]->getPos());
-	if (wykobi::robust_collinear(triangle[0], triangle[1], triangle[0])) {
+	if (wykobi::robust_collinear(triangle[0], triangle[1], triangle[2])) {
 		return false;
 	}
 	for (std::size_t i = 0; i < path.size(); ++i) {
