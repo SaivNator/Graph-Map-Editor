@@ -11,7 +11,7 @@ void MapEditor::createMap(wykobi::vector2d<float> & chunk_size, wykobi::vector2d
 	applyChunkRelation(*m_map);
 
 	//make default triangles
-	
+	fillMap(*m_map, default_type);
 }
 
 Map* MapEditor::getMap() {
