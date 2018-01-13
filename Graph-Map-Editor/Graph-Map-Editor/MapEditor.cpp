@@ -50,16 +50,16 @@ void MapEditor::applyChunkRelation(Map & map) {
 }
 
 void MapEditor::fillChunk(MapChunk & chunk, MapGroundType type) {
-	chunk.clear();
+	clearChunk(chunk);
 	Path path = outerChunkPath(chunk);
 	std::vector<Triangle> tri_vec = triangulatePath(path);
 	for (Triangle & tri : tri_vec) {
-		chunk.addTriangle(MapTriangle(tri, chunk, type));
+		chunk.addTriangle(tri, type);
 	}
 }
 
 void MapEditor::fillMap(Map & map, MapGroundType type) {
-	clearSharedPointsMap(map);
+	clearSharedPoints(map);
 	for (int x = 0; x < map.getMapSize().x; ++x) {
 		for (int y = 0; y < map.getMapSize().y; ++y) {
 			wykobi::point2d<int> p = wykobi::make_point(x, y);
@@ -68,7 +68,15 @@ void MapEditor::fillMap(Map & map, MapGroundType type) {
 	}
 }
 
-void MapEditor::clearSharedPointsMap(Map & map) {
+void MapEditor::clearChunk(MapChunk & chunk) {
+	for (auto it = chunk.getTriangles().begin(); it != chunk.getTriangles().end(); ++it) {
+		(*it)->release();
+	}
+	chunk.getTriangles().clear();
+	chunk.getInternalPoints().clear();
+}
+
+void MapEditor::clearSharedPoints(Map & map) {
 	for (int x = 0; x < map.getMapSize().x; ++x) {
 		for (int y = 0; y < map.getMapSize().y; ++y) {
 			wykobi::point2d<int> p = wykobi::make_point(x, y);
@@ -181,12 +189,9 @@ bool MapEditor::vertexIsEar(const std::size_t index, const Path & path) {
 	if (wykobi::robust_collinear(triangle[0], triangle[1], triangle[0])) {
 		return false;
 	}
-	for (std::size_t i = 0; i < path.size(); ++i)
-	{
-		if ((i != prev) && (i != next) && (i != index))
-		{
-			if (point_in_triangle(path[i]->getPos(), triangle))
-			{
+	for (std::size_t i = 0; i < path.size(); ++i) {
+		if ((i != prev) && (i != next) && (i != index)) {
+			if (point_in_triangle(path[i]->getPos(), triangle)) {
 				return false;
 			}
 		}

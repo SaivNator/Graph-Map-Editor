@@ -2,11 +2,20 @@
 
 #include "MapTriangle.hpp"
 
-MapTriangle::MapTriangle(std::array<MapPoint*, 3> points, MapChunk & chunk, MapGroundType & type) :
+MapTriangle::MapTriangle(const std::array<MapPoint*, 3> & points, MapChunk & chunk, MapGroundType & type) :
 	m_points(points),
 	m_chunk(chunk),
 	m_type(type)
 {
+	for (MapPoint* p : m_points) {
+		p->addTriangle(this);
+	}
+}
+
+void MapTriangle::release() {
+	for (MapPoint* p : m_points) {
+		p->removeTriangle(this);
+	}
 }
 
 MapPoint & MapTriangle::operator[](std::size_t i) {

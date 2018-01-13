@@ -57,23 +57,9 @@ MapPoint* MapChunk::addSharedPoint(std::shared_ptr<MapPoint> ptr) {
 	return m_shared_points.back().get();
 }
 
-MapTriangle* MapChunk::addTriangle(MapTriangle triangle) {
-	m_triangles.push_back(std::unique_ptr<MapTriangle>(new MapTriangle(triangle)));
+MapTriangle* MapChunk::addTriangle(std::array<MapPoint*, 3> & points, MapGroundType type) {
+	m_triangles.push_back(std::unique_ptr<MapTriangle>(new MapTriangle(points, *this, type)));
 	return m_triangles.back().get();
-}
-
-void MapChunk::clear() {
-	m_triangles.clear();
-	m_internal_points.clear();
-	auto it = m_shared_points.begin();
-	while (it != m_shared_points.end()) {
-		if ((*it).use_count() < 2) {
-			it = m_shared_points.erase(it);
-		}
-		else {
-			++it;
-		}
-	}
 }
 
 //end

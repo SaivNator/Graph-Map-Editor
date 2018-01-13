@@ -36,9 +36,14 @@ class MapEditor {
 	void fillMap(Map & map, MapGroundType type);
 
 	/*
+	Clear MapTriangles and internal points
+	*/
+	void clearChunk(MapChunk & chunk);
+
+	/*
 	Clear all shared points from map
 	*/
-	void clearSharedPointsMap(Map & map);
+	void clearSharedPoints(Map & map);
 
 	/*
 	Make outer chunk path

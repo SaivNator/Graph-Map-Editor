@@ -12,6 +12,7 @@
 
 #include "MapPoint.hpp"
 #include "MapTriangle.hpp"
+#include "MapGroundType.hpp"
 
 class MapPoint;
 class MapTriangle;
@@ -90,16 +91,10 @@ public:
 	MapPoint* addSharedPoint(std::shared_ptr<MapPoint> ptr);
 
 	/*
-	Add triangle inside chunk
+	Construct triangle inside chunk
 	return pointer to triangle
 	*/
-	MapTriangle* addTriangle(MapTriangle triangle);
-
-	/*
-	Clear MapTriangles that chunk is owning, 
-	also clear m_points and shared_points that are only owned by this chunk
-	*/
-	void clear();
+	MapTriangle* addTriangle(std::array<MapPoint*, 3> & points, MapGroundType type);
 };
 
 #endif // !MapChunk_HEADER

@@ -24,7 +24,12 @@ public:
 	/*
 	Constructor
 	*/
-	MapTriangle(std::array<MapPoint*, 3> points, MapChunk & chunk, MapGroundType & type);
+	MapTriangle(const std::array<MapPoint*, 3> & points, MapChunk & chunk, MapGroundType & type);
+
+	/*
+	Remove pointers pointing to this triangle
+	*/
+	void release();
 
 	/*
 	[] operator
