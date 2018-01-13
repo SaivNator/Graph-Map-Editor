@@ -5,8 +5,8 @@
 MapEditor::MapEditor() {
 }
 
-void MapEditor::createMap(wykobi::vector2d<float> chunk_size, wykobi::vector2d<int> map_size, MapGroundType number_of_types, MapGroundType default_type) {
-	m_map = std::unique_ptr<Map>(new Map(chunk_size, map_size, number_of_types));
+void MapEditor::createMap(wykobi::vector2d<float> chunk_size, wykobi::vector2d<int> map_size, MapGroundType default_type) {
+	m_map = std::unique_ptr<Map>(new Map(chunk_size, map_size));
 
 	applyChunkRelation(*m_map);
 
@@ -60,7 +60,7 @@ void MapEditor::fillChunk(MapChunk & chunk, MapGroundType type) {
 	
 	std::vector<Triangle> tri_vec = triangulatePath(path);
 
-	std::cout << tri_vec.size() << "\n";
+	//std::cout << tri_vec.size() << "\n";
 
 	for (Triangle & tri : tri_vec) {
 		chunk.addTriangle(tri, type);

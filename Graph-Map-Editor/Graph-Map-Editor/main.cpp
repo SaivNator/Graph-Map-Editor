@@ -15,7 +15,7 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	Window window(sf::VideoMode(500, 500), "Window", arial);
+	Window window(sf::VideoMode(1000, 600), "Window", arial);
 
 	window.join();
 

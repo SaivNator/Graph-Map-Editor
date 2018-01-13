@@ -2,10 +2,10 @@
 
 #include "ViewPort.hpp"
 
-ViewPort::ViewPort(Map & map, wykobi::point2d<float> centre, wykobi::vector2d<float> size) :
+ViewPort::ViewPort(Map & map, wykobi::point2d<float> centre, wykobi::vector2d<float> size, std::size_t number_of_types) :
 	m_map(map),
 	m_view({ centre.x, centre.y }, { size.x, size.y }),
-	m_type_renderer_vec(map.getNumberOfTypes())
+	m_type_renderer_vec(number_of_types)
 {
 }
 

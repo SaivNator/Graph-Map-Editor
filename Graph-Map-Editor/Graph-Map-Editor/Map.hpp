@@ -16,7 +16,6 @@
 class Map {
 	const wykobi::vector2d<float> m_chunk_size;				//size of each chunk
 	const wykobi::vector2d<int> m_map_size;					//number of chunks in each dimention
-	const MapGroundType m_number_of_types;
 
 	std::vector<std::vector<std::unique_ptr<MapChunk>>> m_chunks;
 	std::vector<std::vector<std::unique_ptr<MapPoint>>> m_chunk_corner_points;
@@ -24,7 +23,7 @@ public:
 	/*
 	Constructor
 	*/
-	Map(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size, MapGroundType & number_of_types);
+	Map(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size);
 	
 	/*
 	Check if chunk exist
@@ -41,11 +40,6 @@ public:
 	Get chunks that rect is overlapping
 	*/
 	std::vector<MapChunk*> getChunkInRect(wykobi::rectangle<float> & rect);
-
-	/*
-	Get number of types
-	*/
-	MapGroundType getNumberOfTypes();
 
 	/*
 	Get chunk size

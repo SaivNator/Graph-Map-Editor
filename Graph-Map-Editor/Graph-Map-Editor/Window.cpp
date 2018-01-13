@@ -39,7 +39,8 @@ void Window::eventHandler() {
 void Window::renderHandler() {
 	m_window.clear();
 	if (m_view_port) {
-
+		m_view_port->render();
+		m_window.draw(*m_view_port);
 	}
 	m_window.display();
 }

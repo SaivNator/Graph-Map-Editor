@@ -83,7 +83,7 @@ public:
 	/*
 	Create new map
 	*/
-	void createMap(wykobi::vector2d<float> chunk_size, wykobi::vector2d<int> map_size, MapGroundType number_of_types, MapGroundType default_type);
+	void createMap(wykobi::vector2d<float> chunk_size, wykobi::vector2d<int> map_size, MapGroundType default_type);
 
 	/*
 	Check if mapeditor has map loaded

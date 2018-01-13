@@ -2,10 +2,9 @@
 
 #include "Map.hpp"
 
-Map::Map(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size, MapGroundType & number_of_types) :
+Map::Map(wykobi::vector2d<float> & chunk_size, wykobi::vector2d<int> & map_size) :
 	m_chunk_size(chunk_size),
-	m_map_size(map_size),
-	m_number_of_types(number_of_types)
+	m_map_size(map_size)
 {
 	//init m_chunks
 	m_chunk_corner_points.reserve(m_map_size.x + 1);
@@ -65,10 +64,6 @@ std::vector<MapChunk*> Map::getChunkInRect(wykobi::rectangle<float> & rect) {
 		}
 	}
 	return out_vec;
-}
-
-MapGroundType Map::getNumberOfTypes() {
-	return m_number_of_types;
 }
 
 wykobi::vector2d<float> Map::getChunkSize() {

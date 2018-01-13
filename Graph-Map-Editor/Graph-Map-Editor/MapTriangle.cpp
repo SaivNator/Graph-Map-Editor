@@ -72,14 +72,12 @@ void MapTriangle::findRelations() {
 	for (MapPoint* origin_point : m_points) {
 		for (MapTriangle* tri : origin_point->getTriangles()) {
 			std::size_t count = 0;
-			auto it = tri->m_points.begin();
-			while (it != tri->m_points.end()) {
+			for (auto it = tri->getPoints().begin(); it != tri->getPoints().end(); ++it) {
 				for (MapPoint* test_point : m_points) {
 					if ((*it) == test_point) {
 						++count;
 					}
 				}
-				++it;
 			}
 			if (count == 2) {
 				addRelation(tri);
