@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FileDialog.cpp" />
+    <ClCompile Include="ImageUtil.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MapChunk.cpp" />
@@ -156,6 +157,7 @@
     <ClInclude Include="MapGroundTypeRenderer.hpp" />
     <ClInclude Include="MapPoint.hpp" />
     <ClInclude Include="MapTriangle.hpp" />
+    <ClInclude Include="ImageUtil.hpp" />
     <ClInclude Include="ViewPort.hpp" />
     <ClInclude Include="Window.hpp" />
   </ItemGroup>

@@ -7,10 +7,7 @@ MapEditor::MapEditor() {
 
 void MapEditor::createMap(wykobi::vector2d<float> chunk_size, wykobi::vector2d<int> map_size, MapGroundType default_type) {
 	m_map = std::unique_ptr<Map>(new Map(chunk_size, map_size));
-
 	applyChunkRelation(*m_map);
-
-	//make default triangles
 	fillMap(*m_map, default_type);
 }
 

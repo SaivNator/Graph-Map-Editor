@@ -51,7 +51,7 @@ class Window {
 	*/
 	void testLoad() {
 		m_map_editor.createMap(wykobi::make_vector(256.f, 256.f), wykobi::make_vector(10, 10), 0);
-		
+
 		//for (int x = 0; x < m_map_editor.getMap()->getMapSize().x; ++x) {
 		//	for (int y = 0; y < m_map_editor.getMap()->getMapSize().y; ++y) {
 		//		wykobi::point2d<int> p = wykobi::make_point(x, y);
@@ -60,15 +60,31 @@ class Window {
 		//		}
 		//	}
 		//}
-		
-		m_view_port = std::unique_ptr<ViewPort>(new ViewPort(*m_map_editor.getMap(), wykobi::make_point(0.f, 0.f), wykobi::make_vector(static_cast<float>(m_window.getSize().x), static_cast<float>(m_window.getSize().y)), 10));
-		
-		m_textures.push_back(std::shared_ptr<sf::Texture>(new sf::Texture()));
-		if (!m_textures[0]->loadFromFile("../../resources/textures/void.png")) {
-			std::cout << "Texture load failed\n";
-		}
 
-		m_view_port->getMapGroundTypeRenderer(0).setTexture(m_textures[0]);
+		m_view_port = std::unique_ptr<ViewPort>(new ViewPort(*m_map_editor.getMap(), wykobi::make_point(0.f, 0.f), wykobi::make_vector(static_cast<float>(m_window.getSize().x), static_cast<float>(m_window.getSize().y)), 10));
+
+		std::vector<std::string> tex_path{
+			"../../resources/textures/void.png",
+			"../../resources/textures/void.png",
+			"../../resources/textures/water.png",
+			"../../resources/textures/grass_plain.png",
+			"../../resources/textures/forrest.png",
+			"../../resources/textures/desert.png",
+			"../../resources/textures/mountain.png",
+			"../../resources/textures/artic.png",
+			"../../resources/textures/tundra.png",
+			"../../resources/textures/jungle.png"
+		};
+		m_textures = std::vector<std::shared_ptr<sf::Texture>>(tex_path.size());
+		for (std::size_t i = 0; i < tex_path.size(); ++i) {
+			m_textures[i] = std::shared_ptr<sf::Texture>(new sf::Texture());
+			if (m_textures[i]->loadFromFile(tex_path[i])) {
+				m_view_port->getMapGroundTypeRenderer(i).setTexture(m_textures[i]);
+			}
+			//else {
+			//	std::cout << "\"" << tex_path[i] << "\" failed\n";
+			//}
+		}
 	}
 public:
 	/*

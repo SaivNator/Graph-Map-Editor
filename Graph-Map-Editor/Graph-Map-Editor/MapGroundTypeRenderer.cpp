@@ -14,7 +14,7 @@ void MapGroundTypeRenderer::appendTriangle(MapTriangle & triangle) {
 	for (std::size_t i = 0; i < triangle.size(); ++i) {
 		sf::Vertex v;
 		v.position = { triangle[i].x, triangle[i].y };
-		wykobi::vector2d<float> tex_pos = triangle[i] - triangle.getChunk().getOffset();
+		wykobi::point2d<float> tex_pos = triangle[i] - triangle.getChunk().getOffset();
 		v.texCoords = { tex_pos.x, tex_pos.y };
 		m_vertex_array.append(v);
 	}
