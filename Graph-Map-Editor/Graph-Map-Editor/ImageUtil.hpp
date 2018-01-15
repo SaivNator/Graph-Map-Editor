@@ -37,7 +37,7 @@ namespace ImageUtil {
 	Next higher power of 2
 	*/
 	template <class T>
-	T nextPowerOf2(T k) {
+	T nextPowerOf2(T v) {
 		return std::pow(static_cast<T>(2), std::ceil(std::log(v) / std::log(static_cast<T>(2))));
 	}
 

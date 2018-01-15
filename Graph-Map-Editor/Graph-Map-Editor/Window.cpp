@@ -26,9 +26,38 @@ void Window::windowHandler(sf::VideoMode mode, const std::string& title, sf::Uin
 void Window::eventHandler() {
 	sf::Event e;
 	while (m_window.pollEvent(e)) {
+		sf::Vector2f mouse_world_pos;
 		switch (e.type) {
 		case sf::Event::Closed:
 			m_running = false;
+			break;
+		case sf::Event::MouseButtonPressed:
+			mouse_world_pos = m_window.mapPixelToCoords({ e.mouseButton.x, e.mouseButton.y }, m_view_port->getView());
+			switch (e.mouseButton.button) {
+			case sf::Mouse::Left:
+				if (!m_mouse_left_bounce) {
+					m_mouse_move_handler.click(mouse_world_pos);
+					m_mouse_left_bounce = true;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		case sf::Event::MouseButtonReleased:
+			switch (e.mouseButton.button) {
+			case sf::Mouse::Left:
+				if (m_mouse_left_bounce) {
+					m_mouse_move_handler.release();
+					m_mouse_left_bounce = false;
+				}
+			default:
+				break;
+			}
+			break;
+		case sf::Event::MouseMoved:
+			mouse_world_pos = m_window.mapPixelToCoords({ e.mouseMove.x, e.mouseMove.y }, m_view_port->getView());
+			m_mouse_move_handler.update(mouse_world_pos, m_view_port->getView());
 			break;
 		default:
 			break;

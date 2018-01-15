@@ -14,6 +14,7 @@
 
 #include "MapEditor.hpp"
 #include "ViewPort.hpp"
+#include "MouseMoveHandler.hpp"
 
 class Window {
 	sf::RenderWindow m_window;
@@ -21,11 +22,11 @@ class Window {
 	std::chrono::milliseconds m_sleep_duration;
 	std::thread m_window_thread;
 	const std::shared_ptr<sf::Font> m_font;
-
 	MapEditor m_map_editor;
 	std::unique_ptr<ViewPort> m_view_port;
-
 	std::vector<std::shared_ptr<sf::Texture>> m_textures;
+	bool m_mouse_left_bounce = false;
+	MouseMoveHandler m_mouse_move_handler;
 
 	/*
 	Window thread function
@@ -50,7 +51,9 @@ class Window {
 	TEST LOAD FUNCTION
 	*/
 	void testLoad() {
-		m_map_editor.createMap(wykobi::make_vector(256.f, 256.f), wykobi::make_vector(10, 10), 0);
+		m_map_editor.createMap(wykobi::make_vector(256.f, 256.f), wykobi::make_vector(10, 10), 1);
+
+
 
 		//for (int x = 0; x < m_map_editor.getMap()->getMapSize().x; ++x) {
 		//	for (int y = 0; y < m_map_editor.getMap()->getMapSize().y; ++y) {
@@ -64,7 +67,6 @@ class Window {
 		m_view_port = std::unique_ptr<ViewPort>(new ViewPort(*m_map_editor.getMap(), wykobi::make_point(0.f, 0.f), wykobi::make_vector(static_cast<float>(m_window.getSize().x), static_cast<float>(m_window.getSize().y)), 10));
 
 		std::vector<std::string> tex_path{
-			"../../resources/textures/void.png",
 			"../../resources/textures/void.png",
 			"../../resources/textures/water.png",
 			"../../resources/textures/grass_plain.png",
@@ -85,6 +87,9 @@ class Window {
 			//	std::cout << "\"" << tex_path[i] << "\" failed\n";
 			//}
 		}
+
+		m_mouse_move_handler.setMode(true);
+
 	}
 public:
 	/*

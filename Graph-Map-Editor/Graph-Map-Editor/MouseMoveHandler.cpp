@@ -2,20 +2,28 @@
 
 #include "MouseMoveHandler.hpp"
 
-void MouseMoveHandler::activate(wykobi::point2d<float> pos) {
-	m_active = true;
-	m_start_pos = pos;
+void MouseMoveHandler::setMode(bool mode) {
+	m_active = mode;
 }
 
-void MouseMoveHandler::update(wykobi::point2d<float> pos, sf::View & view) {
+void MouseMoveHandler::click(sf::Vector2f & pos) {
 	if (m_active) {
-		wykobi::vector2d<float> diff = m_start_pos - pos;
-		view.move({ diff.x, diff.y });
+		m_clicked = true;
+		m_start_pos = pos;
 	}
 }
 
-void MouseMoveHandler::deactivate() {
-	m_active = false;
+void MouseMoveHandler::update(sf::Vector2f & pos, sf::View & view) {
+	if (m_active && m_clicked) {
+		sf::Vector2f diff = m_start_pos - pos;
+		view.move(diff);
+	}
+}
+
+void MouseMoveHandler::release() {
+	if (m_active) {
+		m_clicked = false;
+	}
 }
 
 //end

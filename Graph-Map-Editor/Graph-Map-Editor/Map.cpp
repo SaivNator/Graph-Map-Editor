@@ -47,10 +47,10 @@ MapChunk* Map::getChunk(wykobi::point2d<int> & pos) {
 }
 
 std::vector<MapChunk*> Map::getChunkInRect(wykobi::rectangle<float> & rect) {
-	int x0 = static_cast<int>(std::floor(wykobi::min(rect[0].x, rect[1].x)));
-	int y0 = static_cast<int>(std::floor(wykobi::min(rect[0].y, rect[1].y)));
-	int x1 = static_cast<int>(std::ceil(wykobi::max(rect[0].x, rect[1].x)));
-	int y1 = static_cast<int>(std::ceil(wykobi::max(rect[0].y, rect[1].y)));
+	int x0 = static_cast<int>(std::floor(wykobi::min(rect[0].x, rect[1].x) / m_chunk_size.x));
+	int y0 = static_cast<int>(std::floor(wykobi::min(rect[0].y, rect[1].y) / m_chunk_size.y));
+	int x1 = static_cast<int>(std::ceil(wykobi::max(rect[0].x, rect[1].x) / m_chunk_size.x));
+	int y1 = static_cast<int>(std::ceil(wykobi::max(rect[0].y, rect[1].y) / m_chunk_size.y));
 
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;

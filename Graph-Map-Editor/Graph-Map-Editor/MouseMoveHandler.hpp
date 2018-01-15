@@ -6,26 +6,30 @@
 
 #include <SFML\Graphics.hpp>
 
-#include <wykobi.hpp>
-
 class MouseMoveHandler {
 	bool m_active = false;
-	wykobi::point2d<float> m_start_pos;
+	bool m_clicked = false;
+	sf::Vector2f m_start_pos;
 public:
 	/*
-	Activate handler, when mouse button is clicked
+	Set mode, true = on, false = off
 	*/
-	void activate(wykobi::point2d<float> pos);
+	void setMode(bool mode);
+
+	/*
+	Click handler, when mouse button is clicked
+	*/
+	void click(sf::Vector2f & pos);
 	
 	/*
 	Update view, when mouse button is down and is dragging
 	*/
-	void update(wykobi::point2d<float> pos, sf::View & view);
+	void update(sf::Vector2f & pos, sf::View & view);
 
 	/*
-	Deactivate handler, when mouse button is released
+	Release handler, when mouse button is released
 	*/
-	void deactivate();
+	void release();
 };
 
 #endif // !MouseMoveHandler_HEADER
