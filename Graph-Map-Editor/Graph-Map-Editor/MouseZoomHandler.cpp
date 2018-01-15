@@ -18,10 +18,10 @@ void MouseZoomHandler::update(sf::Vector2i & pixel_pos, sf::View & view, sf::Ren
 		else {
 			return;
 		}
-		const sf::Vector2f before_coord = window.mapPixelToCoords(pixel_pos, view);
+		sf::Vector2f before_coord = window.mapPixelToCoords(pixel_pos, view);
 		view.zoom(zoom);
-		const sf::Vector2f after_coord = window.mapPixelToCoords(pixel_pos, view);
-		const sf::Vector2f offset_coords = before_coord - after_coord;
+		sf::Vector2f after_coord = window.mapPixelToCoords(pixel_pos, view);
+		sf::Vector2f offset_coords = before_coord - after_coord;
 		view.move(offset_coords);
 	}
 }

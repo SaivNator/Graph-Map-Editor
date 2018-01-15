@@ -8,7 +8,7 @@
 
 class MouseZoomHandler {
 	bool m_active = false;
-	const float m_zoom_amount = 1.1;
+	const float m_zoom_amount = 1.1f;
 public:
 	/*
 	Set active, true = on, false = off
