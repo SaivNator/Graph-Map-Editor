@@ -26,13 +26,15 @@ void Window::windowHandler(sf::VideoMode mode, const std::string& title, sf::Uin
 void Window::eventHandler() {
 	sf::Event e;
 	while (m_window.pollEvent(e)) {
+		sf::Vector2i mouse_pixel_pos;
 		sf::Vector2f mouse_world_pos;
 		switch (e.type) {
 		case sf::Event::Closed:
 			m_running = false;
 			break;
 		case sf::Event::MouseButtonPressed:
-			mouse_world_pos = m_window.mapPixelToCoords({ e.mouseButton.x, e.mouseButton.y }, m_view_port->getView());
+			mouse_pixel_pos = { e.mouseButton.x, e.mouseButton.y };
+			mouse_world_pos = m_window.mapPixelToCoords(mouse_pixel_pos, m_view_port->getView());
 			switch (e.mouseButton.button) {
 			case sf::Mouse::Left:
 				if (!m_mouse_left_bounce) {
@@ -56,8 +58,14 @@ void Window::eventHandler() {
 			}
 			break;
 		case sf::Event::MouseMoved:
-			mouse_world_pos = m_window.mapPixelToCoords({ e.mouseMove.x, e.mouseMove.y }, m_view_port->getView());
+			mouse_pixel_pos = { e.mouseMove.x, e.mouseMove.y };
+			mouse_world_pos = m_window.mapPixelToCoords(mouse_pixel_pos, m_view_port->getView());
 			m_mouse_move_handler.update(mouse_world_pos, m_view_port->getView());
+			break;
+		case sf::Event::MouseWheelScrolled:
+			mouse_pixel_pos = { e.mouseWheelScroll.x, e.mouseWheelScroll.y };
+			mouse_world_pos = m_window.mapPixelToCoords(mouse_pixel_pos, m_view_port->getView());
+			m_mouse_zoom_handler.update(mouse_pixel_pos, m_view_port->getView(), m_window, e.mouseWheelScroll.delta);
 			break;
 		default:
 			break;

@@ -12,9 +12,9 @@ class MouseMoveHandler {
 	sf::Vector2f m_start_pos;
 public:
 	/*
-	Set mode, true = on, false = off
+	Set active, true = on, false = off
 	*/
-	void setMode(bool mode);
+	void setActive(bool v);
 
 	/*
 	Click handler, when mouse button is clicked

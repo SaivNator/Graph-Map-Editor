@@ -15,6 +15,7 @@
 #include "MapEditor.hpp"
 #include "ViewPort.hpp"
 #include "MouseMoveHandler.hpp"
+#include "MouseZoomHandler.hpp"
 
 class Window {
 	sf::RenderWindow m_window;
@@ -27,6 +28,7 @@ class Window {
 	std::vector<std::shared_ptr<sf::Texture>> m_textures;
 	bool m_mouse_left_bounce = false;
 	MouseMoveHandler m_mouse_move_handler;
+	MouseZoomHandler m_mouse_zoom_handler;
 
 	/*
 	Window thread function
@@ -88,7 +90,8 @@ class Window {
 			//}
 		}
 
-		m_mouse_move_handler.setMode(true);
+		m_mouse_move_handler.setActive(true);
+		m_mouse_zoom_handler.setActive(true);
 
 	}
 public:

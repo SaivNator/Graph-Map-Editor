@@ -2,8 +2,8 @@
 
 #include "MouseMoveHandler.hpp"
 
-void MouseMoveHandler::setMode(bool mode) {
-	m_active = mode;
+void MouseMoveHandler::setActive(bool v) {
+	m_active = v;
 }
 
 void MouseMoveHandler::click(sf::Vector2f & pos) {
