@@ -141,7 +141,7 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MapChunk.cpp" />
     <ClCompile Include="MapEditor.cpp" />
-    <ClCompile Include="MapGroundTypeRenderer.cpp" />
+    <ClCompile Include="MapGroundRenderer.cpp" />
     <ClCompile Include="MapPoint.cpp" />
     <ClCompile Include="MapTriangle.cpp" />
     <ClCompile Include="MouseMoveHandler.cpp" />
@@ -156,7 +156,7 @@
     <ClInclude Include="MapEditor.hpp" />
     <ClInclude Include="MapFile.hpp" />
     <ClInclude Include="MapGroundType.hpp" />
-    <ClInclude Include="MapGroundTypeRenderer.hpp" />
+    <ClInclude Include="MapGroundRenderer.hpp" />
     <ClInclude Include="MapPoint.hpp" />
     <ClInclude Include="MapTriangle.hpp" />
     <ClInclude Include="ImageUtil.hpp" />

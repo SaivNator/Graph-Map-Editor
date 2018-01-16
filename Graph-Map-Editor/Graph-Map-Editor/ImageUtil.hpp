@@ -113,7 +113,7 @@ namespace ImageUtil {
 			for (std::size_t y = 0; (y < index_length && !pending_rect.empty()); ++y) {
 				std::pair<std::size_t, wykobi::rectangle<T>> p = pending_rect.back();
 				pending_rect.pop_back();
-				wykobi::vector2d<T> offset = wykobi::make_vector<T>(x * side, y * side);
+				wykobi::vector2d<T> offset = wykobi::make_vector<T>(static_cast<T>(x) * side, static_cast<T>(y) * side);
 				p.second = wykobi::translate(offset, p.second);
 				placed_rect.push_back(p);
 			}

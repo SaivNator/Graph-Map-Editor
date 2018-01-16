@@ -13,12 +13,12 @@
 #include "MapChunk.hpp"
 #include "Map.hpp"
 #include "MapGroundType.hpp"
-#include "MapGroundTypeRenderer.hpp"
+#include "MapGroundRenderer.hpp"
 
 class ViewPort : public sf::Drawable {
 	Map & m_map;
 	sf::View m_view;
-	std::vector<MapGroundTypeRenderer> m_type_renderer_vec;
+	MapGroundRenderer m_ground_renderer;
 
 	/*
 	SFML draw
@@ -28,7 +28,7 @@ public:
 	/*
 	Constructor
 	*/
-	ViewPort(Map & map, wykobi::point2d<float> centre, wykobi::vector2d<float> size, std::size_t number_of_types);
+	ViewPort(Map & map, wykobi::point2d<float> centre, wykobi::vector2d<float> size, std::shared_ptr<sf::Texture> & tex_ptr, std::vector<wykobi::rectangle<float>> & tex_offset);
 
 	/*
 	Get view
@@ -39,11 +39,6 @@ public:
 	Get view rect in world cors
 	*/
 	wykobi::rectangle<float> getRect();
-
-	/*
-	Get MapGroundTypeRenderer
-	*/
-	MapGroundTypeRenderer & getMapGroundTypeRenderer(MapGroundType type);
 
 	/*
 	Convert view pos to map pos
