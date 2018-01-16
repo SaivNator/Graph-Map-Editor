@@ -23,14 +23,14 @@ namespace ImageUtil {
 	Copy image_vec to image
 	Fill rect_vec with coords to images in order of image_vec
 	*/
-	std::pair<sf::Image, std::vector<wykobi::rectangle<float>>> mergeImages(std::vector<sf::Image> & image_vec);
+	std::pair<sf::Image, std::vector<wykobi::rectangle<int>>> packImages(std::vector<sf::Image> & image_vec);
 
 	/*
 	Find nearest power of 2
 	*/
 	template <class T>
 	T nearestPowerOf2(T v) {
-		return std::pow(static_cast<T>(2), std::round(std::log(v) / std::log(static_cast<T>(2))));
+		return static_cast<T>(std::pow(static_cast<T>(2), std::round(std::log(v) / std::log(static_cast<T>(2)))));
 	}
 
 	/*

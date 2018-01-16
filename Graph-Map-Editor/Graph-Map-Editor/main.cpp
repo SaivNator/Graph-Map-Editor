@@ -11,6 +11,7 @@
 #include "Window.hpp"
 
 #include "ImageUtil.hpp"
+#include "FileDialog.hpp"
 
 template <typename T>
 std::string toString(wykobi::rectangle<T> & rect) {
@@ -22,26 +23,38 @@ std::string toString(wykobi::rectangle<T> & rect) {
 
 int main() {
 
-	wykobi::rectangle<int> rect = wykobi::make_rectangle<int>(0, 0, 256, 256);
+	std::vector<std::string> tex_path{
+		"../../resources/textures/void.png",
+		"../../resources/textures/water.png",
+		"../../resources/textures/grass_plain.png",
+		"../../resources/textures/forrest.png",
+		"../../resources/textures/desert.png",
+		"../../resources/textures/mountain.png",
+		"../../resources/textures/artic.png",
+		"../../resources/textures/tundra.png",
+		"../../resources/textures/jungle.png"
+	};
 
-	std::vector<wykobi::rectangle<int>> rect_vec(17, rect);
-
-	rect = wykobi::make_rectangle<int>(0, 0, 12, 43);
-
-	for (std::size_t i = 0; i < 7; ++i) {
-		rect_vec.push_back(rect);
+	std::vector<sf::Image> image_vec(tex_path.size());
+	for (std::size_t i = 0; i < image_vec.size(); ++i) {
+		image_vec[i].loadFromFile(tex_path[i]);
 	}
 
-	auto pair = ImageUtil::packRectangles<int>(rect_vec);
+	auto pair = ImageUtil::packImages(image_vec);
 
-	std::cout << toString<int>(pair.first) << "\n";
+	FileDialog::SaveFile save;
+	save.create();
+	pair.first.saveToFile(save.getPath());
 
-	for (auto & r : pair.second) {
-		std::cout << toString<int>(r) << "\n";
+	for (auto & rect : pair.second) {
+		std::cout << toString<int>(rect) << "\n";
 	}
+
+
 
 
 	return EXIT_SUCCESS;
+
 }
 
 /*
