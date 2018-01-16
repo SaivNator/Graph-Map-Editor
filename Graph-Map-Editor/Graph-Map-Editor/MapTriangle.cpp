@@ -5,7 +5,8 @@
 MapTriangle::MapTriangle(const std::array<MapPoint*, 3> & points, MapChunk & chunk, MapGroundType & type) :
 	m_points(points),
 	m_chunk(chunk),
-	m_type(type)
+	m_type(type),
+	m_centroid(wykobi::centroid(m_points[0]->getPos(), m_points[1]->getPos(), m_points[2]->getPos()))
 {
 	//tell points that this triangle exist
 	for (MapPoint* p : m_points) {
@@ -30,6 +31,10 @@ wykobi::point2d<float> MapTriangle::operator[](std::size_t i) {
 
 const std::array<MapPoint*, 3> & MapTriangle::getPoints() {
 	return m_points;
+}
+
+wykobi::point2d<float> MapTriangle::getCentroid() {
+	return m_centroid;
 }
 
 std::size_t MapTriangle::size() {

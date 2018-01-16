@@ -18,7 +18,7 @@
 class ViewPort : public sf::Drawable {
 	Map & m_map;
 	sf::View m_view;
-	MapGroundRenderer m_ground_renderer;
+	MapGroundRenderer m_map_ground_renderer;
 
 	/*
 	SFML draw
@@ -39,6 +39,11 @@ public:
 	Get view rect in world cors
 	*/
 	wykobi::rectangle<float> getRect();
+
+	/*
+	Get map ground renderer
+	*/
+	MapGroundRenderer & getMapGroundRenderer();
 
 	/*
 	Convert view pos to map pos

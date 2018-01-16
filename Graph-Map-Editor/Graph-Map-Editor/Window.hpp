@@ -95,6 +95,10 @@ class Window {
 		m_mouse_move_handler.setActive(true);
 		m_mouse_zoom_handler.setActive(true);
 
+		m_view_port->getMapGroundRenderer().setShowTriangleTexture(true);
+		m_view_port->getMapGroundRenderer().setShowTriangleLines(false);
+		m_view_port->getMapGroundRenderer().setShowTriangleRelations(false);
+
 	}
 public:
 	/*

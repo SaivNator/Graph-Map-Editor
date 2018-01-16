@@ -8,6 +8,8 @@
 #include <vector>
 #include <memory>
 
+#include <wykobi.hpp>
+
 #include "MapPoint.hpp"
 #include "MapChunk.hpp"
 #include "MapGroundType.hpp"
@@ -17,6 +19,7 @@ class MapChunk;
 
 class MapTriangle {
 	const std::array<MapPoint*, 3> m_points;
+	const wykobi::point2d<float> m_centroid;
 	MapChunk & m_chunk;
 	const MapGroundType m_type;
 	std::vector<MapTriangle*> m_relations;
@@ -46,6 +49,11 @@ public:
 	Get points
 	*/
 	const std::array<MapPoint*, 3> & getPoints();
+
+	/*
+	Get centroid
+	*/
+	wykobi::point2d<float> getCentroid();
 
 	/*
 	Get size
