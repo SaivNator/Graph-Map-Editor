@@ -48,18 +48,11 @@ void MapEditor::applyChunkRelation(Map & map) {
 
 void MapEditor::fillChunk(MapChunk & chunk, MapGroundType type) {
 	clearChunk(chunk);
-	Path path = outerChunkPath(chunk);
+	EditorPath path = outerChunkPath(chunk);
 	
-	//for (MapPoint* p : path) {
-	//	std::cout << p->getPos().x << "," << p->getPos().y << "->";
-	//}
-	//std::cout << "\n";
-	
-	std::vector<Triangle> tri_vec = triangulatePath(path);
+	std::vector<EditorTriangle> tri_vec = path.triangulate();
 
-	//std::cout << tri_vec.size() << "\n";
-
-	for (Triangle & tri : tri_vec) {
+	for (EditorTriangle & tri : tri_vec) {
 		chunk.addTriangle(tri, type);
 	}
 }
@@ -91,8 +84,8 @@ void MapEditor::clearSharedPoints(Map & map) {
 	}
 }
 
-Path MapEditor::outerChunkPath(MapChunk & chunk) {
-	Path path;
+EditorPath MapEditor::outerChunkPath(MapChunk & chunk) {
+	EditorPath path;
 	std::set<MapPoint*> shared_points;
 	for (auto & ptr : chunk.getSharedPoints()) {
 		shared_points.emplace(ptr.get());
@@ -123,136 +116,8 @@ Path MapEditor::outerChunkPath(MapChunk & chunk) {
 	return path;
 }
 
-std::vector<Triangle> MapEditor::triangulatePath(Path path) {
-	std::vector<std::array<MapPoint*, 3>> out_vec;
-	if (path.size() < 3) {
-		return out_vec;
-	}
-	else if (path.size() == 3) {
-		out_vec.push_back({ path[0], path[1], path[2] });
-		return out_vec;
-	}
-	if (pathOrientation(path) != wykobi::Clockwise) {
-		std::reverse(path.begin(), path.end());
-	}
-	while (path.size() > 3) {
-		for (std::size_t i = 0; i < path.size(); ++i) {
-			if (convexVertex(i, path, wykobi::Clockwise) && vertexIsEar(i, path)) {
-				out_vec.push_back(vertexTriangle(i, path));
-				path.erase(path.begin() + i);
-				break;
-			}
-		}
-	}
-	out_vec.push_back(vertexTriangle(1, path));
-	return out_vec;
-}
-
-int MapEditor::pathOrientation(Path & path) {
-	wykobi::polygon<float, 2> poly;
-	poly.reserve(path.size());
-	for (MapPoint* p : path) {
-		poly.push_back(p->getPos());
-	}
-	return wykobi::polygon_orientation(poly);
-}
-
-bool MapEditor::convexVertex(const std::size_t index, const Path & path, const int wykovi_orientation) {
-	wykobi::point2d<float> prev;
-	wykobi::point2d<float> current = path[index]->getPos();
-	wykobi::point2d<float> next;
-	if (index == 0) {
-		prev = path.back()->getPos();
-		next = path[index + 1]->getPos();
-	}
-	else if (index == path.size() - 1) {
-		prev = path[index - 1]->getPos();
-		next = path.front()->getPos();
-	}
-	else {
-		prev = path[index - 1]->getPos();
-		next = path[index + 1]->getPos();
-	}
-	return (wykobi::orientation(prev, current, next) == wykovi_orientation);
-}
-
-bool MapEditor::vertexIsEar(const std::size_t index, const Path & path) {
-	std::size_t prev;
-	std::size_t next;
-	if (index == 0) {
-		prev = path.size() - 1;
-		next = index + 1;
-	}
-	else if (index == path.size() - 1) {
-		prev = index - 1;
-		next = 0;
-	}
-	else {
-		prev = index - 1;
-		next = index + 1;
-	}
-	wykobi::triangle<float, 2> triangle = wykobi::make_triangle(path[prev]->getPos(), path[index]->getPos(), path[next]->getPos());
-	if (wykobi::robust_collinear(triangle[0], triangle[1], triangle[2])) {
-		return false;
-	}
-	for (std::size_t i = 0; i < path.size(); ++i) {
-		if ((i != prev) && (i != next) && (i != index)) {
-			if (point_in_triangle(path[i]->getPos(), triangle)) {
-				return false;
-			}
-		}
-	}
-	return true;
-}
-
-Triangle MapEditor::vertexTriangle(const std::size_t index, const Path & path) {
-	MapPoint* prev;
-	MapPoint* current = path[index];
-	MapPoint* next;
-	if (index == 0) {
-		prev = path.back();
-		next = path[index + 1];
-	}
-	else if (index == path.size() - 1) {
-		prev = path[index - 1];
-		next = path.front();
-	}
-	else {
-		prev = path[index - 1];
-		next = path[index + 1];
-	}
-	return { prev, current, next };
-}
-
-std::vector<std::pair<Path::iterator, Path::iterator>> MapEditor::sharedEdge(Path & path, Triangle & triangle) {
-	std::vector<std::pair<Path::iterator, Path::iterator>> out_vec;
-	for (Triangle::iterator tri_it_1 = triangle.begin(); tri_it_1 != triangle.end(); ++tri_it_1) {
-		Path::iterator path_it_1 = std::find(path.begin(), path.end(), (*tri_it_1));
-		if (path_it_1 != path.end()) {
-			Path::iterator path_it_2 = (path_it_1 != path.end() - 1) ? path_it_1 + 1 : path.begin();
-			Triangle::iterator tri_it_2 = std::find(triangle.begin(), triangle.end(), (*path_it_2));
-			if (tri_it_2 != triangle.end()) {
-				out_vec.push_back(std::pair<Path::iterator, Path::iterator>(path_it_1, path_it_2));
-			}
-		}
-	}
-	return out_vec;
-}
-
-MapPoint* MapEditor::getOddPoint(Triangle & triangle, MapPoint* p1, MapPoint* p2) {
-	Triangle::iterator it_1 = std::find(triangle.begin(), triangle.end(), p1);
-	Triangle::iterator it_2 = std::find(triangle.begin(), triangle.end(), p2);
-	if (it_1 + 1 != triangle.end() && it_1 + 1 != it_2) {
-		return (*it_1 + 1);
-	}
-	if (it_2 + 1 != triangle.end() && it_2 + 1 != it_1) {
-		return (*it_2 + 1);
-	}
-	return (*triangle.begin());
-}
-
-std::map<MapGroundType, std::vector<Path>> MapEditor::mergeTrianglesInChunk(MapChunk & chunk) {
-	std::map<MapGroundType, std::vector<Path>> out_map;
+std::map<MapGroundType, std::vector<EditorPath>> MapEditor::mergeTrianglesInChunk(MapChunk & chunk) {
+	std::map<MapGroundType, std::vector<EditorPath>> out_map;
 
 	//dfs
 	for (auto it = chunk.getTriangles().begin(); it != chunk.getTriangles().end(); ++it) {
@@ -272,15 +137,15 @@ std::map<MapGroundType, std::vector<Path>> MapEditor::mergeTrianglesInChunk(MapC
 					}
 				}
 			}
-			Path current_path;
-			Triangle current_triangle = triangle_order.front()->getPoints();
+			EditorPath current_path;
+			EditorTriangle current_triangle = triangle_order.front()->getPoints();
 			current_path.insert(current_path.end(), current_triangle.begin(), current_triangle.end());
 			for (auto it_2 = triangle_order.begin() + 1; it_2 != triangle_order.end(); ++it_2) {
 				current_triangle = (*it_2)->getPoints();
-				auto shared_edge_vec = sharedEdge(current_path, current_triangle);
+				auto shared_edge_vec = current_path.sharedEdge(current_triangle);
 				if (shared_edge_vec.size() == 1) {
 					//if share one edge, then insert not-included point inbetween iterators
-					MapPoint* p = getOddPoint(current_triangle, (*shared_edge_vec.front().first), (*shared_edge_vec.front().second));
+					MapPoint* p = current_triangle.getOddPoint((*shared_edge_vec.front().first), (*shared_edge_vec.front().second));
 					current_path.insert(shared_edge_vec.front().first, p);
 				}
 				else if (shared_edge_vec.size() == 2) {

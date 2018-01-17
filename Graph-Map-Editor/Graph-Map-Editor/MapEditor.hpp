@@ -15,8 +15,8 @@
 #include "Map.hpp"
 #include "MapGroundType.hpp"
 
-typedef std::array<MapPoint*, 3> Triangle;
-typedef std::vector<MapPoint*> Path;
+#include "EditorTriangle.hpp"
+#include "EditorPath.hpp"
 
 class MapEditor {
 	bool m_map_is_loaded = false;
@@ -50,49 +50,12 @@ class MapEditor {
 	/*
 	Make outer chunk path
 	*/
-	Path outerChunkPath(MapChunk & chunk);
-
-	/*
-	Triangulate path of MapPoints
-	*/
-	std::vector<Triangle> triangulatePath(Path path);
-
-	/*
-	Get path orientation
-	*/
-	int pathOrientation(Path & path);
-
-	/*
-	Check if vertex is convex
-	*/
-	bool convexVertex(const std::size_t index, const Path & path, const int wykovi_orientation);
-
-	/*
-	Check if vertex is ear (for triangulation)
-	*/
-	bool vertexIsEar(const std::size_t index, const Path & path);
-
-	/*
-	Make triangle from path and index
-	*/
-	Triangle vertexTriangle(const std::size_t index, const Path & path);
-
-	/*
-	Check if path and triangle has a shared edge
-	Return vector of pairs of iterators that make up edges
-	Return empty vector if no shared edge is found
-	*/
-	std::vector<std::pair<Path::iterator, Path::iterator>> sharedEdge(Path & path, Triangle & triangle);
-
-	/*
-	Get MapPoint that is not input
-	*/
-	MapPoint* getOddPoint(Triangle & triangle, MapPoint* p1, MapPoint* p2);
+	EditorPath outerChunkPath(MapChunk & chunk);
 
 	/*
 	Merge Triangles in chunk by type
 	*/
-	std::map<MapGroundType, std::vector<Path>> mergeTrianglesInChunk(MapChunk & chunk);
+	std::map<MapGroundType, std::vector<EditorPath>> mergeTrianglesInChunk(MapChunk & chunk);
 public:
 	/*
 	Constructor
