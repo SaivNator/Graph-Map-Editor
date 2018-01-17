@@ -85,6 +85,11 @@ class MapEditor {
 	std::vector<std::pair<Path::iterator, Path::iterator>> sharedEdge(Path & path, Triangle & triangle);
 
 	/*
+	Get MapPoint that is not input
+	*/
+	MapPoint* getOddPoint(Triangle & triangle, MapPoint* p1, MapPoint* p2);
+
+	/*
 	Merge Triangles in chunk by type
 	*/
 	std::map<MapGroundType, std::vector<Path>> mergeTrianglesInChunk(MapChunk & chunk);

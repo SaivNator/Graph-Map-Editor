@@ -239,6 +239,17 @@ std::vector<std::pair<Path::iterator, Path::iterator>> MapEditor::sharedEdge(Pat
 	return out_vec;
 }
 
+MapPoint* MapEditor::getOddPoint(Triangle & triangle, MapPoint* p1, MapPoint* p2) {
+	Triangle::iterator it_1 = std::find(triangle.begin(), triangle.end(), p1);
+	Triangle::iterator it_2 = std::find(triangle.begin(), triangle.end(), p2);
+	if (it_1 + 1 != triangle.end() && it_1 + 1 != it_2) {
+		return (*it_1 + 1);
+	}
+	if (it_2 + 1 != triangle.end() && it_2 + 1 != it_1) {
+		return (*it_2 + 1);
+	}
+	return (*triangle.begin());
+}
 
 std::map<MapGroundType, std::vector<Path>> MapEditor::mergeTrianglesInChunk(MapChunk & chunk) {
 	std::map<MapGroundType, std::vector<Path>> out_map;
@@ -261,20 +272,40 @@ std::map<MapGroundType, std::vector<Path>> MapEditor::mergeTrianglesInChunk(MapC
 					}
 				}
 			}
-
 			Path current_path;
 			Triangle current_triangle = triangle_order.front()->getPoints();
 			current_path.insert(current_path.end(), current_triangle.begin(), current_triangle.end());
 			for (auto it_2 = triangle_order.begin() + 1; it_2 != triangle_order.end(); ++it_2) {
+				current_triangle = (*it_2)->getPoints();
+				auto shared_edge_vec = sharedEdge(current_path, current_triangle);
+				if (shared_edge_vec.size() == 1) {
+					//if share one edge, then insert not-included point inbetween iterators
+					MapPoint* p = getOddPoint(current_triangle, (*shared_edge_vec.front().first), (*shared_edge_vec.front().second));
+					current_path.insert(shared_edge_vec.front().first, p);
+				}
+				else if (shared_edge_vec.size() == 2) {
+					if (shared_edge_vec[0].second == shared_edge_vec[1].first) {
+						//if two edges and the edges are consecutive, then erase middle iterator
+						current_path.erase(shared_edge_vec[0].second);
+					}
+					else if (shared_edge_vec[1].second == shared_edge_vec[0].first) {
+						//if two edges and the edges are consecutive, then erase middle iterator
+						current_path.erase(shared_edge_vec[1].second);
+					}
+					else {
+						//if two edges and are not consecutive, then hull exist ?????
 
-				//if share one edge, then insert not-included point inbetween iterators
-
-				//if two edges and the edges are consecutive, then replace middle iterator with not-included point
-
-				//if two edges and are not consecutive, then hull exist ?????
-
-				//if three edges then triangle is a single hull ?????
-
+					}
+				}
+				else if (shared_edge_vec.size() == 3) {
+					//if three edges then triangle is a single hull ?????
+					assert(false);
+				}
+				else {
+					//if no shared edges, do nothing (should never happen)
+					assert(false);
+				}
+				
 			}
 
 
