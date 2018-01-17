@@ -13,7 +13,6 @@
 #include "EditorTriangle.hpp"
 
 class EditorPath : public std::vector<MapPoint*> {
-
 	std::vector<EditorPath> m_hulls;
 
 public:

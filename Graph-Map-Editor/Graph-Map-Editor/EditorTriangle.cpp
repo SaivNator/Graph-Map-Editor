@@ -2,6 +2,11 @@
 
 #include "EditorTriangle.hpp"
 
+EditorTriangle::EditorTriangle(const std::array<MapPoint*, 3> points) :
+	std::array<MapPoint*, 3>(points)
+{
+}
+
 MapPoint* EditorTriangle::getOddPoint(MapPoint* p1, MapPoint* p2) {
 	EditorTriangle::iterator it_1 = std::find(this->begin(), this->end(), p1);
 	EditorTriangle::iterator it_2 = std::find(this->begin(), this->end(), p2);

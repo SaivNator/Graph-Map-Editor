@@ -135,6 +135,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EditorPath.cpp" />
+    <ClCompile Include="EditorTriangle.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="ImageUtil.cpp" />
     <ClCompile Include="main.cpp" />
@@ -150,6 +152,8 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EditorPath.hpp" />
+    <ClInclude Include="EditorTriangle.hpp" />
     <ClInclude Include="FileDialog.hpp" />
     <ClInclude Include="Map.hpp" />
     <ClInclude Include="MapChunk.hpp" />

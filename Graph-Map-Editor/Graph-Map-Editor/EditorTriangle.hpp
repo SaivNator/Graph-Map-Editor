@@ -11,6 +11,11 @@
 class EditorTriangle : public std::array<MapPoint*, 3> {
 public:
 	/*
+	Constructor
+	*/
+	EditorTriangle(const std::array<MapPoint*, 3> points);
+
+	/*
 	Get MapPoint that is not input
 	*/
 	MapPoint* getOddPoint(MapPoint* p1, MapPoint* p2);
