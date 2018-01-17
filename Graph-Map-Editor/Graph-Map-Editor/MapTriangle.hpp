@@ -29,6 +29,8 @@ class MapTriangle {
 	*/
 	void findRelations();
 public:
+	bool visited = false;
+
 	/*
 	Constructor
 	*/

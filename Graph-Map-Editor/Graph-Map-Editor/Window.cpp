@@ -16,9 +16,11 @@ void Window::windowHandler(sf::VideoMode mode, const std::string& title, sf::Uin
 	testLoad();
 
 	while (m_running) {
+		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 		eventHandler();
 		renderHandler();
-		std::this_thread::sleep_for(m_sleep_duration);
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		std::this_thread::sleep_for(m_sleep_duration - std::chrono::duration_cast<std::chrono::milliseconds>(end - start));
 	}
 	m_window.close();
 }
@@ -37,6 +39,9 @@ void Window::eventHandler() {
 			mouse_world_pos = m_window.mapPixelToCoords(mouse_pixel_pos, m_view_port->getView());
 			switch (e.mouseButton.button) {
 			case sf::Mouse::Left:
+				
+				break;
+			case sf::Mouse::Right:
 				if (!m_mouse_left_bounce) {
 					m_mouse_move_handler.click(mouse_world_pos);
 					m_mouse_left_bounce = true;
@@ -49,10 +54,13 @@ void Window::eventHandler() {
 		case sf::Event::MouseButtonReleased:
 			switch (e.mouseButton.button) {
 			case sf::Mouse::Left:
+				break;
+			case sf::Mouse::Right:
 				if (m_mouse_left_bounce) {
 					m_mouse_move_handler.release();
 					m_mouse_left_bounce = false;
 				}
+				break;
 			default:
 				break;
 			}

@@ -7,7 +7,9 @@
 #include <iostream>
 #include <array>
 #include <vector>
+#include <list>
 #include <set>
+#include <map>
 
 #include "MapChunk.hpp"
 #include "Map.hpp"
@@ -74,6 +76,18 @@ class MapEditor {
 	Make triangle from path and index
 	*/
 	Triangle vertexTriangle(const std::size_t index, const Path & path);
+
+	/*
+	Check if path and triangle has a shared edge
+	Return vector of pairs of iterators that make up edges
+	Return empty vector if no shared edge is found
+	*/
+	std::vector<std::pair<Path::iterator, Path::iterator>> sharedEdge(Path & path, Triangle & triangle);
+
+	/*
+	Merge Triangles in chunk by type
+	*/
+	std::map<MapGroundType, std::vector<Path>> mergeTrianglesInChunk(MapChunk & chunk);
 public:
 	/*
 	Constructor

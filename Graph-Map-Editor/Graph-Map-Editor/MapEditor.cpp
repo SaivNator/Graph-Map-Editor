@@ -224,4 +224,65 @@ Triangle MapEditor::vertexTriangle(const std::size_t index, const Path & path) {
 	return { prev, current, next };
 }
 
+std::vector<std::pair<Path::iterator, Path::iterator>> MapEditor::sharedEdge(Path & path, Triangle & triangle) {
+	std::vector<std::pair<Path::iterator, Path::iterator>> out_vec;
+	for (Triangle::iterator tri_it_1 = triangle.begin(); tri_it_1 != triangle.end(); ++tri_it_1) {
+		Path::iterator path_it_1 = std::find(path.begin(), path.end(), (*tri_it_1));
+		if (path_it_1 != path.end()) {
+			Path::iterator path_it_2 = (path_it_1 != path.end() - 1) ? path_it_1 + 1 : path.begin();
+			Triangle::iterator tri_it_2 = std::find(triangle.begin(), triangle.end(), (*path_it_2));
+			if (tri_it_2 != triangle.end()) {
+				out_vec.push_back(std::pair<Path::iterator, Path::iterator>(path_it_1, path_it_2));
+			}
+		}
+	}
+	return out_vec;
+}
+
+
+std::map<MapGroundType, std::vector<Path>> MapEditor::mergeTrianglesInChunk(MapChunk & chunk) {
+	std::map<MapGroundType, std::vector<Path>> out_map;
+
+	//dfs
+	for (auto it = chunk.getTriangles().begin(); it != chunk.getTriangles().end(); ++it) {
+		if (!(*it)->visited) {
+			MapTriangle* origin_triangle = (*it).get();
+			std::vector<MapTriangle*> dfs_stack;
+			std::vector<MapTriangle*> triangle_order;
+			dfs_stack.push_back(origin_triangle);
+			while (!dfs_stack.empty()) {
+				MapTriangle* v = dfs_stack.back();
+				dfs_stack.pop_back();
+				if (!v->visited && v->getType() == origin_triangle->getType() && &v->getChunk() == &chunk) {
+					v->visited = true;
+					triangle_order.push_back(v);
+					for (MapTriangle* w : v->getRelations()) {
+						dfs_stack.push_back(w);
+					}
+				}
+			}
+
+			Path current_path;
+			Triangle current_triangle = triangle_order.front()->getPoints();
+			current_path.insert(current_path.end(), current_triangle.begin(), current_triangle.end());
+			for (auto it_2 = triangle_order.begin() + 1; it_2 != triangle_order.end(); ++it_2) {
+
+				//if share one edge, then insert not-included point inbetween iterators
+
+				//if two edges and the edges are consecutive, then replace middle iterator with not-included point
+
+				//if two edges and are not consecutive, then hull exist ?????
+
+				//if three edges then triangle is a single hull ?????
+
+			}
+
+
+		}
+	}
+	
+	return out_map;
+}
+
+
 //end
