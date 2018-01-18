@@ -19,7 +19,7 @@ public:
 	/*
 	Constructor
 	*/
-	MapPoint(wykobi::point2d<float> & pos);
+	MapPoint(wykobi::point2d<float> pos);
 
 	/*
 	Get pos

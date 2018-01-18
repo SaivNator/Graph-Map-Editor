@@ -2,7 +2,7 @@
 
 #include "MapPoint.hpp"
 
-MapPoint::MapPoint(wykobi::point2d<float> & pos) :
+MapPoint::MapPoint(wykobi::point2d<float> pos) :
 	m_pos(pos)
 {
 	m_triangles.reserve(3);

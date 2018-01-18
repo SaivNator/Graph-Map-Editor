@@ -10,7 +10,33 @@
 
 #include "Window.hpp"
 
+#include "EditorPath.hpp"
 
+int main() {
+
+	std::vector<std::unique_ptr<MapPoint>> points;
+	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(0.f, 0.f))));
+	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(1.f, 0.f))));
+	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(1.f, 1.f))));
+	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(0.f, 1.f))));
+
+	EditorPath path;
+	path.push_back(points[0].get());
+	path.push_back(points[1].get());
+	path.push_back(points[2].get());
+	path.push_back(points[3].get());
+
+
+	
+	
+	std::cout << path.toString() << "\n";
+
+
+
+	return EXIT_SUCCESS;
+}
+
+/*
 int main() {
 	std::shared_ptr<sf::Font> arial(new sf::Font());
 	if (!arial->loadFromFile("../../resources/fonts/arial.ttf")) {
@@ -24,7 +50,7 @@ int main() {
 
 	return EXIT_SUCCESS;
 }
-
+*/
 
 
 //end

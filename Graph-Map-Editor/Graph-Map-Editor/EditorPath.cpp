@@ -122,6 +122,10 @@ void EditorPath::reverse() {
 	std::reverse(this->begin(), this->end());
 }
 
+std::vector<EditorPath>& EditorPath::getHulls() {
+	return m_hulls;
+}
+
 
 struct Node;
 struct Edge;
@@ -130,7 +134,6 @@ struct Graph;
 struct Edge {
 	Node* m_a;
 	Node* m_b;
-
 	bool m_visited_a = false;
 	bool m_visited_b = false;
 
@@ -155,10 +158,17 @@ struct Node {
 	MapPoint* m_point;
 	std::vector<std::shared_ptr<Edge>> m_edges;
 
+	Node(MapPoint* point_ptr) : 
+	m_point(point_ptr)
+	{
+	}
+	void addEdge(Node* n) {
+		m_edges.push_back(std::shared_ptr<Edge>(new Edge(this, n)));
+		n->m_edges.push_back(m_edges.back());
+	}
 	wykobi::point2d<float> getPos() {
 		return m_point->getPos();
 	}
-
 	Edge* getClockwiseMost(Edge* prev_edge) {
 		Node* prev_node = prev_edge->getNode(this);
 		std::vector<Edge*> edges;
@@ -244,7 +254,32 @@ struct Node {
 };
 
 struct Graph {
+	std::vector<std::unique_ptr<Node>> m_node_vec;
+	std::vector<Node*> m_outer_path;
+	std::vector<std::vector<Node*>> m_hull_vec;
 
+	Graph(EditorPath & path) {
+		for (MapPoint* p : path) {
+			m_node_vec.push_back(std::unique_ptr<Node>(new Node(p)));
+			m_outer_path.push_back(m_node_vec.back().get());
+		}
+		for (auto it = m_outer_path.begin(); it != m_outer_path.end(); ++it) {
+			auto next_it = (it + 1 != m_outer_path.end()) ? it + 1 : m_outer_path.begin();
+			(*it)->addEdge((*next_it));
+		}
+		for (EditorPath & hull : path.getHulls()) {
+			m_hull_vec.push_back(std::vector<Node*>());
+			std::vector<Node*> & temp_vec = m_hull_vec.back();
+			for (MapPoint* p : hull) {
+				m_node_vec.push_back(std::unique_ptr<Node>(new Node(p)));
+				temp_vec.push_back(m_node_vec.back().get());
+			}
+			for (auto it = temp_vec.begin(); it != temp_vec.end(); ++it) {
+				auto next_it = (it + 1 != temp_vec.end()) ? it + 1 : temp_vec.begin();
+				(*it)->addEdge((*next_it));
+			}
+		}
+	}
 };
 
 std::vector<EditorPath> EditorPath::removeHull() {
@@ -254,7 +289,7 @@ std::vector<EditorPath> EditorPath::removeHull() {
 	}
 
 	if (orientation() != wykobi::Clockwise) {
-		reverse();
+		this->reverse();
 	}
 	
 	//make graph of path and hulls
@@ -263,7 +298,22 @@ std::vector<EditorPath> EditorPath::removeHull() {
 	//bridges are undirected, so one bridge counts as +1 bridge for both objects
 	//for each bridge traverse both directions, mark bridges as visited
 
-	
+	Graph graph(*this);
 
+	for (std::vector<Node*> & hull : graph.m_hull_vec) {
 
+	}
+
+	std::vector<EditorPath> out_vec;
+
+	return out_vec;
+}
+
+std::string EditorPath::toString() {
+	std::ostringstream s;
+	for (auto it = begin(); it != end(); ++it) {
+		s << "(" << (*it)->getPos().x << "," << (*it)->getPos().y << ")";
+		if (it + 1 != end()) s << "->";
+	}
+	return s.str();
 }
