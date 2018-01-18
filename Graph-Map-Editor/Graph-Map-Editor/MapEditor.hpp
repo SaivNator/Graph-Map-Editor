@@ -14,7 +14,6 @@
 #include "MapChunk.hpp"
 #include "Map.hpp"
 #include "MapGroundType.hpp"
-
 #include "EditorTriangle.hpp"
 #include "EditorPath.hpp"
 

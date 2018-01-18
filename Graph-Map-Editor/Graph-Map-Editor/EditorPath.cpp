@@ -121,3 +121,149 @@ int EditorPath::orientation() {
 void EditorPath::reverse() {
 	std::reverse(this->begin(), this->end());
 }
+
+
+struct Node;
+struct Edge;
+struct Graph;
+
+struct Edge {
+	Node* m_a;
+	Node* m_b;
+
+	bool m_visited_a = false;
+	bool m_visited_b = false;
+
+	Edge(Node* a, Node* b) :
+		m_a(a),
+		m_b(b)
+	{
+	}
+	void visit(Node* n) {
+		if (n == m_a) m_visited_a = true;
+		else m_visited_b = true;
+	}
+	Node* getNode(Node* n) {
+		return (n == m_a) ? m_b : m_a;
+	}
+	bool getVisited(Node* n) {
+		return (n == m_a) ? m_visited_a : m_visited_b;
+	}
+};
+
+struct Node {
+	MapPoint* m_point;
+	std::vector<std::shared_ptr<Edge>> m_edges;
+
+	wykobi::point2d<float> getPos() {
+		return m_point->getPos();
+	}
+
+	Edge* getClockwiseMost(Edge* prev_edge) {
+		Node* prev_node = prev_edge->getNode(this);
+		std::vector<Edge*> edges;
+		edges.reserve(m_edges.size());
+		for (auto & ptr : m_edges) {
+			edges.push_back(ptr.get());
+		}
+		std::vector<Edge*>::iterator it = std::find(edges.begin(), edges.end(), prev_edge);
+		if (it != edges.end()) edges.erase(it);
+		if (edges.empty()) return nullptr;
+		it = edges.begin();
+		wykobi::vector2d<float> current_dir = this->getPos() - prev_node->getPos();
+		Node* next_node = (*it)->getNode(this);
+		Edge* next_edge = (*it);
+		++it;
+		wykobi::vector2d<float> next_dir = next_node->getPos() - this->getPos();
+		bool is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+		while (it != edges.end()) {
+			Node* test_node = (*it)->getNode(this);
+			Edge* test_edge = (*it);
+			wykobi::vector2d<float> test_dir = test_node->getPos() - this->getPos();
+			if (is_current_convex) {
+				if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) < 0 || wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) < 0) {
+					next_dir = test_dir;
+					next_node = test_node;
+					next_edge = test_edge;
+					is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+				}
+			}
+			else {
+				if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) < 0 && wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) < 0) {
+					next_dir = test_dir;
+					next_node = test_node;
+					next_edge = test_edge;
+					is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+				}
+			}
+			++it;
+		}
+		return next_edge;
+	}
+	Edge* getCounterClockwiseMost(Edge* prev_edge) {
+		Node* prev_node = prev_edge->getNode(this);
+		std::vector<Edge*> edges;
+		edges.reserve(m_edges.size());
+		for (auto & ptr : m_edges) {
+			edges.push_back(ptr.get());
+		}
+		std::vector<Edge*>::iterator it = std::find(edges.begin(), edges.end(), prev_edge);
+		if (it != edges.end()) edges.erase(it);
+		if (edges.empty()) return nullptr;
+		it = edges.begin();
+		wykobi::vector2d<float> current_dir = this->getPos() - prev_node->getPos();
+		Node* next_node = (*it)->getNode(this);
+		Edge* next_edge = (*it);
+		++it;
+		wykobi::vector2d<float> next_dir = next_node->getPos() - this->getPos();
+		bool is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+		while (it != edges.end()) {
+			Node* test_node = (*it)->getNode(this);
+			Edge* test_edge = (*it);
+			wykobi::vector2d<float> test_dir = test_node->getPos() - this->getPos();
+			if (is_current_convex) {
+				if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) > 0 && wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) > 0) {
+					next_dir = test_dir;
+					next_node = test_node;
+					next_edge = test_edge;
+					is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+				}
+			}
+			else {
+				if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) > 0 || wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) > 0) {
+					next_dir = test_dir;
+					next_node = test_node;
+					next_edge = test_edge;
+					is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+				}
+			}
+			++it;
+		}
+		return next_edge;
+	}
+};
+
+struct Graph {
+
+};
+
+std::vector<EditorPath> EditorPath::removeHull() {
+	//EXPEREMENTAL
+	if (m_hulls.empty()) {
+		return std::vector<EditorPath>({ *this });
+	}
+
+	if (orientation() != wykobi::Clockwise) {
+		reverse();
+	}
+	
+	//make graph of path and hulls
+	//keep track of what objects nodes belong to
+	//for each hull, find two edges, edge must either bridge to other object or outer path
+	//bridges are undirected, so one bridge counts as +1 bridge for both objects
+	//for each bridge traverse both directions, mark bridges as visited
+
+	
+
+
+}

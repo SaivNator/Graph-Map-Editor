@@ -5,7 +5,9 @@
 #define EditorPath_HEADER
 
 #include <vector>
+#include <map>
 #include <algorithm>
+#include <functional>
 
 #include <wykobi.hpp>
 
@@ -53,6 +55,13 @@ public:
 	Reverse objects in container
 	*/
 	void reverse();
+
+	/*
+	Remove hulls
+	Return paths without hulls that represent this path
+	If no hulls then return copy of this
+	*/
+	std::vector<EditorPath> removeHull();
 };
 
 #endif // !
