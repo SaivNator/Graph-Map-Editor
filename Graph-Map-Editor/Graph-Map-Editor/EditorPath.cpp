@@ -127,216 +127,239 @@ std::vector<EditorPath>& EditorPath::getHulls() {
 }
 
 
-struct Node;
-struct Edge;
-struct Graph;
 
-struct Edge {
-	Node* m_a;
-	Node* m_b;
-	bool m_visited_a = false;
-	bool m_visited_b = false;
+EditorPath::Edge::Edge(Node* a, Node* b) :
+	m_a(a),
+	m_b(b)
+{
+	assert(a != b);
+}
 
-	Edge(Node* a, Node* b) :
-		m_a(a),
-		m_b(b)
-	{
+	
+EditorPath::Node* EditorPath::Edge::getNode(Node* n) {
+	assert(n == m_a || n == m_b);
+	return (n == m_a) ? m_b : m_a;
+}
+	
+bool EditorPath::Edge::clockVisit(Node* n) {
+	assert(n == m_a || n == m_b);
+	Node* next_node = this->getNode(n);
+	Edge* next_edge = next_node->getClockwiseMost(this);
+	while (next_edge->m_is_bridge) {
+		next_node = next_edge->getNode(next_node);
+		next_edge = next_node->getClockwiseMost(next_edge);
+		assert(next_edge != this);
 	}
-	void visit(Node* n) {
-		if (n == m_a) m_visited_a = true;
-		else m_visited_b = true;
+	if (!next_edge->m_visited) {
+		return false;
 	}
-	Node* getNode(Node* n) {
-		return (n == m_a) ? m_b : m_a;
-	}
-	bool getVisited(Node* n) {
-		return (n == m_a) ? m_visited_a : m_visited_b;
-	}
-};
-
-struct Node {
-	MapPoint* m_point;
-	std::vector<Edge*> m_edges;
-
-	Node(MapPoint* point_ptr) : 
-	m_point(point_ptr)
-	{
-	}
-	wykobi::point2d<float> getPos() {
-		return m_point->getPos();
-	}
-	Edge* getClockwiseMost(Edge* prev_edge) {
-		Node* prev_node = prev_edge->getNode(this);
-		std::vector<Edge*> edges = m_edges;
-		std::vector<Edge*>::iterator it = std::find(edges.begin(), edges.end(), prev_edge);
-		if (it != edges.end()) edges.erase(it);
-		if (edges.empty()) return nullptr;
-		it = edges.begin();
-		wykobi::vector2d<float> current_dir = this->getPos() - prev_node->getPos();
-		Node* next_node = (*it)->getNode(this);
-		Edge* next_edge = (*it);
-		++it;
-		wykobi::vector2d<float> next_dir = next_node->getPos() - this->getPos();
-		bool is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
-		while (it != edges.end()) {
-			Node* test_node = (*it)->getNode(this);
-			Edge* test_edge = (*it);
-			wykobi::vector2d<float> test_dir = test_node->getPos() - this->getPos();
-			if (is_current_convex) {
-				if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) < 0 || wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) < 0) {
-					next_dir = test_dir;
-					next_node = test_node;
-					next_edge = test_edge;
-					is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
-				}
-			}
-			else {
-				if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) < 0 && wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) < 0) {
-					next_dir = test_dir;
-					next_node = test_node;
-					next_edge = test_edge;
-					is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
-				}
-			}
-			++it;
-		}
-		return next_edge;
-	}
-	Edge* getCounterClockwiseMost(Edge* prev_edge) {
-		Node* prev_node = prev_edge->getNode(this);
-		std::vector<Edge*> edges = m_edges;
-		std::vector<Edge*>::iterator it = std::find(edges.begin(), edges.end(), prev_edge);
-		if (it != edges.end()) edges.erase(it);
-		if (edges.empty()) return nullptr;
-		it = edges.begin();
-		wykobi::vector2d<float> current_dir = this->getPos() - prev_node->getPos();
-		Node* next_node = (*it)->getNode(this);
-		Edge* next_edge = (*it);
-		++it;
-		wykobi::vector2d<float> next_dir = next_node->getPos() - this->getPos();
-		bool is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
-		while (it != edges.end()) {
-			Node* test_node = (*it)->getNode(this);
-			Edge* test_edge = (*it);
-			wykobi::vector2d<float> test_dir = test_node->getPos() - this->getPos();
-			if (is_current_convex) {
-				if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) > 0 && wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) > 0) {
-					next_dir = test_dir;
-					next_node = test_node;
-					next_edge = test_edge;
-					is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
-				}
-			}
-			else {
-				if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) > 0 || wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) > 0) {
-					next_dir = test_dir;
-					next_node = test_node;
-					next_edge = test_edge;
-					is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
-				}
-			}
-			++it;
-		}
-		return next_edge;
-	}
-};
-
-struct Graph {
-	std::vector<std::unique_ptr<Node>> m_node_vec;
-	std::vector<Node*> m_outer_path;
-	std::vector<std::vector<Node*>> m_hull_vec;
-	std::vector<std::unique_ptr<Edge>> m_edge_vec;
-
-	Graph(EditorPath & path) {
-		for (MapPoint* p : path) {
-			m_node_vec.push_back(std::unique_ptr<Node>(new Node(p)));
-			m_outer_path.push_back(m_node_vec.back().get());
-		}
-		for (auto it = m_outer_path.begin(); it != m_outer_path.end(); ++it) {
-			auto next_it = (it + 1 != m_outer_path.end()) ? it + 1 : m_outer_path.begin();
-			addEdge((*it), (*next_it));
-		}
-		for (EditorPath & hull : path.getHulls()) {
-			m_hull_vec.push_back(std::vector<Node*>());
-			std::vector<Node*> & temp_vec = m_hull_vec.back();
-			for (MapPoint* p : hull) {
-				m_node_vec.push_back(std::unique_ptr<Node>(new Node(p)));
-				temp_vec.push_back(m_node_vec.back().get());
-			}
-			for (auto it = temp_vec.begin(); it != temp_vec.end(); ++it) {
-				auto next_it = (it + 1 != temp_vec.end()) ? it + 1 : temp_vec.begin();
-				addEdge((*it), (*next_it));
-			}
-		}
-	}
-
-	void addEdge(Node* a, Node* b) {
-		m_edge_vec.push_back(std::unique_ptr<Edge>(new Edge(a, b)));
-		a->m_edges.push_back(m_edge_vec.back().get());
-		b->m_edges.push_back(m_edge_vec.back().get());
-	}
-
-	/*
-	Return true if edge between a and b in not intersectiong 
-	any edges exept the edges that is connected to a and b.
-	*/
-	bool isEdgeLegal(Node* a, Node* b) {
-		wykobi::segment<float, 2> ab_segment = wykobi::make_segment(a->getPos(), b->getPos());
-		std::vector<Edge*> exclude_edges;
-		exclude_edges.insert(exclude_edges.end(), a->m_edges.begin(), a->m_edges.end());
-		exclude_edges.insert(exclude_edges.end(), b->m_edges.begin(), b->m_edges.end());
-		for (auto & edge_ptr : m_edge_vec) {
-			if (std::find(exclude_edges.begin(), exclude_edges.end(), edge_ptr.get()) == exclude_edges.end()) {
-				wykobi::segment<float, 2> test_segment = wykobi::make_segment(edge_ptr->m_a->getPos(), edge_ptr->m_b->getPos());
-				if (wykobi::intersect(ab_segment, test_segment)) {
-					return false;
-				}
-			}
-		}
+	else {
 		return true;
 	}
+}
 
-	/*
-	Traverse bridge
-	*/
-	std::vector<Node*> traverseBridgeClockwise(Edge* edge, Node* start_node) {
-		std::vector<Node*> out_vec;
-		out_vec.push_back(start_node);
-		Node* current_node = edge->getNode(start_node);
-		Edge* current_edge = edge;
-		current_edge->visit(current_node);
-		while (current_node != start_node) {
-			out_vec.push_back(current_node);
-			current_edge->visit(current_node);
-			current_edge = current_node->getClockwiseMost(current_edge);
-			current_node = current_edge->getNode(current_node);
-		}
-		return out_vec;
+bool EditorPath::Edge::counterClockVisit(Node* n) {
+	assert(n == m_a || n == m_b);
+	Node* next_node = this->getNode(n);
+	Edge* next_edge = next_node->getCounterClockwiseMost(this);
+	while (next_edge->m_is_bridge) {
+		next_node = next_edge->getNode(next_node);
+		next_edge = next_node->getCounterClockwiseMost(next_edge);
+		assert(next_edge != this);
 	}
-	std::vector<Node*> traverseBridgeCounterClockwise(Edge* edge, Node* start_node) {
-		std::vector<Node*> out_vec;
-		out_vec.push_back(start_node);
-		Node* current_node = edge->getNode(start_node);
-		Edge* current_edge = edge;
-		current_edge->visit(current_node);
-		while (current_node != start_node) {
-			out_vec.push_back(current_node);
-			current_edge->visit(current_node);
-			current_edge = current_node->getCounterClockwiseMost(current_edge);
-			current_node = current_edge->getNode(current_node);
-		}
-		return out_vec;
+	if (!next_edge->m_visited) {
+		return false;
 	}
+	else {
+		return true;
+	}
+}
 
 
-	EditorPath makeEditorPath(std::vector<Node*> node_vec) {
-		EditorPath path;
-		for (Node* node : node_vec) {
-			path.push_back(node->m_point);
+
+
+EditorPath::Node::Node(MapPoint* point_ptr) : 
+m_point(point_ptr)
+{
+}
+
+wykobi::point2d<float> EditorPath::Node::getPos() {
+	return m_point->getPos();
+}
+
+EditorPath::Edge* EditorPath::Node::getClockwiseMost(Edge* prev_edge) {
+	Node* prev_node = prev_edge->getNode(this);
+	std::vector<Edge*> edges = m_edges;
+	std::vector<Edge*>::iterator it = std::find(edges.begin(), edges.end(), prev_edge);
+	assert(it != edges.end());
+	edges.erase(it);
+	if (edges.empty()) return nullptr;
+	it = edges.begin();
+	wykobi::vector2d<float> current_dir = this->getPos() - prev_node->getPos();
+	Node* next_node = (*it)->getNode(this);
+	Edge* next_edge = (*it);
+	++it;
+	wykobi::vector2d<float> next_dir = next_node->getPos() - this->getPos();
+	bool is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+	while (it != edges.end()) {
+		Node* test_node = (*it)->getNode(this);
+		Edge* test_edge = (*it);
+		wykobi::vector2d<float> test_dir = test_node->getPos() - this->getPos();
+		if (is_current_convex) {
+			if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) < 0 || wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) < 0) {
+				next_dir = test_dir;
+				next_node = test_node;
+				next_edge = test_edge;
+				is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+			}
 		}
-		return path;
+		else {
+			if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) < 0 && wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) < 0) {
+				next_dir = test_dir;
+				next_node = test_node;
+				next_edge = test_edge;
+				is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+			}
+		}
+		++it;
 	}
-};
+	return next_edge;
+}
+
+EditorPath::Edge* EditorPath::Node::getCounterClockwiseMost(Edge* prev_edge) {
+	Node* prev_node = prev_edge->getNode(this);
+	std::vector<Edge*> edges = m_edges;
+	std::vector<Edge*>::iterator it = std::find(edges.begin(), edges.end(), prev_edge);
+	assert(it != edges.end());
+	edges.erase(it);
+	if (edges.empty()) return nullptr;
+	it = edges.begin();
+	wykobi::vector2d<float> current_dir = this->getPos() - prev_node->getPos();
+	Node* next_node = (*it)->getNode(this);
+	Edge* next_edge = (*it);
+	++it;
+	wykobi::vector2d<float> next_dir = next_node->getPos() - this->getPos();
+	bool is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+	while (it != edges.end()) {
+		Node* test_node = (*it)->getNode(this);
+		Edge* test_edge = (*it);
+		wykobi::vector2d<float> test_dir = test_node->getPos() - this->getPos();
+		if (is_current_convex) {
+			if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) > 0 && wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) > 0) {
+				next_dir = test_dir;
+				next_node = test_node;
+				next_edge = test_edge;
+				is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+			}
+		}
+		else {
+			if (wykobi::dot_product(current_dir, wykobi::perpendicular(test_dir)) > 0 || wykobi::dot_product(next_dir, wykobi::perpendicular(test_dir)) > 0) {
+				next_dir = test_dir;
+				next_node = test_node;
+				next_edge = test_edge;
+				is_current_convex = (wykobi::dot_product(next_dir, wykobi::perpendicular(current_dir)) <= 0);
+			}
+		}
+		++it;
+	}
+	return next_edge;
+}
+
+
+
+EditorPath::Graph::Graph(EditorPath & path) {
+	for (MapPoint* p : path) {
+		m_node_vec.push_back(std::unique_ptr<Node>(new Node(p)));
+		m_outer_path.push_back(m_node_vec.back().get());
+	}
+	for (auto it = m_outer_path.begin(); it != m_outer_path.end(); ++it) {
+		auto next_it = (it + 1 != m_outer_path.end()) ? it + 1 : m_outer_path.begin();
+		addEdge((*it), (*next_it));
+	}
+	for (EditorPath & hull : path.getHulls()) {
+		m_hull_vec.push_back(std::vector<Node*>());
+		std::vector<Node*> & temp_vec = m_hull_vec.back();
+		for (MapPoint* p : hull) {
+			m_node_vec.push_back(std::unique_ptr<Node>(new Node(p)));
+			temp_vec.push_back(m_node_vec.back().get());
+		}
+		for (auto it = temp_vec.begin(); it != temp_vec.end(); ++it) {
+			auto next_it = (it + 1 != temp_vec.end()) ? it + 1 : temp_vec.begin();
+			addEdge((*it), (*next_it));
+		}
+	}
+}
+
+void EditorPath::Graph::addEdge(Node* a, Node* b) {
+	m_edge_vec.push_back(std::unique_ptr<Edge>(new Edge(a, b)));
+	a->m_edges.push_back(m_edge_vec.back().get());
+	b->m_edges.push_back(m_edge_vec.back().get());
+}
+
+bool EditorPath::Graph::isEdgeLegal(Node* a, Node* b) {
+	wykobi::segment<float, 2> ab_segment = wykobi::make_segment(a->getPos(), b->getPos());
+	std::vector<Edge*> exclude_edges;
+	exclude_edges.insert(exclude_edges.end(), a->m_edges.begin(), a->m_edges.end());
+	exclude_edges.insert(exclude_edges.end(), b->m_edges.begin(), b->m_edges.end());
+	for (auto & edge_ptr : m_edge_vec) {
+		if (std::find(exclude_edges.begin(), exclude_edges.end(), edge_ptr.get()) == exclude_edges.end()) {
+			wykobi::segment<float, 2> test_segment = wykobi::make_segment(edge_ptr->m_a->getPos(), edge_ptr->m_b->getPos());
+			if (wykobi::intersect(ab_segment, test_segment)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+std::vector<EditorPath::Node*> EditorPath::Graph::traverseBridgeClockwise(Edge* edge, Node* start_node) {
+	assert(start_node == edge->m_a || start_node == edge->m_b);
+	std::vector<Node*> out_vec;
+	out_vec.push_back(start_node);
+	Edge* current_edge = edge;
+		
+	current_edge->m_visited = true;
+		
+	Node* current_node = edge->getNode(start_node);
+	while (current_node != start_node) {
+		out_vec.push_back(current_node);
+			
+		current_edge->m_visited = true;
+			
+		current_edge = current_node->getClockwiseMost(current_edge);
+		current_node = current_edge->getNode(current_node);
+	}
+	return out_vec;
+}
+std::vector<EditorPath::Node*> EditorPath::Graph::traverseBridgeCounterClockwise(Edge* edge, Node* start_node) {
+	assert(start_node == edge->m_a || start_node == edge->m_b);
+	std::vector<Node*> out_vec;
+	out_vec.push_back(start_node);
+	Edge* current_edge = edge;
+
+	current_edge->m_visited = true;
+
+	Node* current_node = edge->getNode(start_node);
+	while (current_node != start_node) {
+		out_vec.push_back(current_node);
+			
+		current_edge->m_visited = true;
+			
+		current_edge = current_node->getCounterClockwiseMost(current_edge);
+		current_node = current_edge->getNode(current_node);
+	}
+	return out_vec;
+}
+
+
+EditorPath EditorPath::Graph::makeEditorPath(std::vector<Node*> node_vec) {
+	EditorPath path;
+	for (Node* node : node_vec) {
+		path.push_back(node->m_point);
+	}
+	return path;
+}
+
 
 
 
@@ -368,29 +391,39 @@ std::vector<EditorPath> EditorPath::removeHull() {
 				++bridge_count;
 			}
 		}
-
 		for (auto hull_it = hull.begin(); hull_it != hull.end() && bridge_count < 2; ++hull_it) {
 			for (auto & node_ptr : graph.m_node_vec) {
 				if (graph.isEdgeLegal((*hull_it), node_ptr.get())) {
 					graph.addEdge((*hull_it), node_ptr.get());
+					graph.m_edge_vec.back()->m_is_bridge = true;
 					current_bridge_vec.push_back(graph.m_edge_vec.back().get());
 					++bridge_count;
 					break;
 				}
 			}
 		}
-		assert(bridge_count == 2);
-		hull_bridge_vec.insert(hull_bridge_vec.end(), current_bridge_vec.begin(), current_bridge_vec.end());
+		assert(bridge_count >= 2);
+		if (!current_bridge_vec.empty()) {
+			hull_bridge_vec.insert(hull_bridge_vec.end(), current_bridge_vec.begin(), current_bridge_vec.end());
+		}
 	}
+
+	std::cout << "hull_bridge_vec.size() = " << hull_bridge_vec.size() << "\n";
 
 	std::vector<EditorPath> out_vec;
 	
 	for (auto it = hull_bridge_vec.begin(); it != hull_bridge_vec.end(); ++it) {
-		if (!(*it)->getVisited((*it)->m_a)) {
+		if (!(*it)->clockVisit((*it)->m_a)) {
+
+			std::cout << (*it) << "\tclockwise" << "\n";
+
 			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeClockwise((*it), (*it)->m_a)));
 		}
-		if (!(*it)->getVisited((*it)->m_b)) {
-			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_b)));
+		if (!(*it)->counterClockVisit((*it)->m_a)) {
+			
+			std::cout << (*it) << "\tcounterclockwise" << "\n";
+			
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_a)));
 		}
 	}
 

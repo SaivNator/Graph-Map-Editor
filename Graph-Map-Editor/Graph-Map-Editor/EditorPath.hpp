@@ -75,6 +75,77 @@ public:
 	TO STRING FOR DEBUG
 	*/
 	std::string toString();
+
+
+private:
+	struct Edge;
+	struct Node;
+	struct Graph;
+
+	struct Edge {
+		Node* m_a;
+		Node* m_b;
+
+		bool m_is_bridge = false;
+		bool m_visited = false;
+
+		/*
+		Constructor
+		*/
+		Edge(Node* a, Node* b);
+
+		/*
+		Get connected node
+		*/
+		Node* getNode(Node* n);
+
+		/*
+		Check if next edge has been traversed
+		*/
+		bool clockVisit(Node* n);
+		bool counterClockVisit(Node* n);
+	};
+
+	struct Node {
+		MapPoint* m_point;
+		std::vector<Edge*> m_edges;
+
+		Node(MapPoint* point_ptr);
+
+		wykobi::point2d<float> getPos();
+
+		Edge* getClockwiseMost(Edge* prev_edge);
+
+		Edge* getCounterClockwiseMost(Edge* prev_edge);
+	};
+
+	struct Graph {
+		std::vector<std::unique_ptr<Node>> m_node_vec;
+		std::vector<Node*> m_outer_path;
+		std::vector<std::vector<Node*>> m_hull_vec;
+		std::vector<std::unique_ptr<Edge>> m_edge_vec;
+
+		Graph(EditorPath & path);
+
+		void addEdge(Node* a, Node* b);
+
+		/*
+		Return true if edge between a and b in not intersectiong
+		any edges exept the edges that is connected to a and b.
+		*/
+		bool isEdgeLegal(Node* a, Node* b);
+
+		/*
+		Traverse bridge
+		*/
+		std::vector<Node*> traverseBridgeClockwise(Edge* edge, Node* start_node);
+		std::vector<Node*> traverseBridgeCounterClockwise(Edge* edge, Node* start_node);
+
+		EditorPath makeEditorPath(std::vector<Node*> node_vec);
+	};
+
+
+
 };
 
 #endif // !
