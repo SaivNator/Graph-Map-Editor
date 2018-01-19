@@ -156,26 +156,18 @@ struct Edge {
 
 struct Node {
 	MapPoint* m_point;
-	std::vector<std::shared_ptr<Edge>> m_edges;
+	std::vector<Edge*> m_edges;
 
 	Node(MapPoint* point_ptr) : 
 	m_point(point_ptr)
 	{
-	}
-	void addEdge(Node* n) {
-		m_edges.push_back(std::shared_ptr<Edge>(new Edge(this, n)));
-		n->m_edges.push_back(m_edges.back());
 	}
 	wykobi::point2d<float> getPos() {
 		return m_point->getPos();
 	}
 	Edge* getClockwiseMost(Edge* prev_edge) {
 		Node* prev_node = prev_edge->getNode(this);
-		std::vector<Edge*> edges;
-		edges.reserve(m_edges.size());
-		for (auto & ptr : m_edges) {
-			edges.push_back(ptr.get());
-		}
+		std::vector<Edge*> edges = m_edges;
 		std::vector<Edge*>::iterator it = std::find(edges.begin(), edges.end(), prev_edge);
 		if (it != edges.end()) edges.erase(it);
 		if (edges.empty()) return nullptr;
@@ -212,11 +204,7 @@ struct Node {
 	}
 	Edge* getCounterClockwiseMost(Edge* prev_edge) {
 		Node* prev_node = prev_edge->getNode(this);
-		std::vector<Edge*> edges;
-		edges.reserve(m_edges.size());
-		for (auto & ptr : m_edges) {
-			edges.push_back(ptr.get());
-		}
+		std::vector<Edge*> edges = m_edges;
 		std::vector<Edge*>::iterator it = std::find(edges.begin(), edges.end(), prev_edge);
 		if (it != edges.end()) edges.erase(it);
 		if (edges.empty()) return nullptr;
@@ -257,6 +245,7 @@ struct Graph {
 	std::vector<std::unique_ptr<Node>> m_node_vec;
 	std::vector<Node*> m_outer_path;
 	std::vector<std::vector<Node*>> m_hull_vec;
+	std::vector<std::unique_ptr<Edge>> m_edge_vec;
 
 	Graph(EditorPath & path) {
 		for (MapPoint* p : path) {
@@ -265,7 +254,7 @@ struct Graph {
 		}
 		for (auto it = m_outer_path.begin(); it != m_outer_path.end(); ++it) {
 			auto next_it = (it + 1 != m_outer_path.end()) ? it + 1 : m_outer_path.begin();
-			(*it)->addEdge((*next_it));
+			addEdge((*it), (*next_it));
 		}
 		for (EditorPath & hull : path.getHulls()) {
 			m_hull_vec.push_back(std::vector<Node*>());
@@ -276,11 +265,80 @@ struct Graph {
 			}
 			for (auto it = temp_vec.begin(); it != temp_vec.end(); ++it) {
 				auto next_it = (it + 1 != temp_vec.end()) ? it + 1 : temp_vec.begin();
-				(*it)->addEdge((*next_it));
+				addEdge((*it), (*next_it));
 			}
 		}
 	}
+
+	void addEdge(Node* a, Node* b) {
+		m_edge_vec.push_back(std::unique_ptr<Edge>(new Edge(a, b)));
+		a->m_edges.push_back(m_edge_vec.back().get());
+		b->m_edges.push_back(m_edge_vec.back().get());
+	}
+
+	/*
+	Return true if edge between a and b in not intersectiong 
+	any edges exept the edges that is connected to a and b.
+	*/
+	bool isEdgeLegal(Node* a, Node* b) {
+		wykobi::segment<float, 2> ab_segment = wykobi::make_segment(a->getPos(), b->getPos());
+		std::vector<Edge*> exclude_edges;
+		exclude_edges.insert(exclude_edges.end(), a->m_edges.begin(), a->m_edges.end());
+		exclude_edges.insert(exclude_edges.end(), b->m_edges.begin(), b->m_edges.end());
+		for (auto & edge_ptr : m_edge_vec) {
+			if (std::find(exclude_edges.begin(), exclude_edges.end(), edge_ptr.get()) == exclude_edges.end()) {
+				wykobi::segment<float, 2> test_segment = wykobi::make_segment(edge_ptr->m_a->getPos(), edge_ptr->m_b->getPos());
+				if (wykobi::intersect(ab_segment, test_segment)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	/*
+	Traverse bridge
+	*/
+	std::vector<Node*> traverseBridgeClockwise(Edge* edge, Node* start_node) {
+		std::vector<Node*> out_vec;
+		out_vec.push_back(start_node);
+		Node* current_node = edge->getNode(start_node);
+		Edge* current_edge = edge;
+		current_edge->visit(current_node);
+		while (current_node != start_node) {
+			out_vec.push_back(current_node);
+			current_edge->visit(current_node);
+			current_edge = current_node->getClockwiseMost(current_edge);
+			current_node = current_edge->getNode(current_node);
+		}
+		return out_vec;
+	}
+	std::vector<Node*> traverseBridgeCounterClockwise(Edge* edge, Node* start_node) {
+		std::vector<Node*> out_vec;
+		out_vec.push_back(start_node);
+		Node* current_node = edge->getNode(start_node);
+		Edge* current_edge = edge;
+		current_edge->visit(current_node);
+		while (current_node != start_node) {
+			out_vec.push_back(current_node);
+			current_edge->visit(current_node);
+			current_edge = current_node->getCounterClockwiseMost(current_edge);
+			current_node = current_edge->getNode(current_node);
+		}
+		return out_vec;
+	}
+
+
+	EditorPath makeEditorPath(std::vector<Node*> node_vec) {
+		EditorPath path;
+		for (Node* node : node_vec) {
+			path.push_back(node->m_point);
+		}
+		return path;
+	}
 };
+
+
 
 std::vector<EditorPath> EditorPath::removeHull() {
 	//EXPEREMENTAL
@@ -295,16 +353,46 @@ std::vector<EditorPath> EditorPath::removeHull() {
 	//make graph of path and hulls
 	//keep track of what objects nodes belong to
 	//for each hull, find two edges, edge must either bridge to other object or outer path
+	//avoid nodes having more then 3 edges
 	//bridges are undirected, so one bridge counts as +1 bridge for both objects
 	//for each bridge traverse both directions, mark bridges as visited
 
 	Graph graph(*this);
 
+	std::vector<Edge*> hull_bridge_vec;
 	for (std::vector<Node*> & hull : graph.m_hull_vec) {
+		std::vector<Edge*> current_bridge_vec;
+		std::size_t bridge_count = 0;
+		for (Node* n : hull) {
+			if (n->m_edges.size() > 2) {
+				++bridge_count;
+			}
+		}
 
+		for (auto hull_it = hull.begin(); hull_it != hull.end() && bridge_count < 2; ++hull_it) {
+			for (auto & node_ptr : graph.m_node_vec) {
+				if (graph.isEdgeLegal((*hull_it), node_ptr.get())) {
+					graph.addEdge((*hull_it), node_ptr.get());
+					current_bridge_vec.push_back(graph.m_edge_vec.back().get());
+					++bridge_count;
+					break;
+				}
+			}
+		}
+		assert(bridge_count == 2);
+		hull_bridge_vec.insert(hull_bridge_vec.end(), current_bridge_vec.begin(), current_bridge_vec.end());
 	}
 
 	std::vector<EditorPath> out_vec;
+	
+	for (auto it = hull_bridge_vec.begin(); it != hull_bridge_vec.end(); ++it) {
+		if (!(*it)->getVisited((*it)->m_a)) {
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeClockwise((*it), (*it)->m_a)));
+		}
+		if (!(*it)->getVisited((*it)->m_b)) {
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_b)));
+		}
+	}
 
 	return out_vec;
 }
@@ -313,7 +401,6 @@ std::string EditorPath::toString() {
 	std::ostringstream s;
 	for (auto it = begin(); it != end(); ++it) {
 		s << "(" << (*it)->getPos().x << "," << (*it)->getPos().y << ")";
-		if (it + 1 != end()) s << "->";
 	}
 	return s.str();
 }

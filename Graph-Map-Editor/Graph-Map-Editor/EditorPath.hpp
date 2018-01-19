@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <functional>
 
+#include <iostream>
 #include <sstream>
 
 #include <wykobi.hpp>
