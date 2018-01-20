@@ -145,11 +145,7 @@ bool EditorPath::Edge::clockVisit(Node* n) {
 	assert(n == m_a || n == m_b);
 	Node* next_node = this->getNode(n);
 	Edge* next_edge = next_node->getClockwiseMost(this);
-	while (next_edge->m_is_bridge) {
-		next_node = next_edge->getNode(next_node);
-		next_edge = next_node->getClockwiseMost(next_edge);
-		assert(next_edge != this);
-	}
+	
 	if (!next_edge->m_visited) {
 		return false;
 	}
@@ -162,11 +158,7 @@ bool EditorPath::Edge::counterClockVisit(Node* n) {
 	assert(n == m_a || n == m_b);
 	Node* next_node = this->getNode(n);
 	Edge* next_edge = next_node->getCounterClockwiseMost(this);
-	while (next_edge->m_is_bridge) {
-		next_node = next_edge->getNode(next_node);
-		next_edge = next_node->getCounterClockwiseMost(next_edge);
-		assert(next_edge != this);
-	}
+
 	if (!next_edge->m_visited) {
 		return false;
 	}
@@ -393,7 +385,7 @@ std::vector<EditorPath> EditorPath::removeHull() {
 		}
 		for (auto hull_it = hull.begin(); hull_it != hull.end() && bridge_count < 2; ++hull_it) {
 			for (auto & node_ptr : graph.m_node_vec) {
-				if (graph.isEdgeLegal((*hull_it), node_ptr.get())) {
+				if (std::find(hull.begin(), hull.end(), node_ptr.get()) == hull.end() && graph.isEdgeLegal((*hull_it), node_ptr.get())) {
 					graph.addEdge((*hull_it), node_ptr.get());
 					graph.m_edge_vec.back()->m_is_bridge = true;
 					current_bridge_vec.push_back(graph.m_edge_vec.back().get());
