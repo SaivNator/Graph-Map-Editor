@@ -269,7 +269,7 @@ EditorPath::Graph::Graph(EditorPath & path) {
 		addEdge((*it), (*next_it));
 	}
 	for (EditorPath & hull : path.getHulls()) {
-		m_hull_vec.push_back(std::vector<Node*>());
+		m_hull_vec.push_back(Hull());
 		std::vector<Node*> & temp_vec = m_hull_vec.back();
 		for (MapPoint* p : hull) {
 			m_node_vec.push_back(std::unique_ptr<Node>(new Node(p)));
@@ -304,9 +304,9 @@ bool EditorPath::Graph::isEdgeLegal(Node* a, Node* b) {
 	return true;
 }
 
-std::vector<EditorPath::Node*> EditorPath::Graph::traverseBridgeClockwise(Edge* edge, Node* start_node) {
+EditorPath::Path EditorPath::Graph::traverseBridgeClockwise(Edge* edge, Node* start_node) {
 	assert(start_node == edge->m_a || start_node == edge->m_b);
-	std::vector<Node*> out_vec;
+	Path out_vec;
 	out_vec.push_back(start_node);
 	Edge* current_edge = edge;
 		
@@ -323,9 +323,9 @@ std::vector<EditorPath::Node*> EditorPath::Graph::traverseBridgeClockwise(Edge* 
 	}
 	return out_vec;
 }
-std::vector<EditorPath::Node*> EditorPath::Graph::traverseBridgeCounterClockwise(Edge* edge, Node* start_node) {
+EditorPath::Path EditorPath::Graph::traverseBridgeCounterClockwise(Edge* edge, Node* start_node) {
 	assert(start_node == edge->m_a || start_node == edge->m_b);
-	std::vector<Node*> out_vec;
+	Path out_vec;
 	out_vec.push_back(start_node);
 	Edge* current_edge = edge;
 
@@ -344,7 +344,7 @@ std::vector<EditorPath::Node*> EditorPath::Graph::traverseBridgeCounterClockwise
 }
 
 
-EditorPath EditorPath::Graph::makeEditorPath(std::vector<Node*> node_vec) {
+EditorPath EditorPath::Graph::makeEditorPath(Path node_vec) {
 	EditorPath path;
 	for (Node* node : node_vec) {
 		path.push_back(node->m_point);
@@ -352,8 +352,39 @@ EditorPath EditorPath::Graph::makeEditorPath(std::vector<Node*> node_vec) {
 	return path;
 }
 
+std::pair<EditorPath::Path::iterator, EditorPath::Path::iterator> EditorPath::Graph::closestNodes(Path & path_1, Path & path_2) {
+	std::pair<Path::iterator, Path::iterator> pair;
+	auto path_1_centroid = path_1.centroid();
+	auto path_2_centroid = path_2.centroid();
+	pair.first = path_1.begin();
+	float low = wykobi::distance((*pair.first)->getPos(), path_2_centroid);
+	for (auto it = path_1.begin() + 1; it != path_1.end(); ++it) {
+		float test = wykobi::distance((*it)->getPos(), path_2_centroid);
+		if (test < low) {
+			low = test;
+			pair.first = it;
+		}
+	}
+	pair.second = path_2.begin();
+	low = wykobi::distance((*pair.second)->getPos(), path_1_centroid);
+	for (auto it = path_2.begin() + 1; it != path_2.end(); ++it) {
+		float test = wykobi::distance((*it)->getPos(), path_1_centroid);
+		if (test < low) {
+			low = test;
+			pair.second = it;
+		}
+	}
+	return pair;
+}
 
+bool EditorPath::Graph::connectPath(Path & p1, Path & p2) {
+	std::vector<Node*> exclude;
+	return connectPath(p1, p2, exclude);
+}
 
+bool EditorPath::Graph::connectPath(Path & p1, Path & p2, std::vector<Node*>& exclude) {
+	return false;
+}
 
 std::vector<EditorPath> EditorPath::removeHull() {
 	//EXPEREMENTAL
@@ -365,16 +396,16 @@ std::vector<EditorPath> EditorPath::removeHull() {
 		this->reverse();
 	}
 	
+
+	Graph graph(*this);
+	std::vector<Edge*> hull_bridge_vec;
+#if 0
 	//make graph of path and hulls
 	//keep track of what objects nodes belong to
 	//for each hull, find two edges, edge must either bridge to other object or outer path
 	//avoid nodes having more then 3 edges
 	//bridges are undirected, so one bridge counts as +1 bridge for both objects
 	//for each bridge traverse both directions, mark bridges as visited
-
-	Graph graph(*this);
-
-	std::vector<Edge*> hull_bridge_vec;
 	for (std::vector<Node*> & hull : graph.m_hull_vec) {
 		std::vector<Edge*> current_bridge_vec;
 		std::size_t bridge_count = 0;
@@ -385,9 +416,8 @@ std::vector<EditorPath> EditorPath::removeHull() {
 		}
 		for (auto hull_it = hull.begin(); hull_it != hull.end() && bridge_count < 2; ++hull_it) {
 			for (auto & node_ptr : graph.m_node_vec) {
-				if (std::find(hull.begin(), hull.end(), node_ptr.get()) == hull.end() && graph.isEdgeLegal((*hull_it), node_ptr.get())) {
+				if (/*node_ptr->m_edges.size() < 3 && */std::find(hull.begin(), hull.end(), node_ptr.get()) == hull.end() && graph.isEdgeLegal((*hull_it), node_ptr.get())) {
 					graph.addEdge((*hull_it), node_ptr.get());
-					graph.m_edge_vec.back()->m_is_bridge = true;
 					current_bridge_vec.push_back(graph.m_edge_vec.back().get());
 					++bridge_count;
 					break;
@@ -399,26 +429,48 @@ std::vector<EditorPath> EditorPath::removeHull() {
 			hull_bridge_vec.insert(hull_bridge_vec.end(), current_bridge_vec.begin(), current_bridge_vec.end());
 		}
 	}
+#else
+
+	//find all hulls that cannot connect to outer path, mark them as such
+
+
+	//find bridge between vertex in path and vertex in a hull (prefferably close to each other)
+	//mark hull as connected
+
+	//find most left hull
+	//connect left to right
+	
+	std::vector<std::reference_wrapper<Hull>> not_connected(graph.m_hull_vec.begin(), graph.m_hull_vec.end());
+	std::vector<std::reference_wrapper<Hull>> connected;
+
+	std::sort(not_connected.begin(), not_connected.end(),
+		[](Hull & h1, Hull & h2) { return h1.centroid().x > h2.centroid().x; }
+	);
+
+	std::reference_wrapper<Hull> current_hull = not_connected.back();
+	not_connected.pop_back();
+
+	while (!not_connected.empty()) {
+		
+	}
+
+
+
+#endif
+
 
 	std::cout << "hull_bridge_vec.size() = " << hull_bridge_vec.size() << "\n";
-
 	std::vector<EditorPath> out_vec;
-	
 	for (auto it = hull_bridge_vec.begin(); it != hull_bridge_vec.end(); ++it) {
 		if (!(*it)->clockVisit((*it)->m_a)) {
-
 			std::cout << (*it) << "\tclockwise" << "\n";
-
 			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeClockwise((*it), (*it)->m_a)));
 		}
 		if (!(*it)->counterClockVisit((*it)->m_a)) {
-			
-			std::cout << (*it) << "\tcounterclockwise" << "\n";
-			
+			std::cout << (*it) << "\tcounterclockwise" << "\n";		
 			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_a)));
 		}
 	}
-
 	return out_vec;
 }
 
@@ -428,4 +480,13 @@ std::string EditorPath::toString() {
 		s << "(" << (*it)->getPos().x << "," << (*it)->getPos().y << ")";
 	}
 	return s.str();
+}
+
+wykobi::point2d<float> EditorPath::Path::centroid() {
+	wykobi::polygon<float, 2> poly;
+	poly.reserve(size());
+	for (Node* n : *this) {
+		poly.push_back(n->getPos());
+	}
+	return wykobi::centroid(poly);
 }

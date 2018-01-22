@@ -42,6 +42,10 @@ int main() {
 	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(380.f, 80.f))));
 	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(320.f, 80.f))));
 
+	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(220.f, 220.f))));
+	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(280.f, 220.f))));
+	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(280.f, 280.f))));
+	points.push_back(std::unique_ptr<MapPoint>(new MapPoint(wykobi::make_point(220.f, 280.f))));
 
 	EditorPath path;
 	path.push_back(points[0].get());
@@ -73,10 +77,17 @@ int main() {
 	hull_4.push_back(points[18].get());
 	hull_4.push_back(points[19].get());
 
+	EditorPath hull_5;
+	hull_5.push_back(points[20].get());
+	hull_5.push_back(points[21].get());
+	hull_5.push_back(points[22].get());
+	hull_5.push_back(points[23].get());
+
 	path.getHulls().push_back(hull_1);
 	path.getHulls().push_back(hull_2);
 	path.getHulls().push_back(hull_3);
 	path.getHulls().push_back(hull_4);
+	//path.getHulls().push_back(hull_5);
 
 	std::vector<EditorPath> path_vec = path.removeHull();
 
@@ -85,6 +96,7 @@ int main() {
 	std::cout << hull_2.toString() << "\n";
 	std::cout << hull_3.toString() << "\n";
 	std::cout << hull_4.toString() << "\n";
+	//std::cout << hull_5.toString() << "\n";
 
 	std::cout << "output:\n";
 	for (EditorPath & p : path_vec) {

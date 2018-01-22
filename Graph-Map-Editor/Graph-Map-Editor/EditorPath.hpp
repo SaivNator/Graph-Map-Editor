@@ -80,13 +80,13 @@ public:
 private:
 	struct Edge;
 	struct Node;
+	struct Hull;
 	struct Graph;
 
 	struct Edge {
 		Node* m_a;
 		Node* m_b;
 
-		bool m_is_bridge = false;
 		bool m_visited = false;
 
 		/*
@@ -119,14 +119,32 @@ private:
 		Edge* getCounterClockwiseMost(Edge* prev_edge);
 	};
 
+	struct Path : public std::vector<Node*> {
+		wykobi::point2d<float> centroid();
+	};
+
+	struct Hull : public Path {
+		bool m_connected = false;
+		bool m_connected_to_path = false;
+		bool m_legal_to_path = false;
+
+		
+	};
+
 	struct Graph {
 		std::vector<std::unique_ptr<Node>> m_node_vec;
-		std::vector<Node*> m_outer_path;
-		std::vector<std::vector<Node*>> m_hull_vec;
+		Path m_outer_path;
+		std::vector<Hull> m_hull_vec;
 		std::vector<std::unique_ptr<Edge>> m_edge_vec;
 
+		/*
+		Constructor
+		*/
 		Graph(EditorPath & path);
 
+		/*
+		Add edge
+		*/
 		void addEdge(Node* a, Node* b);
 
 		/*
@@ -138,10 +156,29 @@ private:
 		/*
 		Traverse bridge
 		*/
-		std::vector<Node*> traverseBridgeClockwise(Edge* edge, Node* start_node);
-		std::vector<Node*> traverseBridgeCounterClockwise(Edge* edge, Node* start_node);
+		Path traverseBridgeClockwise(Edge* edge, Node* start_node);
+		Path traverseBridgeCounterClockwise(Edge* edge, Node* start_node);
 
-		EditorPath makeEditorPath(std::vector<Node*> node_vec);
+		/*
+		Make editor path
+		*/
+		EditorPath makeEditorPath(Path node_vec);
+	
+		/*
+		Return two points that are close to each other in each path,
+		not guaranteed to be the closest points 
+		*/
+		std::pair<Path::iterator, Path::iterator> closestNodes(Path & path_1, Path & path_2);
+		
+		/*
+		Try to connect two Paths
+		Fill test if legal
+		Return: 
+			true if successful
+			false if unsuccessful
+		*/
+		bool connectPath(Path & p1, Path & p2);
+		bool connectPath(Path & p1, Path & p2, std::vector<Node*> & exclude);
 	};
 
 
