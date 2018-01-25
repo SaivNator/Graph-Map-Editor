@@ -102,8 +102,6 @@ int main() {
 	for (EditorPath & p : path_vec) {
 		std::cout << p.toString() << "\n";
 	}
-	
-	
 
 
 

@@ -377,13 +377,119 @@ std::pair<EditorPath::Path::iterator, EditorPath::Path::iterator> EditorPath::Gr
 	return pair;
 }
 
-bool EditorPath::Graph::connectPath(Path & p1, Path & p2) {
-	std::vector<Node*> exclude;
-	return connectPath(p1, p2, exclude);
+EditorPath::Edge* EditorPath::Graph::connectPath(Path & p1, Path & p2) {
+	auto it_pair = closestNodes(p1, p2);
+	Path::iterator it_1 = it_pair.first;
+	do {
+		Path::iterator it_2 = it_pair.second;
+		do {
+			if (isEdgeLegal((*it_1), (*it_2))) {
+				addEdge((*it_1), (*it_2));
+				return m_edge_vec.back().get();
+			}
+			it_2 = (it_2 + 1 != p2.end()) ? it_2 + 1 : p2.begin();
+		} while (it_2 != it_pair.second);
+		it_1 = (it_1 + 1 != p1.end()) ? it_1 + 1 : p1.begin();
+	} while (it_1 != it_pair.first);
+	return nullptr;
 }
 
-bool EditorPath::Graph::connectPath(Path & p1, Path & p2, std::vector<Node*>& exclude) {
-	return false;
+EditorPath::Edge* EditorPath::Graph::connectPath(Path & p1, Path & p2, std::vector<Node*> & exclude) {
+	auto it_pair = closestNodes(p1, p2);
+	Path::iterator it_1 = it_pair.first;
+	do {
+		if (std::find(exclude.begin(), exclude.end(), (*it_1)) != exclude.end()) {
+			it_1 = (it_1 + 1 != p1.end()) ? it_1 + 1 : p1.begin();
+			continue;
+		}
+		Path::iterator it_2 = it_pair.second;
+		do {
+			if (std::find(exclude.begin(), exclude.end(), (*it_2)) != exclude.end()) {
+				it_2 = (it_2 + 1 != p2.end()) ? it_2 + 1 : p2.begin();
+				continue;
+			}
+			if (isEdgeLegal((*it_1), (*it_2))) {
+				addEdge((*it_1), (*it_2));
+				return m_edge_vec.back().get();
+			}
+			it_2 = (it_2 + 1 != p2.end()) ? it_2 + 1 : p2.begin();
+		} while (it_2 != it_pair.second);
+		it_1 = (it_1 + 1 != p1.end()) ? it_1 + 1 : p1.begin();
+	} while (it_1 != it_pair.first);
+	return nullptr;
+}
+
+bool EditorPath::Graph::connectHull(Hull & hull) {
+	bool outer_path_failed = false;
+	bool hull_failed = false;
+
+	std::vector<Hull*> connected_queue;
+
+	while (hull.m_connect_count < 2 && !hull_failed) {
+		Edge* result = nullptr;
+		if (!outer_path_failed) {
+			//try to connect to outer path
+			if (hull.m_exclude.empty()) {
+				result = connectPath(hull, m_outer_path);
+			} 
+			else {
+				result = connectPath(hull, m_outer_path, hull.m_exclude);
+			}
+			if (result != nullptr) {
+				++hull.m_connect_count;
+				hull.m_exclude.push_back(result->m_a);
+				hull.m_exclude.push_back(result->m_b);
+				m_hull_bridge_vec.push_back(m_edge_vec.back().get());
+			}
+			else {
+				outer_path_failed = true;
+				if (m_connected_hulls.empty()) {
+					hull_failed = true;
+				}
+				else {
+					if (m_connected_hulls.size() > 1) {
+						wykobi::point2d<float> hull_centroid = hull.centroid();
+						connected_queue.insert(connected_queue.end(), m_connected_hulls.begin(), m_connected_hulls.end());
+						std::sort(connected_queue.begin(), connected_queue.end(),
+							[&](Hull* h1, Hull* h2) 
+							{ return wykobi::distance(hull_centroid, h1->centroid()) > wykobi::distance(hull_centroid, h2->centroid()); }
+						);
+					}
+					else {
+						connected_queue.push_back(m_connected_hulls.front());
+					}
+				}
+			}
+		}
+		else {
+			Hull* attempt_hull = connected_queue.back();
+			if (hull.m_exclude.empty()) {
+				result = connectPath(hull, *attempt_hull);
+			}
+			else {
+				result = connectPath(hull, *attempt_hull, hull.m_exclude);
+			}
+			if (result != nullptr) {
+				++hull.m_connect_count;
+				hull.m_exclude.push_back(result->m_a);
+				hull.m_exclude.push_back(result->m_b);
+				m_hull_bridge_vec.push_back(m_edge_vec.back().get());
+			}
+			else {
+				connected_queue.pop_back();
+				if (connected_queue.empty()) {
+					hull_failed = true;
+				}
+			}
+		}
+	}
+
+	if (hull.m_connect_count == 2) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 std::vector<EditorPath> EditorPath::removeHull() {
@@ -396,10 +502,9 @@ std::vector<EditorPath> EditorPath::removeHull() {
 		this->reverse();
 	}
 	
-
 	Graph graph(*this);
-	std::vector<Edge*> hull_bridge_vec;
 #if 0
+	std::vector<Edge*> hull_bridge_vec;
 	//make graph of path and hulls
 	//keep track of what objects nodes belong to
 	//for each hull, find two edges, edge must either bridge to other object or outer path
@@ -429,36 +534,6 @@ std::vector<EditorPath> EditorPath::removeHull() {
 			hull_bridge_vec.insert(hull_bridge_vec.end(), current_bridge_vec.begin(), current_bridge_vec.end());
 		}
 	}
-#else
-
-	//find all hulls that cannot connect to outer path, mark them as such
-
-
-	//find bridge between vertex in path and vertex in a hull (prefferably close to each other)
-	//mark hull as connected
-
-	//find most left hull
-	//connect left to right
-	
-	std::vector<std::reference_wrapper<Hull>> not_connected(graph.m_hull_vec.begin(), graph.m_hull_vec.end());
-	std::vector<std::reference_wrapper<Hull>> connected;
-
-	std::sort(not_connected.begin(), not_connected.end(),
-		[](Hull & h1, Hull & h2) { return h1.centroid().x > h2.centroid().x; }
-	);
-
-	std::reference_wrapper<Hull> current_hull = not_connected.back();
-	not_connected.pop_back();
-
-	while (!not_connected.empty()) {
-		
-	}
-
-
-
-#endif
-
-
 	std::cout << "hull_bridge_vec.size() = " << hull_bridge_vec.size() << "\n";
 	std::vector<EditorPath> out_vec;
 	for (auto it = hull_bridge_vec.begin(); it != hull_bridge_vec.end(); ++it) {
@@ -467,11 +542,60 @@ std::vector<EditorPath> EditorPath::removeHull() {
 			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeClockwise((*it), (*it)->m_a)));
 		}
 		if (!(*it)->counterClockVisit((*it)->m_a)) {
-			std::cout << (*it) << "\tcounterclockwise" << "\n";		
+			std::cout << (*it) << "\tcounterclockwise" << "\n";
 			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_a)));
 		}
 	}
 	return out_vec;
+#else
+	//find all hulls that cannot connect to outer path, mark them as such
+
+	//find bridge between vertex in path and vertex in a hull (prefferably close to each other)
+	//mark hull as connected
+
+	//find most left hulls
+	//connect left to right
+	
+	std::list<Hull*> not_connected_queue;
+	for (Hull & hull : graph.m_hull_vec) {
+		not_connected_queue.push_back(&hull);
+	}
+
+	if (not_connected_queue.size() > 1) {
+		not_connected_queue.sort(
+			[](Hull* h1, Hull* h2) 
+			{ return h1->centroid().x < h2->centroid().x; }
+		);
+	}
+	
+	while (!not_connected_queue.empty()) {
+		Hull* current_hull = not_connected_queue.front();
+		not_connected_queue.pop_front();
+		if (graph.connectHull(*current_hull)) {
+			//if this then current_hull is connected
+			graph.m_connected_hulls.push_back(current_hull);
+		}
+		else {
+			//if this then place hull back in queue
+			not_connected_queue.push_back(current_hull);
+		}
+		//std::cout << current_hull->m_connect_count << "\n";
+	}
+
+	std::cout << "hull_bridge_vec.size() = " << graph.m_hull_bridge_vec.size() << "\n";
+	std::vector<EditorPath> out_vec;
+	for (auto it = graph.m_hull_bridge_vec.begin(); it != graph.m_hull_bridge_vec.end(); ++it) {
+		if (!(*it)->clockVisit((*it)->m_a)) {
+			std::cout << (*it) << "\tclockwise" << "\n";
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeClockwise((*it), (*it)->m_a)));
+		}
+		if (!(*it)->counterClockVisit((*it)->m_a)) {
+			std::cout << (*it) << "\tcounterclockwise" << "\n";
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_a)));
+		}
+	}
+	return out_vec;
+#endif
 }
 
 std::string EditorPath::toString() {

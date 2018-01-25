@@ -5,6 +5,7 @@
 #define EditorPath_HEADER
 
 #include <vector>
+#include <list>
 #include <map>
 #include <algorithm>
 #include <functional>
@@ -124,11 +125,8 @@ private:
 	};
 
 	struct Hull : public Path {
-		bool m_connected = false;
-		bool m_connected_to_path = false;
-		bool m_legal_to_path = false;
-
-		
+		std::size_t m_connect_count = 0;
+		std::vector<Node*> m_exclude;
 	};
 
 	struct Graph {
@@ -136,6 +134,9 @@ private:
 		Path m_outer_path;
 		std::vector<Hull> m_hull_vec;
 		std::vector<std::unique_ptr<Edge>> m_edge_vec;
+
+		std::vector<Hull*> m_connected_hulls;	//BEEP BOOP
+		std::vector<Edge*> m_hull_bridge_vec;
 
 		/*
 		Constructor
@@ -174,11 +175,13 @@ private:
 		Try to connect two Paths
 		Fill test if legal
 		Return: 
-			true if successful
-			false if unsuccessful
+			Edge* if successful
+			nullptr if unsuccessful
 		*/
-		bool connectPath(Path & p1, Path & p2);
-		bool connectPath(Path & p1, Path & p2, std::vector<Node*> & exclude);
+		Edge* connectPath(Path & p1, Path & p2);
+		Edge* connectPath(Path & p1, Path & p2, std::vector<Node*> & exclude);
+
+		bool connectHull(Hull & hull);
 	};
 
 
