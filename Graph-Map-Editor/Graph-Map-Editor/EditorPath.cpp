@@ -548,26 +548,16 @@ std::vector<EditorPath> EditorPath::removeHull() {
 	}
 	return out_vec;
 #else
-	//find all hulls that cannot connect to outer path, mark them as such
-
-	//find bridge between vertex in path and vertex in a hull (prefferably close to each other)
-	//mark hull as connected
-
-	//find most left hulls
-	//connect left to right
-	
 	std::list<Hull*> not_connected_queue;
 	for (Hull & hull : graph.m_hull_vec) {
 		not_connected_queue.push_back(&hull);
 	}
-
 	if (not_connected_queue.size() > 1) {
 		not_connected_queue.sort(
 			[](Hull* h1, Hull* h2) 
 			{ return h1->centroid().x < h2->centroid().x; }
 		);
 	}
-	
 	while (!not_connected_queue.empty()) {
 		Hull* current_hull = not_connected_queue.front();
 		not_connected_queue.pop_front();
@@ -581,16 +571,15 @@ std::vector<EditorPath> EditorPath::removeHull() {
 		}
 		//std::cout << current_hull->m_connect_count << "\n";
 	}
-
-	std::cout << "hull_bridge_vec.size() = " << graph.m_hull_bridge_vec.size() << "\n";
+	//std::cout << "hull_bridge_vec.size() = " << graph.m_hull_bridge_vec.size() << "\n";
 	std::vector<EditorPath> out_vec;
 	for (auto it = graph.m_hull_bridge_vec.begin(); it != graph.m_hull_bridge_vec.end(); ++it) {
 		if (!(*it)->clockVisit((*it)->m_a)) {
-			std::cout << (*it) << "\tclockwise" << "\n";
+			//std::cout << (*it) << "\tclockwise" << "\n";
 			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeClockwise((*it), (*it)->m_a)));
 		}
 		if (!(*it)->counterClockVisit((*it)->m_a)) {
-			std::cout << (*it) << "\tcounterclockwise" << "\n";
+			//std::cout << (*it) << "\tcounterclockwise" << "\n";
 			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_a)));
 		}
 	}
