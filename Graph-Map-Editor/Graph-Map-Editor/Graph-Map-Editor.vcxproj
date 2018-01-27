@@ -148,6 +148,7 @@
     <ClCompile Include="MapTriangle.cpp" />
     <ClCompile Include="MouseMoveHandler.cpp" />
     <ClCompile Include="MouseZoomHandler.cpp" />
+    <ClCompile Include="RemoveHull.cpp" />
     <ClCompile Include="ViewPort.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -166,6 +167,7 @@
     <ClInclude Include="ImageUtil.hpp" />
     <ClInclude Include="MouseMoveHandler.hpp" />
     <ClInclude Include="MouseZoomHandler.hpp" />
+    <ClInclude Include="RemoveHull.hpp" />
     <ClInclude Include="ViewPort.hpp" />
     <ClInclude Include="Window.hpp" />
   </ItemGroup>

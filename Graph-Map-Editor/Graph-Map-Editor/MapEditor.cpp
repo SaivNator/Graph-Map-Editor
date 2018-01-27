@@ -106,8 +106,9 @@ EditorPath MapEditor::outerChunkPath(MapChunk & chunk) {
 			}
 		}
 		if (between.size() > 1) {
-			std::sort(between.begin(), between.end(), [&](MapPoint* p1, MapPoint* p2)
-			{ return (wykobi::distance(corner_points[i]->getPos(), p1->getPos()) < wykobi::distance(corner_points[i]->getPos(), p2->getPos())); }
+			std::sort(between.begin(), between.end(), 
+				[&](MapPoint* p1, MapPoint* p2)
+				{ return (wykobi::distance(corner_points[i]->getPos(), p1->getPos()) < wykobi::distance(corner_points[i]->getPos(), p2->getPos())); }
 			);
 		}
 		path.push_back(corner_points[i]);
@@ -158,12 +159,14 @@ std::map<MapGroundType, std::vector<EditorPath>> MapEditor::mergeTrianglesInChun
 						current_path.erase(shared_edge_vec[1].second);
 					}
 					else {
-						//if two edges and are not consecutive, then hull exist ?????
-
+						//if two edges and are not consecutive.
+						//this should never happend
+						assert(false);
 					}
 				}
 				else if (shared_edge_vec.size() == 3) {
-					//if three edges then triangle is a single hull ?????
+					//if three edges then either a sub-hull is created or a sub-hull is made in to a hull or a hull is filled in by the triangle
+
 					assert(false);
 				}
 				else {

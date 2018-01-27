@@ -10,6 +10,8 @@ EditorTriangle::EditorTriangle(const std::array<MapPoint*, 3> points) :
 MapPoint* EditorTriangle::getOddPoint(MapPoint* p1, MapPoint* p2) {
 	EditorTriangle::iterator it_1 = std::find(this->begin(), this->end(), p1);
 	EditorTriangle::iterator it_2 = std::find(this->begin(), this->end(), p2);
+	//points must be in triangle
+	assert(it_1 != this->end() && it_2 != this->end());
 	if (it_1 + 1 != this->end() && it_1 + 1 != it_2) {
 		return (*it_1 + 1);
 	}
