@@ -68,13 +68,6 @@ public:
 	std::vector<EditorPath> & getHulls();
 
 	/*
-	Remove hulls
-	Return paths without hulls that represent this path
-	If no hulls then return copy of this
-	*/
-	std::vector<EditorPath> removeHull();
-
-	/*
 	TO STRING FOR DEBUG
 	*/
 	std::string toString();

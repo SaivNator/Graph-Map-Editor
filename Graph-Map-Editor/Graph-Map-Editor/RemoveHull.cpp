@@ -368,3 +368,98 @@ wykobi::point2d<float> RemoveHull::Path::centroid() {
 	}
 	return wykobi::centroid(poly);
 }
+
+std::vector<EditorPath> RemoveHull::removeHull(EditorPath & path) {
+	//EXPEREMENTAL
+	if (path.empty()) {
+		return std::vector<EditorPath>({ path });
+	}
+
+	if (path.orientation() != wykobi::Clockwise) {
+		path.reverse();
+	}
+
+	RemoveHull::Graph graph(path);
+#if 0
+	std::vector<Edge*> hull_bridge_vec;
+	//make graph of path and hulls
+	//keep track of what objects nodes belong to
+	//for each hull, find two edges, edge must either bridge to other object or outer path
+	//avoid nodes having more then 3 edges
+	//bridges are undirected, so one bridge counts as +1 bridge for both objects
+	//for each bridge traverse both directions, mark bridges as visited
+	for (std::vector<Node*> & hull : graph.m_hull_vec) {
+		std::vector<Edge*> current_bridge_vec;
+		std::size_t bridge_count = 0;
+		for (Node* n : hull) {
+			if (n->m_edges.size() > 2) {
+				++bridge_count;
+			}
+		}
+		for (auto hull_it = hull.begin(); hull_it != hull.end() && bridge_count < 2; ++hull_it) {
+			for (auto & node_ptr : graph.m_node_vec) {
+				if (/*node_ptr->m_edges.size() < 3 && */std::find(hull.begin(), hull.end(), node_ptr.get()) == hull.end() && graph.isEdgeLegal((*hull_it), node_ptr.get())) {
+					graph.addEdge((*hull_it), node_ptr.get());
+					current_bridge_vec.push_back(graph.m_edge_vec.back().get());
+					++bridge_count;
+					break;
+				}
+			}
+		}
+		assert(bridge_count >= 2);
+		if (!current_bridge_vec.empty()) {
+			hull_bridge_vec.insert(hull_bridge_vec.end(), current_bridge_vec.begin(), current_bridge_vec.end());
+		}
+	}
+	std::cout << "hull_bridge_vec.size() = " << hull_bridge_vec.size() << "\n";
+	std::vector<EditorPath> out_vec;
+	for (auto it = hull_bridge_vec.begin(); it != hull_bridge_vec.end(); ++it) {
+		if (!(*it)->clockVisit((*it)->m_a)) {
+			std::cout << (*it) << "\tclockwise" << "\n";
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeClockwise((*it), (*it)->m_a)));
+		}
+		if (!(*it)->counterClockVisit((*it)->m_a)) {
+			std::cout << (*it) << "\tcounterclockwise" << "\n";
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_a)));
+		}
+	}
+	return out_vec;
+#else
+	std::list<RemoveHull::Hull*> not_connected_queue;
+	for (RemoveHull::Hull & hull : graph.m_hull_vec) {
+		not_connected_queue.push_back(&hull);
+	}
+	if (not_connected_queue.size() > 1) {
+		not_connected_queue.sort(
+			[](RemoveHull::Hull* h1, RemoveHull::Hull* h2)
+		{ return h1->centroid().x < h2->centroid().x; }
+		);
+	}
+	while (!not_connected_queue.empty()) {
+		RemoveHull::Hull* current_hull = not_connected_queue.front();
+		not_connected_queue.pop_front();
+		if (graph.connectHull(*current_hull)) {
+			//if this then current_hull is connected
+			graph.m_connected_hulls.push_back(current_hull);
+		}
+		else {
+			//if this then place hull back in queue
+			not_connected_queue.push_back(current_hull);
+		}
+		//std::cout << current_hull->m_connect_count << "\n";
+	}
+	//std::cout << "hull_bridge_vec.size() = " << graph.m_hull_bridge_vec.size() << "\n";
+	std::vector<EditorPath> out_vec;
+	for (auto it = graph.m_hull_bridge_vec.begin(); it != graph.m_hull_bridge_vec.end(); ++it) {
+		if (!(*it)->clockVisit((*it)->m_a)) {
+			//std::cout << (*it) << "\tclockwise" << "\n";
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeClockwise((*it), (*it)->m_a)));
+		}
+		if (!(*it)->counterClockVisit((*it)->m_a)) {
+			//std::cout << (*it) << "\tcounterclockwise" << "\n";
+			out_vec.push_back(graph.makeEditorPath(graph.traverseBridgeCounterClockwise((*it), (*it)->m_a)));
+		}
+	}
+	return out_vec;
+#endif
+}

@@ -13,6 +13,9 @@
 class EditorPath;
 
 namespace RemoveHull {
+
+	std::vector<EditorPath> removeHull(EditorPath & path);
+
 	struct Edge;
 	struct Node;
 	struct Hull;
