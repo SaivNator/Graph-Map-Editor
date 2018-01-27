@@ -19,6 +19,16 @@ public:
 	Get MapPoint that is not input
 	*/
 	MapPoint* getOddPoint(MapPoint* p1, MapPoint* p2);
+
+	/*
+	Orientation
+	*/
+	int orientation();
+
+	/*
+	Reverse
+	*/
+	void reverse();
 };
 
 #endif // !EditorTriangle_HEADER

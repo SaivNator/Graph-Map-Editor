@@ -71,7 +71,6 @@ public:
 	TO STRING FOR DEBUG
 	*/
 	std::string toString();
-
 };
 
 #endif // !

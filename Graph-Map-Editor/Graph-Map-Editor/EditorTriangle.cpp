@@ -20,3 +20,16 @@ MapPoint* EditorTriangle::getOddPoint(MapPoint* p1, MapPoint* p2) {
 	}
 	return this->front();
 }
+
+int EditorTriangle::orientation() {
+	wykobi::polygon<float, 2> poly;
+	poly.reserve(this->size());
+	for (MapPoint* p : *this) {
+		poly.push_back(p->getPos());
+	}
+	return wykobi::polygon_orientation(poly);
+}
+
+void EditorTriangle::reverse() {
+	std::reverse(this->begin(), this->end());
+}
