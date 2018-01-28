@@ -18,7 +18,7 @@
 #include "MapPoint.hpp"
 #include "EditorTriangle.hpp"
 
-#include "RemoveHull.hpp"
+//#include "RemoveHull.hpp"
 
 class EditorPath : public std::vector<MapPoint*> {
 	std::vector<EditorPath> m_hulls;

@@ -146,6 +146,7 @@
     <ClCompile Include="MapGroundRenderer.cpp" />
     <ClCompile Include="MapPoint.cpp" />
     <ClCompile Include="MapTriangle.cpp" />
+    <ClCompile Include="MergeTriangles.cpp" />
     <ClCompile Include="MouseMoveHandler.cpp" />
     <ClCompile Include="MouseZoomHandler.cpp" />
     <ClCompile Include="RemoveHull.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="MapPoint.hpp" />
     <ClInclude Include="MapTriangle.hpp" />
     <ClInclude Include="ImageUtil.hpp" />
+    <ClInclude Include="MergeTriangles.hpp" />
     <ClInclude Include="MouseMoveHandler.hpp" />
     <ClInclude Include="MouseZoomHandler.hpp" />
     <ClInclude Include="RemoveHull.hpp" />

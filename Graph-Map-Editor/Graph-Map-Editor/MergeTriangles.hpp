@@ -8,6 +8,9 @@
 #include <map>
 #include <memory>
 
+#include <wykobi.hpp>
+
+#include "MapPoint.hpp"
 #include "EditorPath.hpp"
 #include "EditorTriangle.hpp"
 
@@ -18,12 +21,13 @@ namespace MergeTriangles {
 	EditorPath mergeTriangle(std::vector<EditorTriangle> & triangle_vec);
 	
 	struct Node;
+	struct Path;
 	struct Graph;
 
 	struct Node {
 		MapPoint* m_point;
 		std::vector<Node*> m_edges;
-		std::vector<Node*> m_in_edges;
+		//std::vector<Node*> m_in_edges;
 		bool m_visited = false;
 
 		/*
@@ -35,6 +39,21 @@ namespace MergeTriangles {
 		Add edge
 		*/
 		void addEdge(Node* n);
+
+		/*
+		Get pos
+		*/
+		wykobi::point2d<float> getPos();
+
+		/*
+		Get clockwisemost edge
+		*/
+		Node* getClockwiseMost(Node* prev_node);
+
+		/*
+		Get counterclockwisemost edge
+		*/
+		Node* getCounterClockwiseMost(Node* prev_node);
 	};
 
 	struct Graph {
@@ -43,7 +62,7 @@ namespace MergeTriangles {
 		/*
 		Constructor
 		This will build the graph in the order or the triangles in the vector
-		if a triangle is not connected to the first triangle in the vector then it will be dropped
+		NOT IMPLEMENTED -> if a triangle is not connected to the first triangle in the vector then it will be dropped
 		*/
 		Graph(std::vector<EditorTriangle> & triangles);
 
@@ -51,7 +70,7 @@ namespace MergeTriangles {
 		Traverse outer path and find hulls
 		return EditorPath containing outer path and hulls
 		*/
-
+		EditorPath traverse();
 	};
 }
 
