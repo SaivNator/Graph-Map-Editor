@@ -33,3 +33,11 @@ int EditorTriangle::orientation() {
 void EditorTriangle::reverse() {
 	std::reverse(this->begin(), this->end());
 }
+
+std::string EditorTriangle::toString() {
+	std::ostringstream s;
+	for (auto it = begin(); it != end(); ++it) {
+		s << "(" << (*it)->getPos().x << "," << (*it)->getPos().y << ")";
+	}
+	return s.str();
+}

@@ -3,9 +3,9 @@
 
 EditorPath MergeTriangles::mergeTriangle(std::vector<EditorTriangle>& triangle_vec) {
 
+	Graph graph(triangle_vec);
 
-
-	return EditorPath();
+	return graph.traverse();
 }
 
 MergeTriangles::Node::Node(MapPoint* point_ptr) :
@@ -27,7 +27,7 @@ MergeTriangles::Node * MergeTriangles::Node::getClockwiseMost(Node * prev_node) 
 	std::vector<Node*> edges = m_edges;
 	std::vector<Node*>::iterator it = std::find(edges.begin(), edges.end(), prev_node);
 	//assert(it != edges.end()); //fake node is not part of the graph
-	if (it != m_edges.end()) {
+	if (it != edges.end()) {
 		edges.erase(it);
 	}
 	if (edges.empty()) return nullptr;
@@ -63,7 +63,7 @@ MergeTriangles::Node * MergeTriangles::Node::getCounterClockwiseMost(Node * prev
 	std::vector<Node*> edges = m_edges;
 	std::vector<Node*>::iterator it = std::find(edges.begin(), edges.end(), prev_node);
 	//assert(it != edges.end()); //fake node is not part of the graph
-	if (it != m_edges.end()) {
+	if (it != edges.end()) {
 		edges.erase(it);
 	}
 	if (edges.empty()) return nullptr;

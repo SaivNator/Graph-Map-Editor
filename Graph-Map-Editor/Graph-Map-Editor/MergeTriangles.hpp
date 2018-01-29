@@ -21,7 +21,6 @@ namespace MergeTriangles {
 	EditorPath mergeTriangle(std::vector<EditorTriangle> & triangle_vec);
 	
 	struct Node;
-	struct Path;
 	struct Graph;
 
 	struct Node {

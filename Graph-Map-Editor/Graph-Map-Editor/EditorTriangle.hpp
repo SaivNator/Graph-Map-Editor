@@ -5,6 +5,8 @@
 #define EditorTriangle_HEADER
 
 #include <array>
+#include <iostream>
+#include <sstream>
 
 #include "MapPoint.hpp"
 
@@ -29,6 +31,11 @@ public:
 	Reverse
 	*/
 	void reverse();
+
+	/*
+	TO STRING FOR DEBUG
+	*/
+	std::string toString();
 };
 
 #endif // !EditorTriangle_HEADER
