@@ -142,7 +142,7 @@ EditorPath MergeTriangles::Graph::traverse() {
 	}
 
 	//traverse
-	MapPoint fake_point(start_node->getPos() - wykobi::make_point(-1.f, -1.f));
+	MapPoint fake_point(start_node->getPos() + wykobi::make_point(-1.f, -1.f));
 	Node fake_node(&fake_point);
 
 	std::vector<Node*> outer_path;

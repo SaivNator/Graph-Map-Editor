@@ -39,9 +39,13 @@ namespace RemoveHull {
 		Node* getNode(Node* n);
 
 		/*
-		Check if next edge has been traversed
+		Check if next clockwise edge has been traversed
 		*/
 		bool clockVisit(Node* n);
+
+		/*
+		Check if next counter clockwise edge has been traversed
+		*/
 		bool counterClockVisit(Node* n);
 	};
 
@@ -49,16 +53,31 @@ namespace RemoveHull {
 		MapPoint* m_point;
 		std::vector<Edge*> m_edges;
 
+		/*
+		Constructor
+		*/
 		Node(MapPoint* point_ptr);
 
+		/*
+		Get pos
+		*/
 		wykobi::point2d<float> getPos();
 
+		/*
+		Get clockwise mose
+		*/
 		Edge* getClockwiseMost(Edge* prev_edge);
-
+		
+		/*
+		Get counter clockwise most
+		*/
 		Edge* getCounterClockwiseMost(Edge* prev_edge);
 	};
 
 	struct Path : public std::vector<Node*> {
+		/*
+		Get centroid
+		*/
 		wykobi::point2d<float> centroid();
 	};
 
@@ -72,7 +91,6 @@ namespace RemoveHull {
 		Path m_outer_path;
 		std::vector<Hull> m_hull_vec;
 		std::vector<std::unique_ptr<Edge>> m_edge_vec;
-
 		std::vector<Hull*> m_connected_hulls;	//BEEP BOOP
 		std::vector<Edge*> m_hull_bridge_vec;
 

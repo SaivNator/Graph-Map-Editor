@@ -36,6 +36,11 @@ public:
 	TO STRING FOR DEBUG
 	*/
 	std::string toString();
+
+	/*
+	TO POINTER STRING FOR DEBUG
+	*/
+	std::string toPointerString();
 };
 
 #endif // !EditorTriangle_HEADER

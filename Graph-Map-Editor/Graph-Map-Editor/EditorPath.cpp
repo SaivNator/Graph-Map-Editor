@@ -134,3 +134,12 @@ std::string EditorPath::toString() {
 	return s.str();
 }
 
+std::string EditorPath::toPointerString() {
+	std::ostringstream s;
+	for (auto it = begin(); it != end(); ++it) {
+		s << "[" << (*it) << "]" << "(" << (*it)->getPos().x << "," << (*it)->getPos().y << ")";
+		if (it != end() - 1) s << " ";
+	}
+	return s.str();
+}
+
