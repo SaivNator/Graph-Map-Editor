@@ -169,6 +169,7 @@
     <ClInclude Include="MergeTriangles.hpp" />
     <ClInclude Include="MouseMoveHandler.hpp" />
     <ClInclude Include="MouseZoomHandler.hpp" />
+    <ClInclude Include="PointMap.hpp" />
     <ClInclude Include="RemoveHull.hpp" />
     <ClInclude Include="ViewPort.hpp" />
     <ClInclude Include="Window.hpp" />

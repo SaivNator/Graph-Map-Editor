@@ -27,7 +27,9 @@ namespace MergeTriangles {
 		MapPoint* m_point;
 		std::vector<Node*> m_edges;
 		//std::vector<Node*> m_in_edges;
+		bool m_is_outer = false;
 		bool m_visited = false;
+		bool m_is_searched = false;
 
 		/*
 		Constructor
@@ -70,6 +72,11 @@ namespace MergeTriangles {
 		return EditorPath containing outer path and hulls
 		*/
 		EditorPath traverse();
+	
+		/*
+		Find hulls
+		*/
+		std::vector<EditorPath> findHull();
 	};
 }
 

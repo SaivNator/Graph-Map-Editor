@@ -122,5 +122,8 @@
     <ClInclude Include="MergeTriangles.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PointMap.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

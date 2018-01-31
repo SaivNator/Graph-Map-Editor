@@ -160,7 +160,22 @@ EditorPath MergeTriangles::Graph::traverse() {
 
 	EditorPath out_path;
 	for (Node* n : outer_path) {
+		n->m_is_outer = true;
 		out_path.push_back(n->m_point);
 	}
 	return out_path;
+}
+
+std::vector<EditorPath> MergeTriangles::Graph::findHull() {
+
+	std::vector<Node*> pending_nodes;
+	for (auto & node_ptr : m_nodes) {
+		if (!node_ptr->m_is_outer) {
+			pending_nodes.push_back(node_ptr.get());
+		}
+	}
+
+
+
+	return std::vector<EditorPath>();
 }

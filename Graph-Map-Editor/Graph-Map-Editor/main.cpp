@@ -46,19 +46,12 @@ int main() {
 
 		}
 	}
+
+
+	triangle_vec.erase(triangle_vec.begin() + 1);
+	//triangle_vec.erase(triangle_vec.begin() + 1);
 	
-	//triangle_vec.push_back(EditorTriangle({ points[0].get(), points[0].get(), points[0].get() }));
-	//triangle_vec.push_back(EditorTriangle({ points[0].get(), points[1].get(), points[3].get() }));
-	//triangle_vec.push_back(EditorTriangle({ points[1].get(), points[3].get(), points[4].get() }));
-	//
-	//triangle_vec.push_back(EditorTriangle({ points[1].get(), points[2].get(), points[4].get() }));
-	//triangle_vec.push_back(EditorTriangle({ points[2].get(), points[4].get(), points[5].get() }));
-	//
-	//triangle_vec.push_back(EditorTriangle({ points[3].get(), points[4].get(), points[6].get() }));
-	//triangle_vec.push_back(EditorTriangle({ points[4].get(), points[6].get(), points[7].get() }));
-	//
-	//triangle_vec.push_back(EditorTriangle({ points[4].get(), points[5].get(), points[7].get() }));
-	//triangle_vec.push_back(EditorTriangle({ points[5].get(), points[7].get(), points[8].get() }));
+
 
 	std::cout << "Triangles:\n";
 	for (EditorTriangle & t : triangle_vec) {
