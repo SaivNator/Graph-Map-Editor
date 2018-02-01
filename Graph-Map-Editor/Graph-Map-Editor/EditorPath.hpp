@@ -21,9 +21,17 @@
 //#include "RemoveHull.hpp"
 
 class EditorPath : public std::vector<MapPoint*> {
+public:
 	std::vector<EditorPath> m_hulls;
 
-public:
+
+	/*
+	Constructor
+	*/
+	EditorPath();
+	EditorPath(const std::vector<MapPoint*> outer);
+	EditorPath(const std::vector<MapPoint*> outer, const std::vector<EditorPath> hulls);
+
 	/*
 	Check if path and triangle has a shared edge
 	Return vector of pairs of iterators that make up edges

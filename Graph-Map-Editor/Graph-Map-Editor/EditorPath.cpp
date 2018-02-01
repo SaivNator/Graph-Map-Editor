@@ -2,6 +2,21 @@
 
 #include "EditorPath.hpp"
 
+EditorPath::EditorPath()
+{
+}
+
+EditorPath::EditorPath(const std::vector<MapPoint*> outer) :
+	std::vector<MapPoint*>(outer)
+{
+}
+
+EditorPath::EditorPath(const std::vector<MapPoint*> outer, const std::vector<EditorPath> hulls) :
+	std::vector<MapPoint*>(outer),
+	m_hulls(hulls)
+{
+}
+
 std::vector<std::pair<EditorPath::iterator, EditorPath::iterator>> EditorPath::sharedEdge(EditorTriangle & triangle) {
 	std::vector<std::pair<EditorPath::iterator, EditorPath::iterator>> out_vec;
 	for (EditorTriangle::iterator tri_it_1 = triangle.begin(); tri_it_1 != triangle.end(); ++tri_it_1) {

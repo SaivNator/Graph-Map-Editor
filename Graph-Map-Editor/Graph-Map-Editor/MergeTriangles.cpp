@@ -5,7 +5,11 @@ EditorPath MergeTriangles::mergeTriangle(std::vector<EditorTriangle>& triangle_v
 
 	Graph graph(triangle_vec);
 
-	return graph.traverse();
+	EditorPath path(graph.traverse());
+
+	path.m_hulls = graph.findHull();
+
+	return path;
 }
 
 MergeTriangles::Node::Node(MapPoint* point_ptr) :
@@ -175,7 +179,73 @@ std::vector<EditorPath> MergeTriangles::Graph::findHull() {
 		}
 	}
 
+	std::vector<std::vector<Node*>> hull_vec;
 
+	for (Node* node : pending_nodes) {
+		if (!node->m_visited) {
+			for (Node* e : node->m_edges) {
+				//if this then traverse edge
 
-	return std::vector<EditorPath>();
+				std::vector<Node*> current_path;
+				current_path.push_back(node);
+
+				node->m_visited = true;
+
+				Node* last_node = node;
+				Node* current_node = e;
+				while (!current_node->m_visited) {
+
+					//assert(!(current_node->m_is_outer && last_node->m_is_outer));
+					//if ((current_node->m_is_outer && last_node->m_is_outer)) break;
+
+					current_node->m_visited = true;
+
+					current_path.push_back(current_node);
+
+					Node* next_node = current_node->getCounterClockwiseMost(last_node);
+
+					last_node = current_node;
+					current_node = next_node;
+				}
+				if (current_node == node && !checkBackTrackPath(current_path)) {
+					//if this then we have successful hull traversal
+					hull_vec.push_back(current_path);
+				}
+				else {
+					//remove m_visited
+					for (Node* n : current_path) {
+						n->m_visited = false;
+					}
+				}
+
+			}
+		}
+	}
+
+	if (hull_vec.empty()) {
+		return std::vector<EditorPath>();
+	}
+
+	//copy to EditorPath
+	std::vector<EditorPath> out_vec;
+	out_vec.reserve(hull_vec.size());
+	for (auto & p : hull_vec) {
+		out_vec.push_back(EditorPath());
+		for (Node* n : p) {
+			out_vec.back().push_back(n->m_point);
+		}
+	}
+
+	return out_vec;
+}
+
+bool MergeTriangles::Graph::checkBackTrackPath(std::vector<Node*>& path) {
+	for (auto it = path.rbegin(); it != path.rend() - 1; ++it) {
+		Node* current_node = (*it);
+		Node* next_node = (*(it + 1));
+		if (std::find(current_node->m_edges.begin(), current_node->m_edges.end(), next_node) == current_node->m_edges.end()) {
+			return false;
+		}
+	}
+	return true;
 }

@@ -11,6 +11,7 @@
 #include "Window.hpp"
 
 #include "EditorPath.hpp"
+#include "RemoveHull.hpp"
 #include "MergeTriangles.hpp"
 
 int main() {
@@ -48,8 +49,11 @@ int main() {
 	}
 
 
-	triangle_vec.erase(triangle_vec.begin() + 1);
 	//triangle_vec.erase(triangle_vec.begin() + 1);
+	triangle_vec.erase(triangle_vec.begin() + (width * 2 + 5));
+	//triangle_vec.erase(triangle_vec.begin() + (width * 2 + 5));
+	//triangle_vec.erase(triangle_vec.begin() + (width * 2 + 5));
+	
 	
 
 
@@ -62,8 +66,15 @@ int main() {
 	EditorPath merged_path = MergeTriangles::mergeTriangle(triangle_vec);
 	std::cout << merged_path.toString() << "\n";
 
+	std::cout << "Hulls:\n";
+	for (auto & h : merged_path.m_hulls) {
+		std::cout << h.toString() << "\n";
+	}
 
-
+	std::cout << "RemoveHull:\n";
+	for (auto p : RemoveHull::removeHull(merged_path)) {
+		std::cout << p.toString() << "\n";
+	}
 
 
 	return EXIT_SUCCESS;
